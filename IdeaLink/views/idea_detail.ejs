@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>아이디어 상세</title>
+  <link rel="stylesheet" href="/stylesheets/idea_detail.css">
+  <link rel="stylesheet" href="/stylesheets/nav.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="index.html" class="logo">💡 IdeaLink</a>
+        <ul class="nav-links">
+          <li><a href="index.html">홈</a></li>
+          <li><a href="ideas.html">아이디어 목록</a></li>
+          <li><a href="notice.html">공지사항</a></li>
+          <li><a href="mypage.html">마이페이지</a></li>
+        </ul>
+        <div class="hamburger">☰</div>
+      </div>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1 class="title">스마트 냉장고 알림 시스템</h1>
+    <div class="meta">
+      <span class="category">카테고리: IT/전자</span>
+      <span class="author">작성자: user01</span>
+      <span class="date">등록일: 2025-03-29</span>
+    </div>
+
+    <div class="content">
+      <h2>아이디어 요약</h2>
+      <p>
+        이 시스템은 냉장고 내부의 재료를 자동 인식하고, 유통기한이 임박하면 스마트폰으로 알려줍니다.
+        실시간 상태 확인과 레시피 추천도 포함됩니다.
+      </p>
+
+      <h2>주요 기능</h2>
+      <ul>
+        <li>RFID 센서 기반 식재료 자동 인식</li>
+        <li>유통기한 알림 및 레시피 추천</li>
+        <li>스마트폰 앱 연동</li>
+      </ul>
+
+      <h2>첨부 파일</h2>
+      <p>📄 product-idea.pdf<br>🖼 sample-diagram.jpg</p>
+    </div>
+
+    <div class="detail-actions">
+      <button id="likeBtn">🤍 좋아요</button>
+      <button id="reportBtn">🚨 신고</button>
+    </div>
+
+    <div class="comments">
+      <h2>💬 댓글</h2>
+      <ul class="comment-list">
+        <li><strong>user02</strong> : 좋은 아이디어네요!</li>
+        <li><strong>user03</strong> : 실제로 제품화되면 유용할 것 같아요.</li>
+      </ul>
+      <div class="comment-form">
+        <input type="text" id="commentInput" placeholder="댓글을 입력하세요">
+        <button id="submitComment">등록</button>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <button onclick="location.href='ideas.html'">← 목록으로 돌아가기</button>
+    </div>
+  </div>
+
+  <script src="/javascripts/idea_detail.js"></script>
+  <script src="/javascripts/nav.js"></script>
+</body>
+</html>

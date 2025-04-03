@@ -1,0 +1,159 @@
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #f8f9fa;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    max-width: 800px;
+    margin: 100px auto 40px;
+    padding: 0 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .title {
+    font-size: 28px;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  
+  .meta {
+    text-align: center;
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  
+  .meta span {
+    margin: 0 8px;
+  }
+  
+  .content {
+    padding: 20px;
+  }
+  
+  .content h2 {
+    margin-top: 20px;
+    font-size: 20px;
+    color: #333;
+  }
+  
+  .content p {
+    line-height: 1.6;
+    color: #444;
+    margin-top: 10px;
+  }
+  
+  .content ul {
+    margin-top: 10px;
+    padding-left: 20px;
+    color: #444;
+  }
+  
+  .detail-actions {
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  .detail-actions button {
+    margin: 0 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    background-color: #f1f3f5;
+    transition: background 0.2s ease;
+  }
+  
+  .detail-actions button:hover {
+    background-color: #dee2e6;
+  }
+  
+  .comments {
+    padding: 20px;
+    border-top: 1px solid #ddd;
+  }
+  
+  .comment-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 20px;
+  }
+  
+  .comment-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    color: #333;
+    font-size: 14px;
+  }
+  
+  .comment-form {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .comment-form input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+  
+  .comment-form button {
+    padding: 10px 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .comment-form button:hover {
+    background: #0056b3;
+  }
+  
+  .footer-actions {
+    text-align: center;
+    margin: 30px 0 40px;
+  }
+  
+  .footer-actions button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .footer-actions button:hover {
+    background-color: #0056b3;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      margin-top: 60px;
+      padding: 0 12px;
+    }
+    .title {
+      font-size: 22px;
+    }
+    .meta {
+      font-size: 13px;
+    }
+    .content h2 {
+      font-size: 18px;
+    }
+    .footer-actions button {
+      width: 100%;
+    }
+  }
+  
