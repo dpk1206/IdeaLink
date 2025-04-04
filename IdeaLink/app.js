@@ -1,10 +1,12 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-const ejs = require('ejs');
-var cors = require('cors');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const ejs = require('ejs'); // ejs 뷰엔진진
+const cors = require('cors'); // 외부 url요청청
+const fs = require('fs') // 파일시스템
+const multer = require("multer"); // 이미지 관련련
 
 
 var indexRouter = require('./routes/index'); // 라우터 파일 설정1
