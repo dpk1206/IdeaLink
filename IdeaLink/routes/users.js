@@ -14,15 +14,17 @@ router.get("/aaa", function (req, res, next) {
 // db연결
 const testController = require("../controllers/testcon");
 
+// router.get("/bbb", async function (req, res, next) {
+//   try {
+//     const result = await testController.selectTest();
+//     console.log("라우터 콘솔 ", result);
+//     res.render("aaa", { title: result });
+//   } catch (err) {
+//     console.error(err);
+//   }
+// });
 router.get("/bbb", async function (req, res, next) {
-  try {
-    const result = await testController.selectTest();
-    console.log("라우터 콘솔 ", result);
-    res.render("aaa", { title: result });
-  } catch (err) {
-    console.error(err);
-  }
+  const result = await testController.selectTest(req, res);
 });
-
 
 module.exports = router;

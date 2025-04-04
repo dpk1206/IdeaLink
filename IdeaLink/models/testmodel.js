@@ -6,7 +6,7 @@ exports.selectTest = async function () {
   const sql = "select * from test_table";
   try {
     const [result] = await conn.promise().query(sql);
-
+ㅑ
     console.log(result);
     return result;
   } catch (err) {
