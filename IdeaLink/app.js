@@ -6,7 +6,13 @@ const logger = require('morgan');
 const ejs = require('ejs'); // ejs 뷰엔진진
 const cors = require('cors'); // 외부 url요청청
 const fs = require('fs') // 파일시스템
-const multer = require("multer"); // 이미지 관련련
+const multer = require("multer"); // 이미지 관련
+
+// DB 연결
+const db_config = require('./config/dbconn');
+const conn = db_config.init();
+db_config.connect(conn);
+
 
 
 var indexRouter = require('./routes/index'); // 라우터 파일 설정1

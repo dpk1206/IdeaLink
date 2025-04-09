@@ -1,118 +1,114 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>로그인 / 회원가입</title>
-    <link rel="stylesheet" href="/stylesheets/sign.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로그인 / 회원가입</title>
+  <link rel="stylesheet" href="/stylesheets/sign.css" />
 </head>
 <body>
-    <!-- 커밋테스트 -->
-    <div class="back-button">
-        <a href="/">
-          <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          
-        </a>
-      </div>
+  <div class="back-button">
+    <a href="/">
+      <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </a>
+  </div>
 
-    <div class="container" id="container">
-
-        <!-- 모바일 전용 로그인/회원가입 토글 버튼 -->
-        <div class="mobile-toggle">
-            <button id="mobileLoginBtn" class="active">로그인</button>
-            <button id="mobileSignupBtn">회원가입</button>
-        </div>
-
-        <!-- 회원가입 -->
-        <div class="form-container sign-up-container" id="signUpForm">
-            <form action="#">
-                <h1>회원가입</h1>
-
-                <!-- 사용자 유형 선택 -->
-                <div class="user-type">
-                    <input type="radio" id="personal" name="userType" value="personal" checked>
-                    <label for="personal" class="user-type-option">개인</label>
-
-                    <input type="radio" id="company" name="userType" value="company">
-                    <label for="company" class="user-type-option">기업</label>
-                </div>
-
-                <!-- 개인 회원가입 폼 -->
-                <div class="personal-form">
-                    <div class="social-container" id="socialLoginBox">
-                        <a href="#" class="social naver">
-                            <span class="icon">N</span>
-                            <span class="text">네이버 아이디로 로그인</span>
-                        </a>
-                        <a href="#" class="social kakao">
-                            <span class="icon">Talk</span>
-                            <span class="text">카카오 아이디로 로그인</span>
-                        </a>
-                    </div>
-
-                    <span>또는 이메일로 가입하기</span>
-
-                    <input type="text" placeholder="이름" required />
-                    <input type="email" placeholder="이메일" required />
-                    <input type="password" placeholder="비밀번호" required />
-                </div>
-
-                <!-- 기업 회원가입 폼 -->
-                <div class="company-form" style="display: none;">
-                    <input type="text" placeholder="회사 이름" required />
-                    <input type="text" placeholder="사업자 등록번호" required />
-                    <input type="text" placeholder="회사 전화번호" required />
-                    <input type="text" placeholder="회사 주소" required />
-                    <input type="text" placeholder="회사 웹사이트" />
-                    <input type="email" placeholder="담당자 이메일" required />
-                    <input type="password" placeholder="비밀번호" required />
-                </div>
-
-                <button>가입 완료</button>
-            </form>
-        </div>
-
-        <!-- 로그인 -->
-        <div class="form-container sign-in-container" id="signInForm">
-            <form action="#">
-                <h1>로그인</h1>
-                <div class="social-container">
-                    <a href="#" class="social naver">
-                        <span class="icon">N</span>
-                        <span class="text">네이버 아이디로 로그인</span>
-                    </a>
-                    <a href="#" class="social kakao">
-                        <span class="icon">Talk</span>
-                        <span class="text">카카오 아이디로 로그인</span>
-                    </a>
-                </div>
-                <span>또는 이메일로 로그인하세요</span>
-                <input type="email" placeholder="이메일" required />
-                <input type="password" placeholder="비밀번호" required />
-                <a href="#">비밀번호를 잊으셨나요?</a>
-                <button>로그인</button>
-            </form>
-        </div>
-
-        <!-- 오버레이 -->
-        <div class="overlay-container">
-            <div class="overlay">
-                <div class="overlay-panel overlay-left">
-                    <h1>오신 걸 환영합니다 :)</h1>
-                    <p>이미 가입하셨다면 로그인 후 서비스를 이용해 주세요.</p>
-                    <button class="ghost" id="signIn">로그인</button>
-                </div>
-                <div class="overlay-panel overlay-right">
-                    <h1>처음이신가요?</h1>
-                    <p>간편한 회원가입으로 아이디어 마켓을 시작해보세요.</p>
-                    <button class="ghost" id="signUp">회원가입</button>
-                </div>
-            </div>
-        </div>
+  <div class="container" id="container">
+    <!-- 모바일 전용 로그인/회원가입 토글 버튼 -->
+    <div class="mobile-toggle">
+      <button id="mobileLoginBtn" class="active">로그인</button>
+      <button id="mobileSignupBtn">회원가입</button>
     </div>
 
-    <script src="/javascripts/sign.js"></script>
+    <!-- 회원가입 -->
+    <div class="form-container sign-up-container" id="signUpForm">
+      <form action="/users/register" method="POST">
+        <h1>회원가입</h1>
+
+        <!-- 사용자 유형 선택 -->
+        <div class="user-type">
+          <input type="radio" id="personal" name="userType" value="personal" checked />
+          <label for="personal" class="user-type-option">개인</label>
+          <input type="radio" id="company" name="userType" value="company" />
+          <label for="company" class="user-type-option">기업</label>
+        </div>
+
+        <!-- 개인 회원가입 폼 -->
+        <div class="personal-form">
+          <div class="social-container" id="socialLoginBox">
+            <a href="#" class="social naver">
+              <span class="icon">N</span>
+              <span class="text">네이버 아이디로 로그인</span>
+            </a>
+            <a href="#" class="social kakao">
+              <span class="icon">Talk</span>
+              <span class="text">카카오 아이디로 로그인</span>
+            </a>
+          </div>
+
+          <span>또는 이메일로 가입하기</span>
+
+          <input type="text" name="name" placeholder="이름" />
+          <input type="email" name="email" placeholder="이메일" />
+          <input type="password" name="password" placeholder="비밀번호" />
+        </div>
+
+        <!-- 기업 회원가입 폼 -->
+        <div class="company-form" style="display: none;">
+          <input type="text" name="company_name" placeholder="회사 이름" />
+          <input type="text" name="business_id" placeholder="사업자 등록번호" />
+          <input type="text" name="company_phone" placeholder="회사 전화번호" />
+          <input type="text" name="company_address" placeholder="회사 주소" />
+          <input type="text" name="company_website" placeholder="회사 웹사이트" />
+          <input type="email" name="company_email" placeholder="담당자 이메일" />
+          <input type="password" name="company_password" placeholder="비밀번호" />
+        </div>
+
+        <button type="submit">가입 완료</button>
+      </form>
+    </div>
+
+    <!-- 로그인 -->
+    <div class="form-container sign-in-container" id="signInForm">
+      <form action="/users/login" method="POST">
+        <h1>로그인</h1>
+        <div class="social-container">
+          <a href="#" class="social naver">
+            <span class="icon">N</span>
+            <span class="text">네이버 아이디로 로그인</span>
+          </a>
+          <a href="#" class="social kakao">
+            <span class="icon">Talk</span>
+            <span class="text">카카오 아이디로 로그인</span>
+          </a>
+        </div>
+        <span>또는 이메일로 로그인하세요</span>
+        <input type="email" name="email" placeholder="이메일" required />
+        <input type="password" name="password" placeholder="비밀번호" required />
+        <a href="#">비밀번호를 잊으셨나요?</a>
+        <button type="submit">로그인</button>
+      </form>
+    </div>
+
+    <!-- 오버레이 -->
+    <div class="overlay-container">
+      <div class="overlay">
+        <div class="overlay-panel overlay-left">
+          <h1>오신 걸 환영합니다 :)</h1>
+          <p>이미 가입하셨다면 로그인 후 서비스를 이용해 주세요.</p>
+          <button class="ghost" id="signIn">로그인</button>
+        </div>
+        <div class="overlay-panel overlay-right">
+          <h1>처음이신가요?</h1>
+          <p>간편한 회원가입으로 아이디어 마켓을 시작해보세요.</p>
+          <button class="ghost" id="signUp">회원가입</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/javascripts/sign.js"></script>
 </body>
 </html>

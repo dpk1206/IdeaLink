@@ -36,22 +36,22 @@ userTypeInputs.forEach(input => {
 document.addEventListener('DOMContentLoaded', () => {
   updateFormView();
 
-  // 모바일 전용 버튼 동작
+  // 모바일 버튼 동작
   const loginBtn = document.getElementById('mobileLoginBtn');
   const signupBtn = document.getElementById('mobileSignupBtn');
   const signInForm = document.getElementById('signInForm');
-  const signUpForm = document.getElementById('signUpForm');
+  const signUpFormContainer = document.getElementById('signUpForm');
 
   function showLoginForm() {
     signInForm.classList.add('mobile-show');
-    signUpForm.classList.remove('mobile-show');
+    signUpFormContainer.classList.remove('mobile-show');
     loginBtn.classList.add('active');
     signupBtn.classList.remove('active');
   }
 
   function showSignupForm() {
     signInForm.classList.remove('mobile-show');
-    signUpForm.classList.add('mobile-show');
+    signUpFormContainer.classList.add('mobile-show');
     loginBtn.classList.remove('active');
     signupBtn.classList.add('active');
   }
@@ -59,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loginBtn.addEventListener('click', showLoginForm);
   signupBtn.addEventListener('click', showSignupForm);
 
-  // 처음 페이지 진입 시 로그인 폼 보이게
   if (window.innerWidth <= 768) {
     showLoginForm();
   }
