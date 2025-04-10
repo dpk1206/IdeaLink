@@ -1,6 +1,8 @@
 // 회원 관련 DB 함수 가져오기
 const testModel = require("../models/userModel");
 const companyModel = require("../models/companyModel");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 // ✅ 회원가입 처리 함수 (개인/기업 구분)
 exports.registerUser = async function (req, res) {
@@ -36,7 +38,7 @@ exports.registerUser = async function (req, res) {
 
     // ✅ 기업회원일 경우 companies 테이블에 추가 정보 저장
     if (userType === "company") {
-        await companyModel.insertCompanyInfo( 
+      await companyModel.insertCompanyInfo(
         company_name,
         business_id,
         company_phone,
@@ -49,14 +51,14 @@ exports.registerUser = async function (req, res) {
     }
 
     // 회원가입 성공 후 로그인 페이지로 이동
-    res.redirect("/sign_in_up");  // 로그인 페이지로 리디렉션
+    res.redirect("/sign_in_up"); // 로그인 페이지로 리디렉션
   } catch (err) {
     console.error("회원가입 오류:", err);
     res.status(500).send("회원가입 실패");
   }
 };
 
-// ✅ 로그인 처리 함수
+// ✅ 로그인 처리 함수 (JWT 토큰 발급)
 exports.loginUser = async function (req, res) {
   try {
     const { email, password } = req.body;
@@ -64,13 +66,35 @@ exports.loginUser = async function (req, res) {
     const user = await testModel.findUserByEmail(email);
 
     if (!user || user.password !== password) {
-      return res.status(401).send("이메일 또는 비밀번호가 일치하지 않습니다.");
+      return res.status(401).json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
     }
 
-    // 로그인 성공 후 메인 페이지로 이동
-    res.redirect("http://localhost:3000");  // 메인 페이지로 리디렉션
+    // ✅ JWT 토큰 생성
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        userType: user.userType,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN, // 예: "1d"
+      }
+    );
+
+    // ✅ 응답: 토큰과 사용자 정보 반환
+    res.status(200).json({
+      message: "로그인 성공",
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        userType: user.userType,
+      },
+    });
   } catch (err) {
     console.error("로그인 오류:", err);
-    res.status(500).send("로그인 실패");
+    res.status(500).json({ message: "로그인 실패" });
   }
 };
