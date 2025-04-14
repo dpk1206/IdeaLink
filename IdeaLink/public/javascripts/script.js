@@ -49,3 +49,52 @@ function scrollToSection(id) {
     track.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
   }
   
+  // 워드클라우드
+  // $(document).ready(function () {
+    // 테스트용 단어 리스트
+    var words = [
+      {
+        text: "네이버",
+        weight: 13,
+        link: "https://naver.com",
+        color: "green",
+      },
+      { text: "Ipsum", weight: 10 },
+      { text: "노드JS", weight: 9 },
+      { text: "Sit", weight: 8 },
+      { text: "조금은긴단어", weight: 6 },
+      { text: "조금더많이긴단어테스트", weight: 5 },
+      { text: "Adipiscing", weight: 5 },
+      { text: "반갑습니다", weight: 5 },
+      { text: "internationalization", weight: 4 }, // 20자 정도면 잘려서 안 나올 때도 있음
+      { text: "좋은하루", weight: 3 },
+      { text: "Tempus", weight: 2 },
+      { text: "Vestibulum", weight: 1 },
+    ];
+  
+    // jqcloud 라이브러리의 설정
+    var jqCloudSettings = {
+      width: 800,
+      height: 550,
+      steps: 7,
+      fontSize: {
+        from: 0.1,
+        to: 0.03,
+      },
+      autoResize: true,
+      colors: [
+        "#800026",
+        "#bd0026",
+        "#e31a1c",
+        "#fc4e2a",
+        "#fd8d3c",
+        "#feb24c",
+        "#fed976",
+        "#ffeda0",
+        "#ffffcc",
+      ],
+    };
+    // 워드 클라우드 생성
+    $("#wordcloud_div").jQCloud(words, jqCloudSettings);
+  // });
+  

@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title>아이디어 거래 플랫폼</title>
+  <!-- css link -->
   <link rel="stylesheet" href="/stylesheets/style.css">
+  <link rel="stylesheet" type="text/css" href="/stylesheets/jqcloud.min.css" />
 </head>
 <body>
   <!-- 네비게이션 -->
@@ -25,6 +27,8 @@
 
   <!-- 메인 섹션 -->
   <div class="section" id="main">
+    <h2>이번 주 아이디어 키워드</h2>
+    <div id="wordcloud_div"></div>
     <h1 class="fade-in">💡 IdeaLink</h1>
     <p class="fade-in">아이디어의 가치를 연결하다</p>
     <button onclick="scrollToSection('ideas')" class="fade-in">아이디어 보러가기</button>
@@ -81,6 +85,9 @@
     </div>
   </div>
 
+  <!-- js link -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="/javascripts/jqcloud.min.js"></script>
   <script src="/javascripts/script.js"></script>
   <script>
     document.querySelectorAll('.category-link').forEach(card => {

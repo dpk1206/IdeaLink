@@ -11,6 +11,16 @@ router.get('/sign_in_up', function(req, res, next) {
   res.render('sign_in_up');
 });
 
+// 회원가입 정보제공
+router.get('/privacy', function(req, res, next) {
+  res.render('privacy');
+});
+
+// 회원가입 이용약관
+router.get('/terms', function(req, res, next) {
+  res.render('terms');
+});
+
 // FAQ, 건의
 router.get('/faq', function(req, res, next) {
   res.render('suggest_faq');
