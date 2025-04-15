@@ -25,7 +25,18 @@ router.post("/login", async function (req, res, next) {
   }
 });
 
-// 토큰 인증된 사용자만 접근 가능한 라우터 예시 (보호 라우트)
+// ✅ 카카오 로그인 콜백 라우터
+router.get("/kakao/callback", async (req, res, next) => {
+  try {
+    await userController.kakaoCallback(req, res);
+  } catch (err) {
+    console.error("카카오 로그인 콜백 오류:", err);
+    res.status(500).send("카카오 로그인 실패");
+  }
+});
+
+
+// ✅ 토큰 인증된 사용자만 접근 가능한 예시 라우터 (보호 라우트)
 router.get("/profile", authMiddleware, (req, res) => {
   res.json({
     message: "프로필 조회 성공!",
@@ -33,7 +44,7 @@ router.get("/profile", authMiddleware, (req, res) => {
   });
 });
 
-// 테스트 라우트들
+// ✅ 테스트 라우트들
 router.get("/", function (req, res, next) {
   res.send("respond with a resource");
 });

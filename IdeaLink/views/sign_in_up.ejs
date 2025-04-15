@@ -25,7 +25,7 @@
         </div>
 
         <div class="form-container sign-up-container" id="signUpForm">
-            <form action="#">
+            <form action="/users/register" method="POST">
                 <h1>회원가입</h1>
                 <div class="personal-form">
                     <div class="social-container" id="socialLoginBox">
@@ -33,9 +33,10 @@
                             <span class="icon">N</span>
                             <span class="text">네이버 아이디로 로그인</span>
                         </a>
-                        <a href="#" class="social kakao">
+                        <a href="https://kauth.kakao.com/oauth/authorize?client_id=3ed496e628ed6b8f75245ac846a0d328&redirect_uri=http://localhost:3000/users/kakao/callback&response_type=code"
+                            class="social kakao">
                             <span class="icon">Talk</span>
-                            <span class="text">카카오 아이디로 로그인</span>
+                            <span class="text">카카오 회원가입</span>
                         </a>
                     </div>
 
@@ -63,7 +64,9 @@
                         <span class="icon">N</span>
                         <span class="text">네이버 아이디로 로그인</span>
                     </a>
-                    <a href="#" class="social kakao">
+                    <a
+                        href="https://kauth.kakao.com/oauth/authorize?client_id=3ed496e628ed6b8f75245ac846a0d328&redirect_uri=http://localhost:3000/users/kakao/callback&response_type=code"
+                        class="social kakao">
                         <span class="icon">Talk</span>
                         <span class="text">카카오 아이디로 로그인</span>
                     </a>
@@ -215,6 +218,17 @@
 
 
         <script src="/javascripts/sign.js"></script>
+        <script>
+            // 카카오 콜백 후 token=xxx 붙어서 돌아오면 localStorage 저장
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get("token");
+        
+            if (token) {
+              localStorage.setItem("token", token);
+              alert("카카오 로그인 완료!");
+              window.location.href = "/";
+            }
+          </script>
 </body>
 
 </html>

@@ -1,15 +1,30 @@
-// models/userModel.js
 const dbconn = require("../config/dbconn");
 
-// 사용자 정보 저장 (회원가입)
-exports.insertUser = async function (userType, name, email, password) {
+exports.insertUser = async function (user) {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
-  const sql = "INSERT INTO users (user_type, name, email, password) VALUES (?, ?, ?, ?)";
+  
+  // 카카오 로그인 시, password를 null로 설정
+  const password = user.password || null;  // 카카오 로그인인 경우 password는 null로 설정
+
+  const sql = `
+    INSERT INTO user
+    (user_type, name, email, password, nick_name, phone, join_type, sns_id) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
 
   try {
-    const [result] = await conn.promise().query(sql, [userType, name, email, password]);
-    return result; // result.insertId 사용됨
+    const [result] = await conn.promise().query(sql, [
+      user.user_type,
+      user.name,
+      user.email,
+      password,  // 카카오 로그인 시 비밀번호를 null로 설정
+      user.nick_name,
+      user.phone,
+      user.join_type,
+      user.sns_id
+    ]);
+    return result; // result.insertId 사용 가능
   } catch (err) {
     console.error("회원가입 쿼리 오류:", err);
     throw err;
@@ -18,15 +33,16 @@ exports.insertUser = async function (userType, name, email, password) {
   }
 };
 
-// 이메일 중복 확인 함수
+
+// ✅ 이메일 중복 확인
 exports.checkEmailDuplicate = async function (email) {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
-  const sql = "SELECT COUNT(*) AS count FROM users WHERE email = ?";
+  const sql = "SELECT COUNT(*) AS count FROM user WHERE email = ?";
 
   try {
     const [rows] = await conn.promise().query(sql, [email]);
-    return rows[0].count > 0; // 중복되면 true 반환
+    return rows[0].count > 0; // 중복되면 true
   } catch (err) {
     console.error("이메일 중복 확인 오류:", err);
     throw err;
@@ -35,17 +51,34 @@ exports.checkEmailDuplicate = async function (email) {
   }
 };
 
-// 이메일로 사용자 찾기 (로그인용)
+//  ✅ 닉네임 중복 확인 (닉네임도 중복 넣을꺼면 이거 쓰면됨됨)
+// exports.checkNickNameDuplicate = async function (nickName) {
+//   const conn = await dbconn.init();
+//   await dbconn.connect(conn);
+//   const sql = "SELECT COUNT(*) AS count FROM users WHERE nick_name = ?";
+
+//   try {
+//     const [rows] = await conn.promise().query(sql, [nickName]);
+//     return rows[0].count > 0; // 중복되면 true
+//   } catch (err) {
+//     console.error("닉네임 중복 확인 오류:", err);
+//     throw err;
+//   } finally {
+//     await conn.end();
+//   }
+// };
+
+// ✅ 이메일로 사용자 정보 조회 (로그인 시 사용)
 exports.findUserByEmail = async function (email) {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
-  const sql = "SELECT * FROM users WHERE email = ?";
+  const sql = "SELECT * FROM user WHERE email = ?";
 
   try {
     const [rows] = await conn.promise().query(sql, [email]);
-    return rows[0]; // 첫 번째 사용자 정보 반환
+    return rows[0]; // 사용자 1명 반환
   } catch (err) {
-    console.error("로그인 쿼리 오류:", err);
+    console.error("로그인 사용자 조회 오류:", err);
     throw err;
   } finally {
     await conn.end();
