@@ -63,8 +63,7 @@ exports.registerUser = async (req, res) => {
         user_id: userId
       });
     }
-
-    res.redirect("/sign_in_up");
+    res.redirect("/login_signup");
   } catch (err) {
     console.error("회원가입 오류:", err);
     res.status(500).send("회원가입 실패");
