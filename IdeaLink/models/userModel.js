@@ -9,16 +9,16 @@ exports.insertUser = async function (user) {
 
   const sql = `
     INSERT INTO user
-    (user_type, name, email, password, nick_name, phone, join_type, sns_id) 
+    (user_type, email, password, name, nick_name, phone, join_type, sns_id) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   try {
     const [result] = await conn.promise().query(sql, [
       user.user_type,
-      user.name,
       user.email,
       password,  // 카카오 로그인 시 비밀번호를 null로 설정
+      user.name,
       user.nick_name,
       user.phone,
       user.join_type,

@@ -8,13 +8,13 @@ require("dotenv").config();
 exports.registerUser = async (req, res) => {
   try {
     const {
-      user_Type, // 'individual' or 'company'
-      name,
-      nick_name,
+      user_type, // 'individual' or 'company'
       email,
       password,
+      name,
+      nick_name,
       phone,
-      join_type, // 'N', 'K'
+      join_type, // 'N', 'K' ,'E'
       sns_id,
 
       // 회사 정보
@@ -27,12 +27,11 @@ exports.registerUser = async (req, res) => {
       company_password
     } = req.body;
 
-    const userType = user_Type;
-    const finalEmail = userType === "company" ? company_email : email;
-    const finalPassword = userType === "company" ? company_password : password;
-    const finalName = userType === "company" ? company_name : name;
-    const finalNick = userType === "company" ? company_name : nick_name;
-    const finalPhone = userType === "company" ? company_phone : phone;
+    const finalEmail = user_type === "company" ? company_email : email;
+    const finalPassword = user_type === "company" ? company_password : password;
+    const finalName = user_type === "company" ? company_name : name;
+    const finalNick = user_type === "company" ? company_name : nick_name;
+    const finalPhone = user_type === "company" ? company_phone : phone;
 
     const isDuplicate = await userModel.checkEmailDuplicate(finalEmail);
     if (isDuplicate) {
@@ -45,14 +44,14 @@ exports.registerUser = async (req, res) => {
       name: finalName,
       nick_name: finalNick,
       phone: finalPhone,
-      user_type: userType,
+      user_type: user_type,
       join_type,
       sns_id: sns_id || null
     });
 
     const userId = userResult.insertId;
 
-    if (userType === "company") {
+    if (user_type === "company") {
       await companyModel.insertCompanyInfo({
         company_name,
         business_id,
@@ -87,7 +86,7 @@ exports.loginUser = async (req, res) => {
       {
         id: user.id,
         email: user.email,
-        userType: user.user_type, // 수정됨
+        user_type: user.user_type, // 수정됨
       },
       process.env.JWT_SECRET,
       {
@@ -102,7 +101,7 @@ exports.loginUser = async (req, res) => {
         id: user.id,
         email: user.email,
         name: user.name,
-        userType: user.user_type,
+        user_type: user.user_type,
       },
     });
   } catch (err) {
@@ -161,7 +160,7 @@ exports.kakaoCallback = async (req, res) => {
       {
         id: user.id,
         email: user.email,
-        userType: user.user_type,
+        user_type: user.user_type,
       },
       process.env.JWT_SECRET,
       {
