@@ -7,8 +7,8 @@ router.get('/', function(req, res, next) {
 });
 
 // 로그인 회원가입 페이지 이동
-router.get('/sign_in_up', function(req, res, next) {
-  res.render('sign_in_up');
+router.get('/login_signup', function(req, res, next) {
+  res.render('login_signup');
 });
 
 // 회원가입 정보제공

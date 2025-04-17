@@ -1,14 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
   // 로그인 / 회원가입 오버레이 버튼 처리
   const signUpButton = document.getElementById('signUp');
-  const signInButton = document.getElementById('signIn');
+  const loginButton = document.getElementById('login');
   const container = document.getElementById('container');
 
   signUpButton.addEventListener('click', () => {
     container.classList.add('right-panel-active');
   });
 
-  signInButton.addEventListener('click', () => {
+  loginButton.addEventListener('click', () => {
     container.classList.remove('right-panel-active');
   });
 
@@ -77,12 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // 📱 모바일 전용 버튼 처리
   const loginBtn = document.getElementById('mobileLoginBtn');
   const signupBtn = document.getElementById('mobileSignupBtn');
-  const signInForm = document.getElementById('signInForm');
+  const loginForm = document.getElementById('loginForm');
   const signUpFormContainer = document.getElementById('signUpForm');
 
   // 로그인 폼 보이기
   function showLoginForm() {
-    signInForm.classList.add('mobile-show');
+    loginForm.classList.add('mobile-show');
     signUpFormContainer.classList.remove('mobile-show');
     loginBtn.classList.add('active');
     signupBtn.classList.remove('active');
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 회원가입 폼 보이기
   function showSignupForm() {
-    signInForm.classList.remove('mobile-show');
+    loginForm.classList.remove('mobile-show');
     signUpFormContainer.classList.add('mobile-show');
     loginBtn.classList.remove('active');
     signupBtn.classList.add('active');
@@ -105,12 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ✅ 로그인 처리 (fetch로 로그인)
-  const loginSubmitBtn = signInForm.querySelector('button[type="submit"]');
+  const loginSubmitBtn = loginForm.querySelector('button[type="submit"]');
   loginSubmitBtn.type = "button"; // 기본 form 제출 막기
 
   loginSubmitBtn.addEventListener("click", async () => {
-    const email = signInForm.querySelector('input[name="email"]').value;
-    const password = signInForm.querySelector('input[name="password"]').value;
+    const email = loginForm.querySelector('input[name="email"]').value;
+    const password = loginForm.querySelector('input[name="password"]').value;
 
     try {
       const res = await fetch("/users/login", {
