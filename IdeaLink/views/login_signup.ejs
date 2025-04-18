@@ -32,17 +32,22 @@
         <h1>회원가입</h1>
         <div class="personal-form">
           <div class="social-container" id="socialLoginBox">
-            <a href="#" class="social naver">
+            <a
+              href="https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=Nn51JPpYwZ_6U9Zz6fmL&redirect_uri=http://localhost:3000/users/naver/callback&state=naver123"
+              class="social naver">
               <span class="icon">N</span>
-              <span class="text">네이버 아이디로 로그인</span>
+              <span class="text">네이버 회원가입</span>
             </a>
-            <a href="#" class="social kakao">
+
+            <a
+              href="https://kauth.kakao.com/oauth/authorize?client_id=3ed496e628ed6b8f75245ac846a0d328&redirect_uri=http://localhost:3000/users/kakao/callback&response_type=code"
+              class="social kakao">
               <span class="icon">Talk</span>
-              <span class="text">카카오 아이디로 로그인</span>
+              <span class="text">카카오 회원가입</span>
             </a>
           </div>
 
-          <span>또는</span>
+          <!-- <span>또는</span> -->
           <button type="button" id="emailSignupBtn">이메일로 가입하기</button>
         </div>
       </form>
@@ -53,10 +58,12 @@
       <form action="/users/login" method="POST">
         <h1>로그인</h1>
         <div class="social-container">
-          <a href="#" class="social naver">
-            <span class="icon">N</span>
-            <span class="text">네이버 아이디로 로그인</span>
-          </a>
+          <a
+              href="https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=Nn51JPpYwZ_6U9Zz6fmL&redirect_uri=http://localhost:3000/users/naver/callback&state=naver123"
+              class="social naver">
+              <span class="icon">N</span>
+              <span class="text">네이버 아이디로 로그인</span>
+            </a>
           <a href="https://kauth.kakao.com/oauth/authorize?client_id=3ed496e628ed6b8f75245ac846a0d328&redirect_uri=http://localhost:3000/users/kakao/callback&response_type=code"
             class="social kakao">
             <span class="icon">Talk</span>

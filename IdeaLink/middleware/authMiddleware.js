@@ -1,4 +1,3 @@
-// middleware/authMiddleware.js
 //미들웨어에서 
 const jwt = require("jsonwebtoken");
 require("dotenv").config();

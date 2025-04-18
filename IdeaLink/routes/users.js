@@ -25,7 +25,7 @@ router.post("/login", async function (req, res, next) {
   }
 });
 
-// ✅ 카카오 로그인 콜백 라우터
+// 카카오 로그인 콜백 라우터
 router.get("/kakao/callback", async (req, res, next) => {
   try {
     await userController.kakaoCallback(req, res);
@@ -35,6 +35,16 @@ router.get("/kakao/callback", async (req, res, next) => {
   }
 });
 
+// 네이버 로그인 콜백 라우터
+router.get("/naver/callback", async (req, res, next) => {
+  try {
+    console.log("네이버 로그인 콜백에 도달:", req.query.code); // code 파라미터 확인
+    await userController.naverCallback(req, res);
+  } catch (err) {
+    console.error("네이버 로그인 콜백 오류:", err);
+    res.status(500).send("네이버 로그인 실패");
+  }
+});
 
 // ✅ 토큰 인증된 사용자만 접근 가능한 예시 라우터 (보호 라우트)
 router.get("/profile", authMiddleware, (req, res) => {

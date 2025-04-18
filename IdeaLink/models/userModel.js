@@ -84,3 +84,21 @@ exports.findUserByEmail = async function (email) {
     await conn.end();
   }
 };
+// sns_id로 사용자 조회 함수 추가
+exports.findUserBySnsId = async function (snsId, joinType) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  console.log("sns 아이디 :",snsId );
+  const sql = "SELECT * FROM user WHERE sns_id = ? AND join_type = ?";
+  
+  try {
+    const [rows] = await conn.promise().query(sql, [snsId, joinType]);
+    
+    return rows[0];  // 첫 번째 결과만 반환
+  } catch (err) {
+    console.error("SNS ID로 사용자 조회 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};

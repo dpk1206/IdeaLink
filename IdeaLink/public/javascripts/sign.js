@@ -444,3 +444,13 @@ loginSubmitBtn.addEventListener("click", async () => {
     alert("서버 오류가 발생했습니다.");
   }
 });
+// 소셜 로그인 토큰 저장 처리
+document.addEventListener("DOMContentLoaded", () => {
+  const token = new URLSearchParams(window.location.search).get("token");
+  if (token) {
+    localStorage.setItem("token", token);
+    console.log("토큰 저장됨:", token);
+    window.history.replaceState({}, document.title, window.location.pathname);
+    window.location.href = "/"; // 
+  }
+});
