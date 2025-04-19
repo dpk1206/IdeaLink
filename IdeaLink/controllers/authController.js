@@ -80,7 +80,7 @@ exports.registerUser = async (req, res) => {
 };
 
 // 로그인 처리
-exports.loginUser = async (req, res) => {
+exports.loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -139,12 +139,13 @@ exports.loginUser = async (req, res) => {
     });
   } catch (err) {
     console.error("로그인 오류:", err);
-    res.status(500).json({ message: "로그인 실패" });
+    next(err); // 에러 전달
+    // res.status(500).json({ message: "로그인 실패" });
   }
 };
 
 // 카카오 로그인 콜백
-exports.kakaoCallback = async (req, res) => {
+exports.kakaoCallback = async (req, res, next) => {
   try {
     const code = req.query.code;
 
@@ -228,12 +229,12 @@ exports.kakaoCallback = async (req, res) => {
     res.redirect(`http://localhost:3000/login_signup?token=${token}`);
   } catch (err) {
     console.error("카카오 로그인 오류:", err);
-    res.status(500).send("카카오 로그인 실패");
+    next(err); // 에러 전달
   }
 };
 
 // 네이버 로그인 콜백
-exports.naverCallback = async (req, res) => {
+exports.naverCallback = async (req, res, next) => {
   try {
     const { code, state } = req.query;
 
@@ -285,7 +286,7 @@ exports.naverCallback = async (req, res) => {
         sns_id: snsId
       });
 
-      user = { id: newUser.insertId, email, user_type: "individual" };
+      user = { user_id: newUser.insertId, email, user_type: "individual" };
 
       console.log("New user ID:", newUser.insertId);
 
@@ -321,6 +322,6 @@ exports.naverCallback = async (req, res) => {
     res.redirect(`http://localhost:3000/login_signup?token=${token}`);
   } catch (err) {
     console.error("네이버 로그인 오류:", err);
-    res.status(500).send("네이버 로그인 실패");
+    next(err); // 에러를 전달
   }
 };
