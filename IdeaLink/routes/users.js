@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/authController");
+const kakaoController = require("../controllers/kakaoAuthController");
+const naverController = require("../controllers/naverAuthController");
 const authMiddleware = require("../middleware/authMiddleware"); // 토큰 인증 미들웨어
 
 // 마이페이지 - 일단 그냥 연결 추후 접근제한 필요
@@ -33,7 +35,7 @@ router.post("/login", async function (req, res, next) {
 // 카카오 로그인 콜백 라우터
 router.get("/kakao/callback", async (req, res, next) => {
   try {
-    await userController.kakaoCallback(req, res, next);
+    await kakaoController.kakaoCallback(req, res, next);
   } catch (err) {
     console.error("카카오 로그인 콜백 오류:", err);
     next(err); // 에러시 에러핸들러 일괄처리
@@ -44,7 +46,7 @@ router.get("/kakao/callback", async (req, res, next) => {
 router.get("/naver/callback", async (req, res, next) => {
   try {
     console.log("네이버 로그인 콜백에 도달:", req.query.code); // code 파라미터 확인
-    await userController.naverCallback(req, res, next);
+    await naverController.naverCallback(req, res, next);
   } catch (err) {
     console.error("네이버 로그인 콜백 오류:", err);
     next(err); // 에러시 에러핸들러 일괄처리
