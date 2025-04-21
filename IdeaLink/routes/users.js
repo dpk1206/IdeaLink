@@ -3,6 +3,11 @@ const router = express.Router();
 const userController = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware"); // 토큰 인증 미들웨어
 
+// 마이페이지 - 일단 그냥 연결 추후 접근제한 필요
+router.get('/mypage', function(req, res, next) {
+  res.render('mypage');
+});
+
 // ✅ 회원가입 라우터
 router.post("/register", async function (req, res, next) {
   try {

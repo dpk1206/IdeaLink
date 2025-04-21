@@ -55,7 +55,7 @@ exports.registerUser = async (req, res) => {
 
     const clientIp = getClientIp(req);
     await logModel.insertUserLog({
-      user_id: userId,
+      user_id: user_id,
       user_log_event: 'signup',
       user_log_ip: clientIp
     });
@@ -69,7 +69,7 @@ exports.registerUser = async (req, res) => {
         company_website,
         company_email,
         company_password,
-        user_id: userId
+        user_id: user_id
       });
     }
     res.redirect("/login_signup");
@@ -98,8 +98,8 @@ exports.loginUser = async (req, res, next) => {
     }
 
     // 사용자 정보가 있을 경우
-    const userId = user.user_id;  // user_id가 제대로 존재하는지 확인
-    if (!userId) {
+    const user_id = user.user_id;  // user_id가 제대로 존재하는지 확인
+    if (!user_id) {
       return res.status(500).json({ message: "사용자 정보 오류" });
     }
 
@@ -108,7 +108,7 @@ exports.loginUser = async (req, res, next) => {
 
     // 로그인 기록 추가
     await logModel.insertUserLog({
-      user_id: userId,
+      user_id: user_id,
       user_log_event: "login",
       user_log_ip: clientIp
     });
@@ -116,9 +116,10 @@ exports.loginUser = async (req, res, next) => {
     // JWT 토큰 생성
     const token = jwt.sign(
       {
-        id: userId,
+        user_id: user_id,
         email: user.email,
         user_type: user.user_type,
+        nick_name: user.nick_name,
       },
       process.env.JWT_SECRET,
       {
@@ -131,7 +132,7 @@ exports.loginUser = async (req, res, next) => {
       message: "로그인 성공",
       token,
       user: {
-        id: userId,
+        user_id: user_id,
         email: user.email,
         name: user.name,
         user_type: user.user_type,
@@ -218,9 +219,10 @@ exports.kakaoCallback = async (req, res, next) => {
     // JWT 토큰 생성
     const token = jwt.sign(
       {
-        id: user.user_id, 
+        user_id: user.user_id, 
         email: user.email,
         user_type: user.user_type,
+        nick_name: user.nick_name,
       },
       process.env.JWT_SECRET,
       {
@@ -311,9 +313,10 @@ exports.naverCallback = async (req, res, next) => {
     // 5. JWT 발급
     const token = jwt.sign(
       {
-        id: user.id || user.user_id,
+        user_id: user.id || user.user_id,
         email: user.email,
         user_type: user.user_type,
+        nick_name: user.nick_name,
       },
       process.env.JWT_SECRET,
       {

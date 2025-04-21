@@ -46,11 +46,6 @@ router.get('/ideas', function(req, res, next) {
   res.render('ideas');
 });
 
-// 마이페이지 - 일단 그냥 연결 추후 접근제한 필요(users로 따로 뺄까?)
-router.get('/mypage', function(req, res, next) {
-  res.render('mypage');
-});
-
 // 어드민 - 일단 그냥 연결 추후 접근제한 필요(users로 따로 뺄까?)
 router.get('/admin', function(req, res, next) {
   res.render('admin');
