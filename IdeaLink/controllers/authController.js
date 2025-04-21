@@ -169,6 +169,8 @@ exports.kakaoCallback = async (req, res, next) => {
     const snsId = kakaoUser.id.toString();
     const email = kakaoUser.kakao_account?.email;
     const nickname = kakaoUser.properties?.nickname;
+    const name = kakaoUser.kakao_account?.name;
+    const phone = kakaoUser.kakao_account?.phone_number || null;
 
     if (!email) {
       return res.status(400).send("카카오 계정에 이메일이 없습니다.");
@@ -183,9 +185,9 @@ exports.kakaoCallback = async (req, res, next) => {
       const newUser = await userModel.insertUser({
         email,
         password: null,
-        name: nickname,
+        name: name,
         nick_name: nickname,
-        phone: null,
+        phone: phone,
         user_type: "individual",
         join_type: "K",
         sns_id: snsId
@@ -263,6 +265,7 @@ exports.naverCallback = async (req, res, next) => {
     const snsId = naverUser.id;
     const email = naverUser.email;
     const name = naverUser.name || naverUser.nickname || "네이버사용자";
+    const phone = naverUser.mobile || null; // 네이버 API에서 제공하는 전화번호 정보
 
     if (!email) {
       return res.status(400).send("네이버 계정에 이메일이 없습니다.");
@@ -280,7 +283,7 @@ exports.naverCallback = async (req, res, next) => {
         password: null,
         name,
         nick_name: name,
-        phone: null,
+        phone: phone,
         user_type: "individual",
         join_type: "N",
         sns_id: snsId
