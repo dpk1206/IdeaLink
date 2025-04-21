@@ -4,23 +4,9 @@
   <meta charset="UTF-8">
   <title>아이디어 목록</title>
   <link rel="stylesheet" href="/stylesheets/ideas.css">
-  <link rel="stylesheet" href="/stylesheets/nav.css">
 </head>
 <body>
-  <header>
-    <nav class="navbar">
-      <div class="nav-container">
-        <a href="index.html" class="logo">💡 IdeaLink</a>
-        <ul class="nav-links">
-          <li><a href="index.html">홈</a></li>
-          <li><a href="ideas.html">아이디어 목록</a></li>
-          <li><a href="notice.html">공지사항</a></li>
-          <li><a href="mypage.html">마이페이지</a></li>
-        </ul>
-        <div class="hamburger">☰</div>
-      </div>
-    </nav>
-  </header>
+  <%- include ('header.ejs') %>
 
   <div class="container">
     <a href="submit_idea" class="register-button">+ 아이디어 등록하기</a>
@@ -94,11 +80,8 @@
     </table>
   </div>
 
-  <footer>
-    <p>&copy; 2025 아이디어 거래 플랫폼</p>
-  </footer>
+  <%- include ('footer.html') %>
 
   <script src="/javascripts/ideas.js"></script>
-  <script src="/javascripts/nav.js"></script>
 </body>
 </html>

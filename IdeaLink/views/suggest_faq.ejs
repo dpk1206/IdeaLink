@@ -3,24 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>건의 & FAQ</title>
-  <link rel="stylesheet" href="/stylesheets/nav.css" />
   <link rel="stylesheet" href="/stylesheets/suggest.css" />
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-          <div class="nav-container">
-            <a href="/" class="logo">💡 IdeaLink</a>
-            <ul class="nav-links">
-              <li><a href="/">홈</a></li>
-              <li><a href="ideas.html">아이디어 목록</a></li>
-              <li><a href="notice.html">공지사항</a></li>
-              <li><a href="mypage.html">마이페이지</a></li>
-            </ul>
-            <div class="hamburger">☰</div>
-          </div>
-        </nav>
-      </header>
+  <%- include ('header.ejs') %>
   <main class="suggest-container">
     <h1>💬 건의 & FAQ</h1>
 
@@ -60,8 +46,7 @@
       </form>
     </section>
   </main>
-
-  <script src="/javascripts/nav.js"></script>
+  <%- include ('footer.html') %>
   <script src="/javascripts/suggest.js"></script>
 </body>
 </html>

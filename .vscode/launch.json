@@ -20,7 +20,8 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\IdeaLink\\bin\\www"
+            "program": "${workspaceFolder}\\IdeaLink\\bin\\www",
+            "envFile": "${workspaceFolder}\\IdeaLink\\.env"
         }
     ]
 }

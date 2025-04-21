@@ -4,23 +4,9 @@
   <meta charset="UTF-8">
   <title>아이디어 상세</title>
   <link rel="stylesheet" href="/stylesheets/idea_detail.css">
-  <link rel="stylesheet" href="/stylesheets/nav.css">
 </head>
 <body>
-  <header>
-    <nav class="navbar">
-      <div class="nav-container">
-        <a href="index.html" class="logo">💡 IdeaLink</a>
-        <ul class="nav-links">
-          <li><a href="index.html">홈</a></li>
-          <li><a href="ideas.html">아이디어 목록</a></li>
-          <li><a href="notice.html">공지사항</a></li>
-          <li><a href="mypage.html">마이페이지</a></li>
-        </ul>
-        <div class="hamburger">☰</div>
-      </div>
-    </nav>
-  </header>
+  <%- include ('header.ejs') %>
 
   <div class="container">
     <h1 class="title">스마트 냉장고 알림 시스템</h1>
@@ -69,8 +55,7 @@
       <button onclick="location.href='ideas.html'">← 목록으로 돌아가기</button>
     </div>
   </div>
-
+  <%- include ('footer.html') %>
   <script src="/javascripts/idea_detail.js"></script>
-  <script src="/javascripts/nav.js"></script>
 </body>
 </html>

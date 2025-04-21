@@ -3,25 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>아이디어 등록</title>
-  <link rel="stylesheet" href="/stylesheets/nav.css" />
   <link rel="stylesheet" href="/stylesheets/submit_idea.css" />
 </head>
 <body>
-  <header>
-    <nav class="navbar">
-      <div class="nav-container">
-        <a href="index.html" class="logo">💡 IdeaLink</a>
-        <ul class="nav-links">
-          <li><a href="index.html">홈</a></li>
-          <li><a href="ideas.html">아이디어 목록</a></li>
-          <li><a href="notice.html">공지사항</a></li>
-          <li><a href="mypage.html">마이페이지</a></li>
-        </ul>
-        <div class="hamburger">☰</div>
-      </div>
-    </nav>
-  </header>
-
+  <%- include ('header.ejs') %>
   <div class="container">
     <h1>💡 아이디어 등록</h1>
     <form>
@@ -81,7 +66,8 @@
         </div>
 
         <label>첨부파일 (기획서, 도면 등)</label>
-        <input type="file" name="attachments[]" multiple />
+        <input type="file" id="fileInput" multiple />
+        <ul id="fileList"></ul>
       </div>
 
       <!-- 판매 정보 -->
@@ -122,8 +108,7 @@
       </div>
     </form>
   </div>
-
-  <script src="/javascripts/nav.js"></script>
+  <%- include ('footer.html') %>
   <script src="/javascripts/submit_idea.js"></script>
 </body>
 </html>
