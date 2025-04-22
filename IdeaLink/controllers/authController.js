@@ -51,7 +51,7 @@ exports.registerUser = async (req, res) => {
       sns_id: sns_id || null
     });
 
-    const userId = userResult.insertId;
+    const user_id = userResult.insertId;
 
     const clientIp = getClientIp(req);
     await logModel.insertUserLog({
