@@ -7,12 +7,12 @@ document.addEventListener('DOMContentLoaded', function () {
   // 햄버거 메뉴 토글
   if (hamburger && navMenu) {
     hamburger.addEventListener('click', function () {
-      navMenu.classList.toggle('dropdown-active');
+      navMenu.classList.toggle('open');
     });
 
     document.addEventListener('click', function (e) {
       if (!hamburger.contains(e.target) && !navMenu.contains(e.target)) {
-        navMenu.classList.remove('dropdown-active');
+        navMenu.classList.remove('open');
       }
     });
   }
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <a href="/">메인</a>
           <a href="/ideas">아이디어</a>
           <a href="/notice">공지사항</a>
-          <a href="/users/mypage?user_id=${user_id}">${nickname}님</a>
+          <a href="/users/mypage?user_id=${user_id}">☻ ${nickname}님</a>
           <a href="#" id="logoutBtn">로그아웃</a>
         `;
 

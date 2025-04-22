@@ -118,7 +118,7 @@ function renderIdeas() {
 
   filtered.forEach((idea, index) => {
     const row = document.createElement("tr");
-    row.onclick = () => location.href = `idea_detail.html?id=${idea.id}`;
+    row.onclick = () => location.href = `/idea_detail?id=${idea.id}`;
     row.innerHTML = `
       <td>${index + 1}</td>
       <td>${idea.title}</td>
