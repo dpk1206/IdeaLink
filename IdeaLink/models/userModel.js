@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const dbconn = require("../config/dbconn");
 
 exports.insertUser = async function (user) {
@@ -5,7 +6,13 @@ exports.insertUser = async function (user) {
   await dbconn.connect(conn);
   
   // 카카오 로그인 시, password를 null로 설정
-  const password = user.password || null;  // 카카오 로그인인 경우 password는 null로 설정
+  let password = user.password || null;  // 카카오 로그인인 경우 password는 null로 설정
+
+  // 일반 회원가입인 경우 비밀번호 암호화
+  if (password && user.join_type !== 'kakao' && user.join_type !== 'naver') {
+    const saltRounds = 10; // bcrypt saltRounds 설정 (비밀번호 암호화 강도)
+    password = await bcrypt.hash(password, saltRounds);
+  }
 
   const sql = `
     INSERT INTO user

@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const userModel = require("../models/userModel");
 const companyModel = require("../models/companyModel");
 const jwt = require("jsonwebtoken");
@@ -92,8 +93,9 @@ exports.loginUser = async (req, res, next) => {
       return res.status(401).json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
     }
 
-    // 비밀번호 검증
-    if (user.password !== password) {
+    // 비밀번호 검증 (bcrypt로 암호화된 비밀번호 비교)
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       return res.status(401).json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
     }
 

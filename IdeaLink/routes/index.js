@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const postRouter = require('./post');  // postRouter.js 파일 불러오기
 
 // 메인페이지
 router.get('/', function(req, res, next) {
@@ -36,7 +37,7 @@ router.get('/notice', function(req, res, next) {
   res.render('notice');
 });
 
-// 공지
+// 아이디어 등록
 router.get('/submit_idea', function(req, res, next) {
   res.render('submit_idea');
 });

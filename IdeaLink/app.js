@@ -17,6 +17,7 @@ db_config.connect(conn);
 
 var indexRouter = require('./routes/index'); // 라우터 파일 설정1
 var usersRouter = require('./routes/users'); // 라우터 파일 설정2
+var postRouter = require('./routes/post'); // 게시글 라우터  파일
 
 var app = express();
 
@@ -31,8 +32,10 @@ app.use(cookieParser());
 app.use(cors())
 app.use(express.static(path.join(__dirname, 'public')));
 
+//라우터 연결
 app.use('/', indexRouter); // 그냥 요청은 index.js 라우터파일 처리
 app.use('/users', usersRouter); // /users/~~ 요청은 users.js 라우터파일 처리
+app.use('/post', postRouter);  
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
