@@ -31,6 +31,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(cors())
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); // 파일업로드 폴더 설정
 
 //라우터 연결
 app.use('/', indexRouter); // 그냥 요청은 index.js 라우터파일 처리

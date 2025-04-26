@@ -14,7 +14,7 @@ exports.insertPost = async function ({
 
   const sql = `
     INSERT INTO post (
-      user_id, title, summary, content,category_id, transaction_type, price
+      user_id, title, summary, content, category_id, transaction_type, price
     )
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;

@@ -1,115 +1,175 @@
-document.addEventListener('DOMContentLoaded', function () {
-  const track = document.getElementById('categoryTrack');
-  const left = document.getElementById('category-left');
-  const right = document.getElementById('category-right');
-  const form = document.querySelector('form');
+document.addEventListener('DOMContentLoaded', () => {
+  const file_input = document.getElementById('files');
+  const file_list = document.getElementById('file_list');
+  const main_category_group = document.getElementById('main_category_group');
+  const sub_category_placeholder = document.getElementById('sub_category');
+  const sub_category_group = document.createElement('div');
+  sub_category_group.id = 'sub_category_group';
+  sub_category_group.className = 'category_buttons';
+  sub_category_placeholder.replaceWith(sub_category_group);
+  const idea_form = document.getElementById('idea_form');
+  const price_input = document.getElementById('price');
 
-  // 좌우 스크롤
-  left?.addEventListener('click', () => {
-    track.scrollBy({ left: -200, behavior: 'smooth' });
-  });
-  right?.addEventListener('click', () => {
-    track.scrollBy({ left: 200, behavior: 'smooth' });
+  // ✅ 파일 누적 버퍼 선언
+  const file_buffer = new DataTransfer();
+
+  // ✅ 파일 업로드 & 삭제
+  file_input.addEventListener('change', () => {
+    const new_files = Array.from(file_input.files);
+
+    new_files.forEach(file => {
+      // 중복 파일 방지
+      if (!Array.from(file_buffer.files).some(f => f.name === file.name && f.size === file.size)) {
+        file_buffer.items.add(file);
+      }
+    });
+
+    render_file_list();
   });
 
-  // 카테고리 단일 선택
-  const categoryCheckboxes = document.querySelectorAll('input[name="category"]');
-  categoryCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', () => {
-      if (checkbox.checked) {
-        categoryCheckboxes.forEach(cb => {
-          if (cb !== checkbox) cb.checked = false;
+  function render_file_list() {
+    file_list.innerHTML = '';
+
+    Array.from(file_buffer.files).forEach((file, index) => {
+      const li = document.createElement('li');
+      li.textContent = file.name;
+
+      const remove_btn = document.createElement('button');
+      remove_btn.textContent = '❌';
+      remove_btn.style.marginLeft = '10px';
+      remove_btn.style.background = 'transparent';
+      remove_btn.style.border = 'none';
+      remove_btn.style.cursor = 'pointer';
+      remove_btn.style.color = 'red';
+
+      remove_btn.addEventListener('click', () => {
+        file_buffer.items.remove(index);
+        render_file_list();
+      });
+
+      li.appendChild(remove_btn);
+      file_list.appendChild(li);
+    });
+
+    file_input.files = file_buffer.files;
+  }
+
+  // ✅ 카테고리 매핑
+  const category_map = {
+    "사회복지": ["사회복지", "상담", "교육"],
+    "문화·예술·디자인·방송": ["문화·예술", "디자인", "문화콘텐츠"],
+    "운전·운송": ["자동차운전·운송", "철도운전·운송", "선박운전·운송", "항공운전·운송"],
+    "영업판매": ["영업", "부동산", "판매"],
+    "경비·청소": ["경비", "청소"],
+    "이용·숙박·여행·오락·스포츠": ["이·미용", "결혼·장례", "관광·레저", "스포츠"],
+    "음식서비스": ["식음료조리·서비스"],
+    "건설": ["건설공사관리", "토목", "건축", "플랜트", "조경", "도시·교통", "건설기계운전·정비", "해양자원"],
+    "기계": ["기계설계", "기계가공", "기계조립·관리", "기계품질관리", "기계장치설치", "자동차", "철도차량제작", "조선", "항공기제작", "금형", "스마트공장(smart factory)"],
+    "재료": ["금속재료", "세라믹재료"],
+    "섬유·의복": ["섬유제조", "패션", "의복관리"],
+    "전기·전자": ["전기", "전자기기일반", "전자기기개발"],
+    "정보통신": ["정보기술", "통신기술", "방송기술"],
+    "식품가공": ["식품가공", "제과·제빵·떡제조"],
+    "인쇄·목재·가구·공예": ["인쇄·출판", "공예"],
+    "환경·에너지·안전": ["산업환경", "환경보건", "자연환경", "환경서비스", "에너지·자원", "산업안전보건"],
+    "농림어업": ["농업", "축산", "임업", "수산"]
+  };
+
+  // ✅ 대분류 버튼 생성
+  Object.keys(category_map).forEach(main_category => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = main_category;
+    button.className = 'main_category_btn';
+
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.main_category_btn').forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      let hidden_main = document.getElementById('selected_main');
+      if (!hidden_main) {
+        hidden_main = document.createElement('input');
+        hidden_main.type = 'hidden';
+        hidden_main.id = 'selected_main';
+        hidden_main.name = 'main_category';
+        idea_form.appendChild(hidden_main);
+      }
+      hidden_main.value = main_category;
+
+      sub_category_group.innerHTML = '';
+      category_map[main_category].forEach(sub_category => {
+        const sub_btn = document.createElement('button');
+        sub_btn.type = 'button';
+        sub_btn.textContent = sub_category;
+        sub_btn.className = 'sub_category_btn';
+
+        sub_btn.addEventListener('click', () => {
+          document.querySelectorAll('.sub_category_btn').forEach(btn => btn.classList.remove('active'));
+          sub_btn.classList.add('active');
+
+          let hidden_sub = document.getElementById('selected_sub');
+          if (!hidden_sub) {
+            hidden_sub = document.createElement('input');
+            hidden_sub.type = 'hidden';
+            hidden_sub.id = 'selected_sub';
+            hidden_sub.name = 'sub_category';
+            idea_form.appendChild(hidden_sub);
+          }
+          hidden_sub.value = sub_category;
         });
-      }
-    });
-  });
 
-  // 파일 선택/삭제 처리
-  const fileInput = document.getElementById('fileInput');
-  const fileList = document.getElementById('fileList');
-  let selectedFiles = [];
-
-  fileInput.addEventListener('change', (e) => {
-    const newFiles = Array.from(e.target.files);
-
-    newFiles.forEach(file => {
-      // 파일 이름 + 크기로 중복 체크
-      if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
-        selectedFiles.push(file);
-
-        const li = document.createElement('li');
-        li.className = 'file-item';
-        li.innerHTML = `
-          ${file.name}
-          <span class="remove-file" data-name="${file.name}" data-size="${file.size}">❌</span>
-        `;
-
-        fileList.appendChild(li);
-      }
+        sub_category_group.appendChild(sub_btn);
+      });
     });
 
-    fileInput.value = ''; // input 초기화 (같은 파일 다시 선택 가능하게)
+    main_category_group.appendChild(button);
   });
 
-  // 파일 제거 처리
-  fileList.addEventListener('click', (e) => {
-    if (e.target.classList.contains('remove-file')) {
-      const { name, size } = e.target.dataset;
-      selectedFiles = selectedFiles.filter(file => !(file.name === name && file.size === Number(size)));
-      e.target.parentElement.remove();
-    }
-  });
-
-  // 제출 처리
-  form.addEventListener('submit', function (e) {
+  // ✅ 제출 처리
+  idea_form.addEventListener('submit', e => {
     e.preventDefault();
 
-    const title = form.querySelector('input[name="title"]').value.trim();
-    const description = form.querySelector('textarea[name="description"]').value.trim();
-    const category = Array.from(categoryCheckboxes).find(cb => cb.checked);
-    const dealType = form.querySelector('input[name="dealType"]:checked');
-    const price = form.querySelector('input[name="price"]').value.trim();
+    const form_data = new FormData(idea_form);
+    const file_types = form_data.getAll('file_type');
+    const price_value = price_input.value.trim();
+    const selected_main = document.getElementById('selected_main');
+    const selected_sub = document.getElementById('selected_sub');
 
-    if (!title || !description || !category || !dealType || !price) {
-      alert('모든 필수 항목을 입력해주세요.');
+    if (!selected_main || !selected_main.value) {
+      alert('대분류를 선택해주세요.');
+      return;
+    }
+    if (!selected_sub || !selected_sub.value) {
+      alert('중분류를 선택해주세요.');
+      return;
+    }
+    if (!price_value || isNaN(price_value) || Number(price_value) <= 0) {
+      alert('가격을 입력해주세요.');
+      return;
+    }
+    if (file_types.length === 0) {
+      alert('파일 유형을 하나 이상 선택해주세요.');
       return;
     }
 
-    const formData = new FormData();
+    const values = Object.fromEntries(form_data.entries());
+    console.log('제출된 데이터:', values);
+    console.log('파일 유형(중복):', file_types);
 
-    // 텍스트 입력 필드 추가
-    const fields = form.querySelectorAll('input, textarea, select');
-    fields.forEach(field => {
-      if ((field.type === 'checkbox' || field.type === 'radio') && !field.checked) return;
-      if (field.name && field.value !== '') {
-        formData.append(field.name, field.value);
-      }
-    });
+    alert('아이디어가 제출되었습니다!');
+    idea_form.submit();
+    // fetch('/api/submit_idea', { method: 'POST', body: form_data })
+  });
+});
 
-    // 파일 실제 첨부
-    selectedFiles.forEach(file => {
-      formData.append('attachments[]', file);
-    });
+document.addEventListener('DOMContentLoaded', () => {
+  const tags = ["AI", "헬스케어", "친환경", "자동화", "모빌리티", "스마트팜", "IoT", "UX", "딥러닝"];
+  const tag_list = document.getElementById('tag_list');
 
-    // 예시: 서버 전송
-    /*
-    fetch('/submit', {
-      method: 'POST',
-      body: formData
-    }).then(res => {
-      if (res.ok) {
-        window.location.href = 'ideas.html';
-      } else {
-        alert('등록 실패');
-      }
-    });
-    */
-
-    // 테스트용
-    alert('아이디어가 성공적으로 등록되었습니다!');
-    form.reset();
-    fileList.innerHTML = '';
-    selectedFiles = [];
-    window.location.href = 'ideas.html';
+  tags.forEach(tag => {
+    const span = document.createElement('span');
+    span.className = 'tag';
+    span.textContent = tag;
+    tag_list.appendChild(span);
   });
 });
