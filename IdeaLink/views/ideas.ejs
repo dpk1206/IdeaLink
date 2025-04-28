@@ -8,76 +8,95 @@
 <body>
   <%- include ('header.ejs') %>
 
-  <div class="container">
-    <a href="submit_idea" class="register-button">+ 아이디어 등록하기</a>
-    <h1>📝 아이디어 목록</h1>
-
-    <!-- 필터 영역 -->
-    <div class="filters">
-      <div class="filter-box">
-        <h3>1차 분류 (파일 타입)</h3>
-        <div class="filetype-group">
-          <label><input type="checkbox" name="fileType" value="문서"> 문서</label>
-          <label><input type="checkbox" name="fileType" value="이미지"> 이미지</label>
-        </div>
-      </div>
-
-      <div class="filter-box">
-        <h3>2차 분류 (카테고리)</h3>
-        <div class="category-carousel">
-          <div class="arrow" id="category-left">&#10094;</div>
-          <div class="category-grid" id="categoryTrack">
-            <label><input type="checkbox" name="category" value="생활/주방/육아"> 🏠 생활/주방/육아</label>
-            <label><input type="checkbox" name="category" value="패션/잡화/뷰티"> 👗 패션/잡화/뷰티</label>
-            <label><input type="checkbox" name="category" value="식자재/식음료/기호제품"> 🍱 식자재/식음료</label>
-            <label><input type="checkbox" name="category" value="의료/건강/방역/위생"> 💊 의료/건강</label>
-            <label><input type="checkbox" name="category" value="가전/광학기기"> 📷 가전/광학기기</label>
-            <label><input type="checkbox" name="category" value="모바일/게임"> 📱 모바일/게임</label>
-            <label><input type="checkbox" name="category" value="건축/건설/토목"> 🏗 건축/건설</label>
-            <label><input type="checkbox" name="category" value="기계/에너지"> ⚙️ 기계/에너지</label>
-            <label><input type="checkbox" name="category" value="화학/바이오/소재"> 🔬 화학/바이오</label>
-            <label><input type="checkbox" name="category" value="전기/전자/정보통신"> 💡 전기/전자</label>
-            <label><input type="checkbox" name="category" value="미디어/컨텐츠/여가/스포츠"> 🎬 미디어/컨텐츠</label>
-            <label><input type="checkbox" name="category" value="사무/전문서비스"> 🧾 사무/서비스</label>
-            <label><input type="checkbox" name="category" value="기타"> 🧩 기타</label>
+  <div class="layout-container">
+  
+    <!-- 왼쪽 사이드바 -->
+    <aside class="sidebar">
+      <h3>🔍 검색 가이드</h3>
+      <ul>
+        <li>파일유형 중복 선택 가능</li>
+        <li>카테고리 중복 선택 불가능</li>
+      </ul>
+    </aside>
+  
+    <div class="container">
+      <a href="/submit_idea" class="register-button">+ 아이디어 등록하기</a>
+      <h1>📝 아이디어 목록</h1>
+  
+      <!-- 필터 영역 -->
+      <div class="filters">
+        <!-- 파일유형 선택 -->
+        <div class="filter-box">
+          <h3>파일 유형</h3>
+          <div id="file_type_group" class="category-buttons">
+            <button type="button" class="file_type_btn" data-value="문서">문서</button>
+            <button type="button" class="file_type_btn" data-value="이미지">이미지</button>
           </div>
-          <div class="arrow" id="category-right">&#10095;</div>
+        </div>
+  
+        <!-- 대분류 -->
+        <div class="filter-box">
+          <h3>대분류</h3>
+          <div id="main_category_group" class="category-buttons"></div>
+        </div>
+  
+        <!-- 중분류 -->
+        <div class="filter-box">
+          <h3>중분류</h3>
+          <div id="sub_category_group" class="category-buttons"></div>
+        </div>
+  
+        <!-- 거래유형 -->
+        <div class="filter-box">
+          <h3>거래 유형</h3>
+          <div id="deal_type_group" class="category-buttons">
+            <button type="button" class="deal_type_btn" data-value="all" class="active">전체</button>
+            <button type="button" class="deal_type_btn" data-value="판매">판매</button>
+            <button type="button" class="deal_type_btn" data-value="구매">구매</button>
+          </div>
+        </div>
+  
+        <div class="search-box">
+          <select id="searchType">
+            <option value="title">제목 검색</option>
+            <option value="author">작성자 검색</option>
+          </select>
+          <input type="text" id="searchInput" placeholder="검색어 입력">
+          <button onclick="searchIdeas()">검색</button>
+
+          <button id="resetFilters" type="button">초기화</button>
+
         </div>
       </div>
-
-      <div class="filter-box">
-        <h3>거래유형</h3>
-        <div class="dealtype-group">
-          <label class="dealtype-option"><input type="radio" name="dealType" value="all" checked> 전체</label>
-          <label class="dealtype-option"><input type="radio" name="dealType" value="판매"> 판매</label>
-          <label class="dealtype-option"><input type="radio" name="dealType" value="구매"> 구매</label>
-        </div>
+  
+      <div class="idea-table-wrapper">
+        <table class="idea-table">
+          <thead>
+            <tr>
+              <th>번호</th>
+              <th>제목</th>
+              <th>작성자</th>
+              <th>거래유형</th>
+              <th>가격</th>
+              <th>날짜</th>
+              <th>조회수</th>
+            </tr>
+          </thead>
+          <tbody id="ideaList"></tbody>
+        </table>
+        <div id="pagination" class="pagination"></div>
       </div>
-
-      <div class="search-box">
-        <select id="searchType">
-          <option value="title">제목 검색</option>
-          <option value="author">작성자 검색</option>
-        </select>
-        <input type="text" id="searchInput" placeholder="검색어 입력">
-        <button onclick="searchIdeas()">검색</button>
-      </div>
+  
     </div>
-
-    <!-- 아이디어 목록 테이블 -->
-    <table class="idea-table">
-      <thead>
-        <tr>
-          <th>번호</th>
-          <th>제목</th>
-          <th>작성자</th>
-          <th>거래유형</th>
-          <th>가격</th>
-          <th>날짜</th>
-        </tr>
-      </thead>
-      <tbody id="ideaList"></tbody>
-    </table>
+  
+    <!-- 오른쪽 사이드바 -->
+    <aside class="sidebar">
+      <h3>🆕 최근 등록</h3>
+      <ul id="recent-ideas"></ul>
+      <h3>🔥 인기 아이디어</h3>
+      <ol id="popular-ideas"></ol>
+    </aside>
+  
   </div>
 
   <%- include ('footer.html') %>

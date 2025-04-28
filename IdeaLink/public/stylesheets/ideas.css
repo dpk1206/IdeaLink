@@ -1,3 +1,4 @@
+
 body {
   font-family: 'Noto Sans KR', sans-serif;
   background: #f8f9fa;
@@ -7,7 +8,7 @@ body {
 
 .container {
   max-width: 1000px;
-  margin: 100px auto 40px;
+  margin: 40px auto;
   padding: 0 20px;
 }
 
@@ -52,74 +53,35 @@ h1 {
 }
 
 .filetype-group,
-.dealtype-group {
+.dealtype-group,
+.category-buttons {
   display: flex;
-  gap: 12px;
   flex-wrap: wrap;
+  gap: 12px;
 }
 
 .filetype-group label,
 .dealtype-option,
-.category-grid label {
+.category-buttons button {
   white-space: nowrap;
   background: #f1f3f5;
   padding: 10px 16px;
   border-radius: 20px;
   font-size: 14px;
   cursor: pointer;
+  border: none;
   transition: background 0.3s;
 }
 
 .filetype-group label:hover,
 .dealtype-option:hover,
-.category-grid label:hover {
+.category-buttons button:hover {
   background: #e0f0ff;
 }
 
-.filetype-group input[type="checkbox"],
-.category-grid input[type="checkbox"],
-.dealtype-option input[type="radio"] {
-  margin-right: 6px;
-  accent-color: #007bff;
-}
-
-.category-carousel {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  position: relative;
-}
-
-.category-grid {
-  display: flex;
-  overflow-x: auto;
-  gap: 12px;
-  padding: 8px 0;
-  scroll-behavior: smooth;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE 10+ */
-}
-
-.category-grid::-webkit-scrollbar {
-  height: 0px; /* Chrome, Safari */
-  background: transparent;
-}
-
-.category-grid::-webkit-scrollbar {
-  display: none;
-}
-
-.arrow {
-  cursor: pointer;
-  font-size: 20px;
-  padding: 6px 12px;
-  user-select: none;
-  color: #666;
-}
-
-.arrow:hover {
-  color: #000;
+.category-buttons button.active {
+  background: #007bff;
+  color: white;
 }
 
 .search-box {
@@ -158,6 +120,13 @@ h1 {
   background: #0056b3;
 }
 
+.idea-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
 .idea-table {
   width: 100%;
   border-collapse: collapse;
@@ -185,6 +154,32 @@ h1 {
   cursor: pointer;
 }
 
+.pagination {
+  margin-top: 20px;
+}
+
+.pagination button {
+  background: white;
+  border: 1px solid #ccc;
+  margin: 0 4px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.pagination button.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.pagination button:hover {
+  background: #0056b3;
+  color: white;
+  border-color: #0056b3;
+}
+
 footer {
   text-align: center;
   font-size: 14px;
@@ -193,32 +188,109 @@ footer {
   padding: 20px 0;
 }
 
+.layout-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+  margin-top: 70px;
+}
+
+.sidebar {
+  width: 500px;
+  margin-top: 140px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar h3 {
+  font-size: 16px;
+}
+
+.sidebar ul,
+.sidebar ol {
+  padding-left: 18px;
+}
+
+#file_type_group button,
+#deal_type_group button,
+.main_category_btn,
+.sub_category_btn {
+  background: #f1f3f5;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#file_type_group button:hover,
+#deal_type_group button:hover,
+.main_category_btn:hover,
+.sub_category_btn:hover {
+  background: #e0f0ff;
+}
+
+#file_type_group button.active,
+#deal_type_group button.active,
+.main_category_btn.active,
+.sub_category_btn.active {
+  background: #007bff;
+  color: white;
+}
+
+#resetFilters {
+  padding: 10px 20px;
+  background: #6c757d;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#resetFilters:hover {
+  background: #495057;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 0 12px;
   }
 
-  .category-grid label,
-  .filetype-group label,
-  .dealtype-option {
-    font-size: 13px;
-    padding: 8px 12px;
+  .idea-table-wrapper,
+  .container,
+  .sidebar {
+    width: 100%;
   }
 
-  .search-box {
+  .layout-container {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .search-box input,
-  .search-box select,
-  .search-box button {
-    width: 100%;
+  .sidebar.left {
+    order: 1;
   }
 
-  .idea-table th,
-  .idea-table td {
-    font-size: 13px;
-    padding: 10px;
+  .container {
+    order: 2;
+  }
+
+  .sidebar.right {
+    order: 3;
+    margin-top: 20px;
+  }
+
+  .sidebar{
+    display: none;
   }
 }
