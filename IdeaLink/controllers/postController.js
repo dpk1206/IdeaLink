@@ -17,7 +17,7 @@ exports.createPost = async (req, res, next) => {
 
   try {
     // 게시글 정보 DB에 저장
-    const post = await postModel.insertPost({
+    const post_id = await postModel.insertPost({
       user_id,
       title,
       summary,
@@ -26,7 +26,7 @@ exports.createPost = async (req, res, next) => {
       transaction_type,
       price,
     });
-
+    console.log("게시글 결과",post_id);
     // 파일 정보 DB에 저장
     const files = req.files; 
     if (files && files.length > 0) { // 첨부파일 존재 확인
@@ -37,7 +37,7 @@ exports.createPost = async (req, res, next) => {
       await Promise.all(files.map((file) => postFileModel.insertFile(file)));
     }
     // 게시글 상세 페이지로 리다이렉트
-    res.redirect(`/post/${post.insertId}`);
+    res.redirect(`/idea_detail?post_id=${post_id}`);
   } catch (err) {
     console.error("게시글 등록 오류:", err);
     res.status(500).send("게시글 등록 실패");

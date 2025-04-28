@@ -2,7 +2,7 @@
 
 // 1. URL 파라미터에서 ID 가져오기
 const params = new URLSearchParams(window.location.search);
-const ideaId = params.get("id");
+const ideaId = params.get("post_id");
 
 if (!ideaId) {
   alert("잘못된 접근입니다. 목록으로 이동합니다.");

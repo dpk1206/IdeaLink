@@ -10,23 +10,8 @@
 </head>
 
 <body>
-  <!-- 네비게이션 -->
-  <header class="navbar">
-    <div class="nav-left">
-      <a href="/" class="logo">💡 IdeaLink</a>
-    </div>
-    <div class="nav-right">
-      <div class="hamburger" id="hamburger">&#9776;</div>
-      <nav class="menu" id="nav-menu">
-        <a href="#main">메인</a>
-        <a href="#ideas">아이디어</a>
-        <a href="#notice">공지사항</a>
-        <a href="/login_signup">로그인/회원가입</a>
-      </nav>
-      
-    </div>
-  </header>
-
+  <!-- 헤더 ejs -->
+  <%- include ('header.ejs') %>
 
   <!-- 메인 섹션 -->
   <div class="section" id="main">
