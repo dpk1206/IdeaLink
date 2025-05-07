@@ -10,15 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const idea_form = document.getElementById('idea_form');
   const price_input = document.getElementById('price');
 
-  // ✅ 파일 누적 버퍼 선언
   const file_buffer = new DataTransfer();
 
-  // ✅ 파일 업로드 & 삭제
   file_input.addEventListener('change', () => {
     const new_files = Array.from(file_input.files);
 
     new_files.forEach(file => {
-      // 중복 파일 방지
       if (!Array.from(file_buffer.files).some(f => f.name === file.name && f.size === file.size)) {
         file_buffer.items.add(file);
       }
@@ -54,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
     file_input.files = file_buffer.files;
   }
 
-  // ✅ 카테고리 매핑
   const category_map = {
     "사회복지": ["사회복지", "상담", "교육"],
     "문화·예술·디자인·방송": ["문화·예술", "디자인", "문화콘텐츠"],
@@ -75,7 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
     "농림어업": ["농업", "축산", "임업", "수산"]
   };
 
-  // ✅ 대분류 버튼 생성
+  // ✅ 전체 중분류 ID 부여
+  const sub_category_id_map = {};
+  let current_id = 1;
+  Object.values(category_map).flat().forEach(sub => {
+    sub_category_id_map[sub] = current_id++;
+  });
+
   Object.keys(category_map).forEach(main_category => {
     const button = document.createElement('button');
     button.type = 'button';
@@ -112,10 +114,16 @@ document.addEventListener('DOMContentLoaded', () => {
             hidden_sub = document.createElement('input');
             hidden_sub.type = 'hidden';
             hidden_sub.id = 'selected_sub';
-            hidden_sub.name = 'sub_category';
+            hidden_sub.name = 'category_id';
             idea_form.appendChild(hidden_sub);
           }
-          hidden_sub.value = sub_category;
+
+          // ✅ 전체 중분류 고유 번호 할당
+          hidden_sub.value = sub_category_id_map[sub_category].toString();
+
+          // 디버깅용
+          console.log('중분류:', sub_category);
+          console.log('중분류 ID:', sub_category_id_map[sub_category]);
         });
 
         sub_category_group.appendChild(sub_btn);
@@ -125,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
     main_category_group.appendChild(button);
   });
 
-  // ✅ 제출 처리
   idea_form.addEventListener('submit', e => {
     e.preventDefault();
 
@@ -161,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // fetch('/api/submit_idea', { method: 'POST', body: form_data })
   });
 });
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const tags = ["AI", "헬스케어", "친환경", "자동화", "모빌리티", "스마트팜", "IoT", "UX", "딥러닝"];

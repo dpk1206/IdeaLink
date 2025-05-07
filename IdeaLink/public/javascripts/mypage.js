@@ -1,49 +1,40 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const buttons = document.querySelectorAll('.tab-btn');
-    const contents = document.querySelectorAll('.mypage-content');
-  
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        buttons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-  
-        contents.forEach(content => content.style.display = 'none');
-        const target = btn.getAttribute('data-tab');
-        document.getElementById(target).style.display = 'block';
-  
-        if (target === 'profile') showUserTypeForm();
+
+document.addEventListener("DOMContentLoaded", function () {
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const sections = document.querySelectorAll(".mypage-section");
+
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.getAttribute("data-tab");
+
+      // 탭 버튼 UI
+      tabButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      // 섹션 전환
+      sections.forEach((sec) => {
+        sec.style.display = sec.id === targetId ? "block" : "none";
       });
     });
-  
-    function getUserType() {
-      return localStorage.getItem('userType') || 'personal';
-    }
-  
-    function showUserTypeForm() {
-      const type = getUserType();
-      const personalForm = document.getElementById('personalForm');
-      const companyForm = document.getElementById('companyForm');
-  
-      if (type === 'company') {
-        personalForm.style.display = 'none';
-        companyForm.style.display = 'block';
-      } else {
-        personalForm.style.display = 'block';
-        companyForm.style.display = 'none';
-      }
-    }
-  
-    document.getElementById('profile').style.display = 'block';
-    showUserTypeForm();
-  
-    // 유저이름 중복 확인
-    document.getElementById('checkUsername')?.addEventListener('click', () => {
-      const username = document.getElementById('username').value.trim();
-      if (!username) {
-        alert('유저이름을 입력해주세요.');
-        return;
-      }
-      alert(`'${username}' 유저이름은 사용 가능합니다!`);
-    });
   });
-  
+
+  // 사용자 유형에 따라 폼 보이기 (더미 조건 사용)
+  const isCompany = false; // true면 기업회원
+
+  const personalForm = document.getElementById("personalForm");
+  const companyForm = document.getElementById("companyForm");
+
+  if (isCompany) {
+    companyForm.style.display = "block";
+  } else {
+    personalForm.style.display = "block";
+  }
+
+  // 유저 이름 중복 확인 버튼
+  const checkBtn = document.getElementById("checkUsername");
+  if (checkBtn) {
+    checkBtn.addEventListener("click", () => {
+      alert("사용 가능한 유저이름입니다.");
+    });
+  }
+});

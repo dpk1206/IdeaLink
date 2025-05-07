@@ -8,111 +8,73 @@
 <body>
   <%- include ('header.ejs') %>
 
-  <div class="container mypage">
-    <h1>마이페이지</h1>
+  <div class="mypage-container">
+    <aside class="mypage-sidebar">
+      <button class="tab-btn active" data-tab="profile">👤 회원정보 수정</button>
+      <button class="tab-btn" data-tab="ideas">💡 등록 아이디어</button>
+      <button class="tab-btn" data-tab="history">📑 거래 내역</button>
+      <button class="tab-btn" data-tab="suggestions">✉️ 건의사항</button>
+    </aside>
 
-    <div class="mypage-menu">
-      <button class="tab-btn active" data-tab="profile">회원정보 수정</button>
-      <button class="tab-btn" data-tab="ideas">등록한 아이디어</button>
-      <button class="tab-btn" data-tab="history">판매/구매 내역</button>
-    </div>
+    <main class="mypage-content-area">
+      <section id="profile" class="mypage-section">
+        <h2>👤 회원정보 수정</h2>
+        <form id="personalForm" style="display: none;">
+          <label>닉네임
+            <div class="input-check-group">
+              <input type="text" id="username" required />
+              <button type="button" id="checkUsername">중복 확인</button>
+            </div>
+          </label>
+          <label>비밀번호<input type="password" required /></label>
+          <label>이름<input type="text" required /></label>
+          <label>이메일<input type="email" required /></label>
+          <label>핸드폰 번호<input type="tel" required /></label>
+          <button type="submit">정보 수정</button>
+        </form>
 
-    <!-- 회원정보 수정 -->
-    <div class="mypage-content" id="profile">
-      <h2>회원정보 수정</h2>
+        <form id="companyForm" style="display: none;">
+          <label>회사이름<input type="text" required /></label>
+          <label>사업자 등록번호<input type="text" required /></label>
+          <label>회사 전화번호<input type="tel" required /></label>
+          <label>회사 주소<input type="text" required /></label>
+          <label>회사 웹사이트<input type="url" /></label>
+          <label>담당자 이메일<input type="email" required /></label>
+          <label>비밀번호<input type="password" required /></label>
+          <button type="submit">정보 수정</button>
+        </form>
+      </section>
 
-      <!-- 개인회원 -->
-      <form id="personalForm" style="display: none;">
-        <label>
-          유저이름
-          <div class="input-check-group">
-            <input type="text" name="username" id="username" required>
-            <button type="button" id="checkUsername">중복 확인</button>
-          </div>
-        </label>
-        <label>비밀번호<input type="password" name="password" required></label>
-        <label>이름<input type="text" name="name" required></label>
-        <label>이메일<input type="email" name="email" required></label>
-        <label>핸드폰 번호<input type="tel" name="phone" required></label>
-        <button type="submit">정보 수정</button>
-      </form>
+      <section id="ideas" class="mypage-section" style="display:none;">
+        <h2>💡 내가 등록한 아이디어</h2>
+        <table class="mypage-table">
+          <thead><tr><th>번호</th><th>제목</th><th>카테고리</th><th>등록일</th><th>상태</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>스마트 화분 시스템</td><td>생활/주방</td><td>2024-12-21</td><td class="status-sale">판매중</td></tr>
+            <tr><td>2</td><td>AI 주방 도우미</td><td>IT/전자</td><td>2024-11-02</td><td class="status-done">거래완료</td></tr>
+          </tbody>
+        </table>
+      </section>
 
-      <!-- 기업회원 -->
-      <form id="companyForm" style="display: none;">
-        <label>회사이름<input type="text" name="companyName" required></label>
-        <label>사업자 등록번호<input type="text" name="bizNumber" required></label>
-        <label>회사 전화번호<input type="tel" name="companyPhone" required></label>
-        <label>회사 주소<input type="text" name="companyAddress" required></label>
-        <label>회사 웹사이트<input type="url" name="companySite"></label>
-        <label>담당자 이메일<input type="email" name="managerEmail" required></label>
-        <label>비밀번호<input type="password" name="companyPassword" required></label>
-        <button type="submit">정보 수정</button>
-      </form>
-    </div>
+      <section id="history" class="mypage-section" style="display:none;">
+        <h2>📑 판매 / 구매 내역</h2>
+        <table class="mypage-table">
+          <thead><tr><th>거래번호</th><th>유형</th><th>아이디어 제목</th><th>금액</th><th>날짜</th></tr></thead>
+          <tbody>
+            <tr><td>#A1023</td><td>판매</td><td>스마트 화분 시스템</td><td>₩50,000</td><td>2024-12-22</td></tr>
+            <tr><td>#B1094</td><td>구매</td><td>모바일 홈 IoT</td><td>₩75,000</td><td>2024-12-10</td></tr>
+          </tbody>
+        </table>
+      </section>
 
-    <!-- 등록한 아이디어 -->
-    <div class="mypage-content" id="ideas" style="display: none;">
-      <h2>내가 등록한 아이디어</h2>
-      <table class="mypage-table">
-        <thead>
-          <tr>
-            <th>번호</th>
-            <th>제목</th>
-            <th>카테고리</th>
-            <th>등록일</th>
-            <th>상태</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>스마트 화분 시스템</td>
-            <td>생활/주방</td>
-            <td>2024-12-21</td>
-            <td>판매중</td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>AI 기반 주방 도우미</td>
-            <td>IT/전자</td>
-            <td>2024-11-02</td>
-            <td>거래완료</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 판매/구매 내역 -->
-    <div class="mypage-content" id="history" style="display: none;">
-      <h2>판매 / 구매 내역</h2>
-      <table class="mypage-table">
-        <thead>
-          <tr>
-            <th>거래번호</th>
-            <th>유형</th>
-            <th>아이디어 제목</th>
-            <th>금액</th>
-            <th>날짜</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>#A1023</td>
-            <td>판매</td>
-            <td>스마트 화분 시스템</td>
-            <td>₩50,000</td>
-            <td>2024-12-22</td>
-          </tr>
-          <tr>
-            <td>#B1094</td>
-            <td>구매</td>
-            <td>모바일 홈 IoT</td>
-            <td>₩75,000</td>
-            <td>2024-12-10</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <section id="suggestions" class="mypage-section" style="display:none;">
+        <h2>✉️ 내 건의사항</h2>
+        <table class="mypage-table">
+          <thead><tr><th>번호</th><th>내용</th><th>답변</th><th>제출일</th></tr></thead>
+          <tbody id="mySuggestionList"></tbody>
+        </table>
+      </section>
+    </main>
   </div>
   <%- include ('footer.html') %>
   <script src="/javascripts/mypage.js"></script>

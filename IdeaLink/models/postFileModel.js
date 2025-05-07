@@ -48,3 +48,29 @@ exports.selectOneFile = async function (file_id) {
     await conn.end();
   }
 };
+
+// 워터마크 파일 insert
+exports.insertWaterMarkFile = async function (insertId, wm_path) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  var post_id = 1; // 테스트용 임시값 1고정
+  const sql = `
+    INSERT INTO watermark_file
+    (original_file_id, watermarked_path)
+    VALUES(?, ?);
+  `;
+
+  try {
+    const [result] = await conn.promise().query(sql, [
+      insertId,
+      wm_path
+    ]);
+    return result; // result.insertId 사용 가능
+  } catch (err) {
+    console.error("첨부파일 insert 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
