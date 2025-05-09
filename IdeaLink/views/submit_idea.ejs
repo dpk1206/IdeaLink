@@ -28,7 +28,6 @@
     <main class="submit_container">
       <h1>아이디어 제출</h1>
       <form id="idea_form" action="/post/submit_idea" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="user_id" value="1"> <!-- 임시 데이터 jwt 토큰값 가져오기 -->
         <div class="form_card">
           <label for="title">제목</label>
           <input type="text" id="title" name="title" placeholder="아이디어 제목을 입력하세요" required>
@@ -70,7 +69,6 @@
             <!-- category_id는 js 112줄에서 만들어짐 -->
           </select>
         </div>
-
         <div class="form_card">
           <label>거래유형</label>
           <div class="radio_group">

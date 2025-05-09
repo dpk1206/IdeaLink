@@ -1,11 +1,18 @@
 const dbconn = require("../config/dbconn");
 const path = require("path");
 
-exports.insertFile = async function (file) {
+exports.insertFile = async function (file, post_id) {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
-  var post_id = 1; // 테스트용 임시값 1고정
+  // post_id 유효성 검사: 숫자이거나, 잘못된 값이 아닐 때 처리
+  if (!post_id || isNaN(post_id)) {
+    throw new Error("유효한 post_id가 아닙니다.");
+  }
+
+  // 파일의 저장 경로를 정확하게 설정
+  const filePath = path.join(__dirname, "../../uploads", file.filename);
+
   const sql = `
     INSERT INTO post_file
     (post_id, original_name, saved_name, file_path, file_size, file_type)
@@ -14,15 +21,14 @@ exports.insertFile = async function (file) {
 
   try {
     const [result] = await conn.promise().query(sql, [
-      post_id, // 테스트용 임시값 1고정
-      // file.post_id,
-      file.encodingName, // 원본 파일명
+      post_id, // 게시글 ID (동적으로 전달)
+      file.originalname, // 원본 파일명
       file.filename, // 저장된 파일명
-      file.path,
-      file.size,
-      path.extname(file.originalname), // 확장자
+      filePath, // 저장된 경로
+      file.size, // 파일 크기
+      path.extname(file.originalname).toLowerCase(), // 파일 확장자 (소문자로 처리)
     ]);
-    return result; // result.insertId 사용 가능
+    return result; // 결과 반환
   } catch (err) {
     console.error("첨부파일 insert 오류:", err);
     throw err;
@@ -30,6 +36,7 @@ exports.insertFile = async function (file) {
     await conn.end();
   }
 };
+
 
 // 파일id로 조회
 exports.selectOneFile = async function (file_id) {

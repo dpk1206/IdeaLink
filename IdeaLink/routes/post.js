@@ -4,6 +4,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const postController = require("../controllers/postController");
+const authenticateToken = require('../middleware/authMiddleware');
 
 // Multer 셋팅
 const storage = multer.diskStorage({
@@ -51,8 +52,8 @@ const upload = multer({
 });
 //////////////////////////// 라우팅 시작 ///////////////////////////////
 
-// 게시글 등록을 POST 방식으로 처리 (파일 업로드 포함)
-router.post("/submit_idea", upload.array("files", 5), postController.createPost);
+// 게시글 등록을 POST 방식으로 처리 (파일 업로드 포함) - JWT 미들웨어 추가
+router.post("/submit_idea", authenticateToken, upload.array("files", 5), postController.createPost);
 
 // 파일 다운로드
 router.get("/download/:file_id", postController.downloadFile);

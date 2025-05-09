@@ -158,13 +158,44 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('파일 유형을 하나 이상 선택해주세요.');
       return;
     }
+    const token = localStorage.getItem('token');
+    console.log("토큰:", token);
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    // 추가된 카테고리 정보를 form_data에 추가
+    // form_data.append('category_id', `${selected_main.value}-${selected_sub.value}`);
+
+    fetch('/post/submit_idea', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: form_data,
+    })
+    .then(res => {
+      if (res.status === 401) {
+        alert('세션이 만료되었습니다. 다시 로그인 해주세요.');
+        location.href = '/login_signup'; // 로그인 페이지로 리디렉션
+      }
+      return res.json();
+    })
+    .catch(err => {
+      console.error("서버 오류 발생:", err);
+    res.status(500).send(`서버 오류: ${err.message}`);
+
+      alert('서버 오류가 발생했습니다.');
+    });
+
 
     const values = Object.fromEntries(form_data.entries());
     console.log('제출된 데이터:', values);
     console.log('파일 유형(중복):', file_types);
 
     alert('아이디어가 제출되었습니다!');
-    idea_form.submit();
+    // idea_form.submit();
     // fetch('/api/submit_idea', { method: 'POST', body: form_data })
   });
 });
