@@ -22,9 +22,9 @@ exports.insertFile = async function (file, post_id) {
   try {
     const [result] = await conn.promise().query(sql, [
       post_id, // 게시글 ID (동적으로 전달)
-      file.originalname, // 원본 파일명
+      file.encodingName, // 원본 파일명
       file.filename, // 저장된 파일명
-      filePath, // 저장된 경로
+      file.path, // 저장된 경로
       file.size, // 파일 크기
       path.extname(file.originalname).toLowerCase(), // 파일 확장자 (소문자로 처리)
     ]);
@@ -37,13 +37,21 @@ exports.insertFile = async function (file, post_id) {
   }
 };
 
-
 // 파일id로 조회
 exports.selectOneFile = async function (file_id) {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
-  const sql = `SELECT * FROM post_file WHERE file_id = ?;`;
+  const sql = `
+    SELECT 
+      pf.original_name,
+      wf.watermarked_path
+    FROM 
+      watermark_file wf
+    INNER JOIN 
+      post_file pf ON wf.original_file_id = pf.file_id
+    WHERE 
+      wf.watermark_id = ?`;
 
   try {
     const [rows] = await conn.promise().query(sql, [file_id]);
@@ -69,13 +77,39 @@ exports.insertWaterMarkFile = async function (insertId, wm_path) {
   `;
 
   try {
-    const [result] = await conn.promise().query(sql, [
-      insertId,
-      wm_path
-    ]);
+    const [result] = await conn.promise().query(sql, [insertId, wm_path]);
     return result; // result.insertId 사용 가능
   } catch (err) {
     console.error("첨부파일 insert 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+// 게시물 상세 조회
+exports.selectDetailFile = async function (post_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `
+    SELECT 
+      pf.original_name,
+      pf.saved_name,
+      wf.watermark_id,
+      wf.watermarked_path
+    FROM 
+      post_file pf
+    INNER JOIN 
+      watermark_file wf ON pf.file_id = wf.original_file_id
+    WHERE 
+      pf.post_id = ?`;
+
+  try {
+    const [rows] = await conn.promise().query(sql, [post_id]);
+    return rows || null; // 파일이 없으면 null 반환
+  } catch (err) {
+    console.error("첨부파일 다운로드 select 오류:", err);
     throw err;
   } finally {
     await conn.end();

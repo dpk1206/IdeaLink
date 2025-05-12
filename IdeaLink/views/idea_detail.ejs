@@ -9,36 +9,106 @@
 
 <body>
   <%- include ('header.ejs') %>
+  <%
+  <!-- 날짜 형식 만들기 -->
+  const date = new Date(postInfo.created_at);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
+  %>
 
     <main class="detail_wrap">
       <div class="detail_card">
-        <h1 id="idea_title"></h1>
+        <h1 id="idea_title"><%=postInfo.title %></h1>
         <div class="meta">
-          <span id="author"></span>
-          <span id="date"></span>
-          <span id="views"></span>
+          <span id="author">작성자 : <%=postInfo.nick_name %></span>
+          <span id="date">작성일 : <%= formattedDate %></span>
+          <span id="views">조회수 : <%=postInfo.view %></span>
         </div>
 
         <div class="tags">
-          <span class="tag">거래유형: <strong id="deal_type"></strong></span>
-          <span class="tag">카테고리: <strong id="category"></strong></span>
-          <span class="tag">가격: <strong id="price"></strong></span>
-          <span class="tag">파일유형: <strong id="file_type"></strong></span>
+          <span class="tag">거래유형: <strong id="deal_type"><%=postInfo.transaction_type %></strong></span>
+          <span class="tag">카테고리: <strong id="category">
+            <%=postInfo.main_name %> > <%=postInfo.sub_name %>
+          </strong></span>
+          <span class="tag">가격: <strong id="price"><%=postInfo.price.toLocaleString() %>원</strong></span>
+          <span class="tag">파일유형: <strong id="file_type">
+            <%
+              // fileType 배열 선언 및 플래그 변수
+              var fileType = [];
+              var hasImage = false;
+              var hasDoc = false;
+
+              if (files && files.length > 0) {
+                files.forEach(function(file) {
+                  var ext = file.saved_name.split('.').pop().toLowerCase();
+
+                  if (!hasImage && (ext === 'jpg' || ext === 'png' || ext === 'gif')) {
+                    fileType.push('이미지');
+                    hasImage = true;
+                  }
+                  if (!hasDoc && ext === 'pdf') {
+                    fileType.push('문서');
+                    hasDoc = true;
+                  }
+                });
+              }else{
+                fileType.push('X');
+              }
+            %>
+            <!-- fileType 배열 출력 -->
+            <% fileType.forEach(function(type) { %>
+              <%= type %>
+            <% }); %>
+            </strong></span>
         </div>
 
         <section class="summary">
           <h3>요약</h3>
-          <p id="summary_text"></p>
+          <p id="summary_text"><%=postInfo.summary %></p>
         </section>
 
         <section class="description">
           <h3>본문</h3>
-          <p id="description_text"></p>
+          <p id="description_text"><%- postInfo.content.replace(/\r\n|\n|\r/g, '<br>') %></p>
+          <% if (files && files.length > 0) { %>
+            <% files.forEach(function(file) { %>
+              <% 
+                var ext = file.saved_name.split('.').pop().toLowerCase();
+              %>
+              <% if (ext === 'jpg' || ext === 'png' || ext === 'gif') { %>
+                  <img src="/wm_uploads/wm_<%= file.saved_name %>" alt="Image" style="max-width: 100%; height: auto;">
+              <% } %>
+            <% }); %>
+          <% } %>
         </section>
 
         <section class="attachments">
           <h3>첨부파일</h3>
-          <div id="file_container"></div>
+          <div id="file_container">
+            <% if (files && files.length > 0) { %>
+              <% files.forEach(function(file) { %>
+                <% 
+                  var ext = file.saved_name.split('.').pop().toLowerCase();
+                %>
+                <% if (ext === 'jpg' || ext === 'png' || ext === 'gif') { %>
+                  <div class="file_thumbnail">
+                  <a href="/post/download/<%= file.watermark_id %>" download>
+                    <img src="/wm_uploads/wm_<%= file.saved_name %>" alt="첨부이미지" class="file_image">
+                    <%= file.original_name %>
+                  </a>
+                  </div>
+                <% } else if (ext === 'pdf') { %>
+                  <div class="file_thumbnail">
+                    <a href="/post/download/<%= file.watermark_id %>" download><span class="file_icon">📄</span><%= file.original_name %></a>
+                  </div>
+                <% } %>
+              <% }); %>
+            <% } %>
+          </div>
         </section>
 
         <div class="actions">

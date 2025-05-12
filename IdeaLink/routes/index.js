@@ -27,11 +27,6 @@ router.get('/faq', function(req, res, next) {
   res.render('suggest_faq');
 });
 
-// 게시물상세
-router.get('/idea_detail', function(req, res, next) {
-  res.render('idea_detail', {post_id:req.query.post_id});
-});
-
 // 공지
 router.get('/notice', function(req, res, next) {
   res.render('notice');

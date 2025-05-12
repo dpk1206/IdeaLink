@@ -25,7 +25,7 @@ const postlogModel = {
     const conn = await dbconn.init();
     await dbconn.connect(conn);
 
-    const sql = `SELECT * FROM post_log WHERE post_id = ? ORDER BY post_log_time DESC`;
+    const sql = `SELECT * FROM post_log WHERE post_id = ? ORDER BtY post_log_time DESC`;
     try {
       const [rows] = await conn.promise().query(sql, [post_id]);
       return rows;

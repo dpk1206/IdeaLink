@@ -3,27 +3,11 @@ const postModel = require("../models/postModel");
 const postFileModel = require("../models/postFileModel");
 const postlogModel = require("../models/postlogModel");
 const axios = require("axios");
-const jwt = require("jsonwebtoken");
 
 // 게시글 등록 및 파일 처리
 exports.createPost = async (req, res, next) => {
-  // JWT 토큰에서 user_id 추출
-  const token = req.headers.authorization?.split(" ")[1]; // 'Bearer 토큰'에서 토큰만 추출
-  let user_id;
 
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      user_id = decoded.user_id; // JWT에서 user_id 추출
-    } catch (err) {
-      console.error("JWT 토큰 인증 오류:", err);
-      return res.status(401).send("인증 실패. 다시 로그인해주세요.");
-    }
-  } else {
-    return res.status(401).send("로그인 필요");
-  }
-
-  const { title, summary, content, category_id, transaction_type, price } = req.body;
+  const { user_id, title, summary, content, category_id, transaction_type, price } = req.body;
   const parsedCategoryId = Array.isArray(category_id) ? category_id[0] : category_id;
 
   try {
@@ -82,10 +66,40 @@ exports.createPost = async (req, res, next) => {
     });
 
     // 리다이렉트
-    res.redirect(`/idea_detail?post_id=${post_id}`);
+    res.redirect(`/post/idea_detail?post_id=${post_id}`);
   } catch (err) {
     console.error("게시글 등록 오류:", err);
     res.status(500).send("게시글 등록 실패");
+  }
+};
+
+// 게시글 상세 컨트롤러
+exports.ideaDetail = async (req, res, next) => {
+  // DB 파일id로 조회
+  const post_id = req.param("post_id");
+  if (!post_id) next(new Error("post_id가 없습니다."));
+  try {
+    const postInfo = await postModel.selectOnePost(post_id);
+    const files = await postFileModel.selectDetailFile(post_id);
+
+    // 조회 결과가 없으면 404 에러 처리
+    if (postInfo.length == 0) {
+      const err = new Error("해당 게시글을 찾을 수 없습니다.");
+      err.status = 404;
+      return next(err);
+    }
+    const result = {
+      "postInfo": postInfo[0],
+    }
+    if (files && files.length > 0) {
+      result.files = files;
+    } else {
+      result.files = null;
+    }
+    res.render("idea_detail", result);
+    console.log("최종 데이터:", result);
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -98,9 +112,9 @@ exports.downloadFile = async (req, res, next) => {
     return res.status(404).send("파일 정보를 찾을 수 없습니다.");
   }
 
-  const { file_path, original_name } = fileInfo;
+  const { watermarked_path, original_name } = fileInfo;
 
-  res.download(file_path, original_name, (err) => {
+  res.download(watermarked_path, original_name, (err) => {
     if (err) {
       res.status(404).send("파일을 찾을 수 없습니다.");
     }

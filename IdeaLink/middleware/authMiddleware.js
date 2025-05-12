@@ -14,7 +14,8 @@ module.exports = function (req, res, next) {
   try {
     // 토큰 검증
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // 사용자 정보 저장
+    console.log("Decoded token:", decoded); // 디버깅 로그 추가
+    return res.json(decoded);
     next();
   } catch (err) {
     console.error(err); // 에러 로그 출력

@@ -53,7 +53,10 @@ const upload = multer({
 //////////////////////////// 라우팅 시작 ///////////////////////////////
 
 // 게시글 등록을 POST 방식으로 처리 (파일 업로드 포함) - JWT 미들웨어 추가
-router.post("/submit_idea", authenticateToken, upload.array("files", 5), postController.createPost);
+router.post("/submit_idea", upload.array("files", 5), postController.createPost);
+
+// 게시물상세
+router.get('/idea_detail', postController.ideaDetail);
 
 // 파일 다운로드
 router.get("/download/:file_id", postController.downloadFile);

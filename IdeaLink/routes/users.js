@@ -61,6 +61,9 @@ router.get("/profile", authMiddleware, (req, res) => {
   });
 });
 
+// 토큰 인증 요청
+router.post("/verify", authMiddleware);
+
 // ✅ 테스트 라우트들
 router.get("/", function (req, res, next) {
   res.send("respond with a resource");
