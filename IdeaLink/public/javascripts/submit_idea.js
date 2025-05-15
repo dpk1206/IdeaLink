@@ -1,4 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // 로그인 확인
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("로그인이 필요합니다.");
+    location.href = "/login_signup";
+    return; // 이후 코드 실행 방지
+  }
+
   const file_input = document.getElementById("files");
   const file_list = document.getElementById("file_list");
   const main_category_group = document.getElementById("main_category_group");

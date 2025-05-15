@@ -1,7 +1,7 @@
 const dbconn = require("../config/dbconn");
 const path = require("path");
 
-exports.insertFile = async function (file, post_id) {
+exports.insertFile = async function (file, post_id, post_type) {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
@@ -15,8 +15,8 @@ exports.insertFile = async function (file, post_id) {
 
   const sql = `
     INSERT INTO post_file
-    (post_id, original_name, saved_name, file_path, file_size, file_type)
-    VALUES(?, ?, ?, ?, ?, ?);
+    (post_id, original_name, saved_name, file_path, file_size, file_type, post_type)
+    VALUES(?, ?, ?, ?, ?, ?, ?);
   `;
 
   try {
@@ -27,6 +27,7 @@ exports.insertFile = async function (file, post_id) {
       file.path, // 저장된 경로
       file.size, // 파일 크기
       path.extname(file.originalname).toLowerCase(), // 파일 확장자 (소문자로 처리)
+      post_type // 게시물 타입(post, answer)
     ]);
     return result; // 결과 반환
   } catch (err) {
@@ -69,7 +70,6 @@ exports.insertWaterMarkFile = async function (insertId, wm_path) {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
-  var post_id = 1; // 테스트용 임시값 1고정
   const sql = `
     INSERT INTO watermark_file
     (original_file_id, watermarked_path)
@@ -88,7 +88,7 @@ exports.insertWaterMarkFile = async function (insertId, wm_path) {
 };
 
 // 게시물 상세 조회
-exports.selectDetailFile = async function (post_id) {
+exports.selectDetailFile = async function (post_id, post_type) {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
@@ -103,10 +103,12 @@ exports.selectDetailFile = async function (post_id) {
     INNER JOIN 
       watermark_file wf ON pf.file_id = wf.original_file_id
     WHERE 
-      pf.post_id = ?`;
+      pf.post_id = ?
+    AND
+      pf.post_type = ?`;
 
   try {
-    const [rows] = await conn.promise().query(sql, [post_id]);
+    const [rows] = await conn.promise().query(sql, [post_id, post_type]);
     return rows || null; // 파일이 없으면 null 반환
   } catch (err) {
     console.error("첨부파일 다운로드 select 오류:", err);

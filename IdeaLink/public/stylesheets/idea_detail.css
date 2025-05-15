@@ -88,8 +88,9 @@ body {
 
 .actions {
   display: flex;
-  gap: 12px;
+  gap: 20px;
   flex-wrap: wrap;
+  justify-content: center;
   margin-top: 20px;
 }
 
@@ -114,6 +115,7 @@ body {
 
 .comment_section {
   background: #fff;
+  margin-top: 20px;
   padding: 24px;
   border-radius: 12px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.06);

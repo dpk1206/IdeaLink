@@ -11,21 +11,23 @@
   <%- include ('header.ejs') %>
   <%
   <!-- 날짜 형식 만들기 -->
-  const date = new Date(postInfo.created_at);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
-  %>
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  }
+%>
 
     <main class="detail_wrap">
       <div class="detail_card">
         <h1 id="idea_title"><%=postInfo.title %></h1>
         <div class="meta">
           <span id="author">작성자 : <%=postInfo.nick_name %></span>
-          <span id="date">작성일 : <%= formattedDate %></span>
+          <span id="date">작성일 : <%= formatDate(postInfo.created_at) %></span>
           <span id="views">조회수 : <%=postInfo.view %></span>
         </div>
 
@@ -86,10 +88,11 @@
           <% } %>
         </section>
 
+        <!-- 본 게시물 첨부파일 있으면 형성 -->
+        <% if (files && files.length > 0) { %>
         <section class="attachments">
           <h3>첨부파일</h3>
           <div id="file_container">
-            <% if (files && files.length > 0) { %>
               <% files.forEach(function(file) { %>
                 <% 
                   var ext = file.saved_name.split('.').pop().toLowerCase();
@@ -107,22 +110,110 @@
                   </div>
                 <% } %>
               <% }); %>
-            <% } %>
-          </div>
-        </section>
-
+            </div>
+          </section>
+          <% } %>
+          <!-- 본 게시물 첨부파일 end -->
+          
         <div class="actions">
           <button id="like_btn">👍 좋아요 (<span id="like_count">0</span>)</button>
+          <button class="answer_action">💬 댓글</button>
           <button id="report_btn">🚩 신고</button>
+        </div>
+        <div class="comment_section">
+          <h2>💬 댓글</h2>
+          <ul id="comment_list"></ul>
+          <textarea id="comment_input" placeholder="댓글을 입력하세요"></textarea>
+          <button id="comment_submit">등록</button>
         </div>
       </div>
 
-      <div class="comment_section">
-        <h2>💬 댓글</h2>
-        <ul id="comment_list"></ul>
-        <textarea id="comment_input" placeholder="댓글을 입력하세요"></textarea>
-        <button id="comment_submit">등록</button>
-      </div>
+      <!-- 답글 작성 폼(버튼 추가후 클릭해야 보이게 바꾸기) -->
+      <div class="submit_container">
+      <h1>답글 작성</h1>
+      <form id="idea_form" action="/post/submit_answer" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="post_id" value="<%= postInfo.post_id %>">
+        <input type="hidden" id="answer_user_id" name="answer_user_id"> <!-- js에서 설정 -->
+        <div class="form_card">
+          <label for="title">제목</label>
+          <input type="text" id="title" name="title" placeholder="답글 제목을 입력하세요" required>
+        </div>
+
+        <div class="form_card">
+          <label for="description">설명 본문</label>
+          <textarea id="description" name="content" placeholder="답글 본문을 입력하세요" required></textarea>
+        </div>
+
+        <div class="form_card">
+          <label>파일 유형 (중복 선택 가능)</label>
+          <div class="checkbox_group">
+            <label><input type="checkbox" name="file_type" value="image"> 이미지</label>
+            <label><input type="checkbox" name="file_type" value="document"> 문서</label>
+          </div>
+        </div>
+
+        <div class="form_card">
+          <label for="files">파일 첨부 (이미지/문서)</label>
+          <input type="file" id="files" name="files" accept="image/*, .pdf" multiple>
+          <ul id="file_list"></ul>
+        </div>
+
+        <button type="submit">제출하기</button>
+      </form>
+    </div>
+    <!-- 답글 작성 폼 end -->
+
+      <!-- 답글 있으면 형성 -->
+      <% if (answerInfo && answerInfo.length > 0) { %>
+        <% answerInfo.forEach(function(answer) { %>
+          <div class="detail_card">
+            <h1 id="answer_title">Ⓐ <%= answer.title %></h1>
+            <div class="meta">
+              <span id="answer_author">작성자 : <%= answer.nick_name %></span>
+              <span id="answer_date">작성일 : <%= formatDate(answer.created_at) %></span>
+            </div>
+
+            <section class="description">
+              <h3>답변 본문</h3>
+              <p id="answer_content"><%- answer.content.replace(/\r\n|\n|\r/g, '<br>') %></p>
+            </section>
+            
+            <!-- 답글 첨부파일 있으면 형성 -->
+            <% if (answer.files && answer.files.length > 0) { %>
+            <section class="attachments">
+              <h3>첨부파일</h3>
+              <div id="file_container">
+                  <% answer.files.forEach(function(file) { %>
+                    <% 
+                      var ext = file.saved_name.split('.').pop().toLowerCase();
+                    %>
+                    <% if (ext === 'jpg' || ext === 'png' || ext === 'gif') { %>
+                      <div class="file_thumbnail">
+                      <a href="/post/download/<%= file.watermark_id %>" download>
+                        <img src="/wm_uploads/wm_<%= file.saved_name %>" alt="첨부이미지" class="file_image">
+                        <%= file.original_name %>
+                      </a>
+                      </div>
+                    <% } else if (ext === 'pdf') { %>
+                      <div class="file_thumbnail">
+                        <a href="/post/download/<%= file.watermark_id %>" download><span class="file_icon">📄</span><%= file.original_name %></a>
+                      </div>
+                    <% } %>
+                  <% }); %>
+                </div>
+              </section>
+              <% } %>
+              <!-- 답글 첨부파일 end -->
+              <div class="actions">
+                <button class="answer_action">💬 댓글</button>
+                <button id="report_btn">🚩 신고</button>
+                <button class="answer_action">👍 채택</button>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+      <!-- 답글 있으면 형성 end -->
+
     </main>
     <%- include ('footer.html') %>
       <script src="/javascripts/idea_detail.js"></script>

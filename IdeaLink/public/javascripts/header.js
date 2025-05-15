@@ -30,10 +30,10 @@ window.addEventListener("DOMContentLoaded", () => {
         console.log("Decoded JWT:", decoded);
         const nickname = decoded.nick_name || decoded.email || "사용자";
         const user_id = decoded.user_id || null;
-
-        // 전역에 사용자 정보 저장
-        window.currentUser = { user_id };
-
+        window.currentUser = { user_id, nickname};
+        window.dispatchEvent(
+          new CustomEvent("userReady", { detail: window.currentUser })
+        );
         menuElement.innerHTML = `
           <a href="/ideas">아이디어 게시판</a>
           <a href="#">공모전/전시</a>
@@ -43,12 +43,13 @@ window.addEventListener("DOMContentLoaded", () => {
           <a href="#" id="logoutBtn">로그아웃</a>
         `;
 
-        menuElement.querySelector("#logoutBtn").addEventListener("click", () => {
-          localStorage.removeItem("token");
-          alert("로그아웃 되었습니다.");
-          location.href = "/";
-        });
-
+        menuElement
+          .querySelector("#logoutBtn")
+          .addEventListener("click", () => {
+            localStorage.removeItem("token");
+            alert("로그아웃 되었습니다.");
+            location.href = "/";
+          });
       } catch (err) {
         console.error("JWT 디코딩 오류:", err);
         localStorage.removeItem("token");
@@ -64,41 +65,31 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ✅ 비동기 즉시 실행 함수로 순서 보장
-  (async () => {
-    await renderNavMenu(document.querySelector(".nav-menu-desktop")); // PC
-    await renderNavMenu(document.querySelector(".mobile-nav"));       // Mobile
+  // 메뉴 렌더링
+  renderNavMenu(document.querySelector(".nav-menu-desktop")); // PC
+  renderNavMenu(document.querySelector(".mobile-nav")); // Mobile
 
-    if (window.currentUser?.user_id) {
-      window.dispatchEvent(new CustomEvent("userReady", {
-        detail: {
-          user_id: window.currentUser.user_id,
+  // JWT 토큰 검증 함수
+  async function jwtVerify(token) {
+    try {
+      const res = await fetch("/users/verify", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      }));
+      });
+
+      if (res.status === 401) {
+        alert("세션이 만료되었습니다. 다시 로그인 해주세요.");
+        location.href = "/login_signup";
+        throw new Error("Unauthorized");
+      }
+
+      return await res.json();
+    } catch (err) {
+      console.error("서버 오류 발생:", err);
+      alert("서버 오류가 발생했습니다.");
+      throw err;
     }
-  })();
-});
-
-// JWT 토큰 검증 함수
-async function jwtVerify(token) {
-  try {
-    const res = await fetch("/users/verify", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (res.status === 401) {
-      alert("세션이 만료되었습니다. 다시 로그인 해주세요.");
-      location.href = "/login_signup";
-      throw new Error("Unauthorized");
-    }
-
-    return await res.json();
-  } catch (err) {
-    console.error("서버 오류 발생:", err);
-    alert("서버 오류가 발생했습니다.");
-    throw err;
   }
-}
+});
