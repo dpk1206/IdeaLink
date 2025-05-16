@@ -66,4 +66,9 @@ router.get("/download/:file_id", postController.downloadFile);
 
 router.get('/ideas', postController.getPost);
 
+//인기,최신 게시글
+router.get("/recent_posts", postController.getRecentPosts);
+router.get("/popular_posts", postController.getPopularPosts);
+
+
 module.exports = router;

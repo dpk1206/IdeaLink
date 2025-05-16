@@ -188,9 +188,24 @@ h1 {
 }
 
 
+.sort-and-limit-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+/* 중앙 정렬을 위한 감싸는 div */
+.sort-group-center-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+/* 정렬 버튼 */
 .sort_type_btn {
   padding: 6px 12px;
-  margin-right: 6px;
+  margin: 0 4px;
   background-color: #f1f1f1;
   border: 1px solid #ccc;
   border-radius: 20px;
@@ -198,38 +213,26 @@ h1 {
   cursor: pointer;
   transition: 0.2s;
 }
-
 .sort_type_btn:hover {
   background-color: #e2e2e2;
 }
-
 .sort_type_btn.active {
   background-color: #007bff;
   color: white;
   border-color: #007bff;
 }
-.sort-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  margin: 0 0 12px 0;
-}
 
-.sort-group-right {
-  display: flex;
-  gap: 8px;
-}
-
+/* 표시 개수는 오른쪽 고정 */
 .items-per-page {
-  margin: 16px auto;
-  text-align: center;
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .items-per-page label {
   margin-right: 8px;
   font-weight: 500;
 }
-
 .items-per-page select {
   padding: 6px 10px;
   border-radius: 6px;
@@ -239,12 +242,10 @@ h1 {
   cursor: pointer;
   transition: 0.2s ease;
 }
-
 .items-per-page select:hover {
   border-color: #007bff;
   box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
 }
-
 
 footer {
   text-align: center;

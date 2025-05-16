@@ -191,10 +191,14 @@ function searchIdeas() {
   }
 
   params.set("page", 1);
-  
-  window.location.href = `${window.location.pathname}?${params.toString()}`;
-  
+
+  // 새로고침 없이 URL만 바꾸고
+  history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
+
+  // ✅ 리렌더링을 위해 필요 시 아래 함수 호출 (아니면 그냥 location.reload())
+  location.reload(); // 서버 렌더링이니까 그냥 이걸로도 충분
 }
+
 
 // ✅ DOM 로딩 후 실행
 document.addEventListener('DOMContentLoaded', () => {
@@ -311,4 +315,31 @@ document.querySelectorAll('.sort_type_btn').forEach(button => {
 
     updateQueryParams({ sort: selectedSort });
   });
+});
+
+//인기,최근 아이디어 오른쪽 사이드바 
+window.addEventListener("DOMContentLoaded", () => {
+  // 최근 등록 아이디어
+  fetch("/post/recent_posts")
+    .then(res => res.json())
+    .then(posts => {
+      const ul = document.getElementById("recent-ideas");
+      posts.forEach(post => {
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="/post/idea_detail?post_id=${post.post_id}">${post.title}</a>`;
+        ul.appendChild(li);
+      });
+    });
+
+  // 인기 아이디어
+  fetch("/post/popular_posts")
+    .then(res => res.json())
+    .then(posts => {
+      const ol = document.getElementById("popular-ideas");
+      posts.forEach(post => {
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="/post/idea_detail?post_id=${post.post_id}">${post.title}</a>`;
+        ol.appendChild(li);
+      });
+    });
 });

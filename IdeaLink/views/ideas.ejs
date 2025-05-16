@@ -68,14 +68,25 @@
       </div>
       </div>    
 
-      <!-- 정렬 기준 선택 -->
-      <div class="sort-wrapper">
-        <div id="sort_type_group" class="sort-group-right">
-          <button type="button" class="sort_type_btn <%= sort_type === 'recent' ? 'active' : '' %>" data-value="recent">최신순</button>
-          <button type="button" class="sort_type_btn <%= sort_type === 'popular' ? 'active' : '' %>" data-value="popular">인기순</button>
+      <div class="sort-and-limit-wrapper">
+        <!-- 정렬 버튼 -->
+        <div class="sort-wrapper">
+          <div id="sort_type_group" class="sort-group-center">
+            <button type="button" class="sort_type_btn <%= sort_type === 'recent' ? 'active' : '' %>" data-value="recent">최신순</button>
+            <button type="button" class="sort_type_btn <%= sort_type === 'popular' ? 'active' : '' %>" data-value="popular">인기순</button>
+          </div>
+        </div>
+
+        <!-- 표시 개수 -->
+        <div class="items-per-page">
+          <label for="itemsLimit">표시 개수:</label>
+          <select id="itemsLimit">
+            <option value="10" <%= limit == 10 ? 'selected' : '' %>>10개</option>
+            <option value="20" <%= limit == 20 ? 'selected' : '' %>>20개</option>
+            <option value="30" <%= limit == 30 ? 'selected' : '' %>>30개</option>
+          </select>
         </div>
       </div>
-
 
    <div class="idea-table-wrapper">
   <table class="idea-table">
@@ -111,14 +122,6 @@
 </tbody>
 
   </table>
-    <div class="items-per-page">
-  <label for="itemsLimit">표시 개수:</label>
-  <select id="itemsLimit">
-    <option value="10" <%= limit == 10 ? 'selected' : '' %>>10개</option>
-    <option value="20" <%= limit == 20 ? 'selected' : '' %>>20개</option>
-    <option value="30" <%= limit == 30 ? 'selected' : '' %>>30개</option>
-  </select>
-</div>
 
 <% function buildQuery(page, sort = sort_type) { 
   const params = new URLSearchParams();

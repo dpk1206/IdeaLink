@@ -280,3 +280,25 @@ exports.getPost = async (req, res) => {
     res.status(500).send("서버 오류");
   }
 };
+
+// 최근 게시글 N개 조회
+exports.getRecentPosts = async (req, res) => {
+  try {
+    const recentPosts = await postModel.getRecentPosts(); // 최신순 5개 정도
+    res.json(recentPosts);
+  } catch (err) {
+    console.error("최근 게시글 조회 실패:", err);
+    res.status(500).send("서버 오류");
+  }
+};
+
+// 인기 게시글 N개 조회
+exports.getPopularPosts = async (req, res) => {
+  try {
+    const popularPosts = await postModel.getPopularPosts(); // 조회수 순 5개 정도
+    res.json(popularPosts);
+  } catch (err) {
+    console.error("인기 게시글 조회 실패:", err);
+    res.status(500).send("서버 오류");
+  }
+};

@@ -364,3 +364,23 @@ exports.increaseViewCount = async (post_id) => {
   `, [post_id]);
   await conn.end();
 };
+
+// 최근 게시글 5개
+exports.getRecentPosts = async () => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  const sql = `SELECT post_id, title FROM post ORDER BY created_at DESC LIMIT 5`;
+  const [rows] = await conn.promise().query(sql);
+  await conn.end();
+  return rows;
+};
+
+// 인기 게시글 5개
+exports.getPopularPosts = async () => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  const sql = `SELECT post_id, title FROM post ORDER BY view_count DESC LIMIT 5`;
+  const [rows] = await conn.promise().query(sql);
+  await conn.end();
+  return rows;
+};
