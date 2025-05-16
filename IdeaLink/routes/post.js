@@ -64,4 +64,6 @@ router.get('/idea_detail', postController.ideaDetail);
 // 파일 다운로드
 router.get("/download/:file_id", postController.downloadFile);
 
+router.get('/ideas', postController.getPost);
+
 module.exports = router;

@@ -4,23 +4,18 @@ const postFileModel = require("../models/postFileModel");
 const postlogModel = require("../models/postlogModel");
 const axios = require("axios");
 
-// 게시글 등록 및 파일 처리
+// 파일 유형 필터용 확장자 정의
+const DOCUMENT_TYPES = [".pdf", ".doc", ".docx", ".hwp"];
+const IMAGE_TYPES = [".png", ".jpg", ".jpeg", ".gif"];
+
+
+// ✅ 게시글 등록 + 파일 저장 + 워터마크 처리
 exports.createPost = async (req, res, next) => {
-  const {
-    user_id,
-    title,
-    summary,
-    content,
-    category_id,
-    transaction_type,
-    price,
-  } = req.body;
-  const parsedCategoryId = Array.isArray(category_id)
-    ? category_id[0]
-    : category_id;
+  const { user_id, title, summary, content, category_id, transaction_type, price } = req.body;
+  const parsedCategoryId = Array.isArray(category_id) ? category_id[0] : category_id;
 
   try {
-    // 게시글 정보 DB에 저장
+    // 1. 게시글 저장
     const post_id = await postModel.insertPost({
       user_id,
       title,
@@ -30,34 +25,27 @@ exports.createPost = async (req, res, next) => {
       transaction_type,
       price,
     });
-    console.log("게시글 결과", post_id);
 
-    // 파일 처리
+    console.log("리턴된 post_id:", post_id);
+
+    // 2. 첨부파일 저장 및 워터마크 요청
     const files = req.files;
     if (files && files.length > 0) {
-      // 파일 정보 DB에 저장
       const insertFileResult = await Promise.all(
         files.map((file) => postFileModel.insertFile(file, post_id, "post"))
       );
 
-      // 워터마크 처리 요청 (Flask 서버)
       const options = {
         method: "GET",
         url: "http://localhost:5000/watermark",
-        data: {
-          files: files,
-        },
-        headers: {
-          "Content-Type": "application/json",
-        },
+        data: { files },
+        headers: { "Content-Type": "application/json" },
       };
 
       const result = await axios(options);
       const wmPathList = result.data.wm_path;
-      console.log(insertFileResult);
-      console.log(wmPathList);
 
-      // 워터마크된 파일 경로 저장
+      // 3. 워터마크 경로 저장
       insertFileResult.forEach((result, index) => {
         const insertId = result.insertId;
         const wm_path = wmPathList[index];
@@ -65,9 +53,8 @@ exports.createPost = async (req, res, next) => {
       });
     }
 
-    // 게시글 등록 로그 저장
-    const clientIp =
-      req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    // 4. 게시글 등록 로그 기록
+    const clientIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     await postlogModel.createLog({
       post_id,
       user_id,
@@ -75,7 +62,7 @@ exports.createPost = async (req, res, next) => {
       post_log_ip: clientIp,
     });
 
-    // 리다이렉트
+    // 5. 상세 페이지로 리다이렉트
     res.redirect(`/post/idea_detail?post_id=${post_id}`);
   } catch (err) {
     console.error("게시글 등록 오류:", err);
@@ -83,34 +70,49 @@ exports.createPost = async (req, res, next) => {
   }
 };
 
-// 게시글 상세 컨트롤러
+
+// 게시글 상세조회 + 첨부파일 + 답글 + 조회수 증가
 exports.ideaDetail = async (req, res, next) => {
-  // DB 파일id로 조회
-  const post_id = req.param("post_id");
-  if (!post_id) next(new Error("post_id가 없습니다."));
+  const post_id = req.query.post_id || req.param("post_id");
+  console.log("ideaDetail() → 받은 post_id:", post_id);
+
+  if (!post_id) return next(new Error("post_id가 없습니다."));
+
   try {
-    const postInfo = await postModel.selectOnePost(post_id); // 게시물 조회
-    // 조회 결과가 없으면 404 에러 처리
-    if (postInfo.length == 0) {
+    // 1. 중복 조회 방지용 쿠키
+    const cookieName = `viewed_${post_id}`;
+    if (!req.cookies[cookieName]) {
+      await postModel.increaseViewCount(post_id);
+      res.cookie(cookieName, true, { maxAge: 1000 * 60 * 60 });
+    }
+
+    // 2. 게시글 및 첨부파일 조회
+    const postInfo = await postModel.selectOnePost(post_id);
+    const files = await postFileModel.selectDetailFile(post_id, "post");
+
+    if (postInfo.length === 0) {
       const err = new Error("해당 게시글을 찾을 수 없습니다.");
       err.status = 404;
       return next(err);
     }
+
+    // 3. 조회 로그 기록
+    const clientIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    await postlogModel.createLog({
+      post_id,
+      user_id: req.session?.user_id || null,
+      post_log_event: "VIEW_POST",
+      post_log_ip: clientIp,
+    });
+
+    // 4. 답글 + 답글 첨부파일 조회
     const result = {
-      // resposne 할 정보
       postInfo: postInfo[0],
+      files: files.length > 0 ? files : null,
     };
 
-    const files = await postFileModel.selectDetailFile(post_id, "post"); // 게시물 첨부파일조회
-    if (files && files.length > 0) {
-      result.files = files;
-    } else {
-      result.files = null;
-    }
-
-    const answerInfo = await postModel.selectAnswer(post_id); // 해당 답글조회
+    const answerInfo = await postModel.selectAnswer(post_id);
     if (answerInfo && answerInfo.length > 0) {
-      // 모든 답글에 대해 첨부파일을 병렬 조회
       await Promise.all(
         answerInfo.map(async (answer) => {
           const files = await postFileModel.selectDetailFile(answer.answer_id, "answer");
@@ -124,13 +126,16 @@ exports.ideaDetail = async (req, res, next) => {
       result.answerInfo = null;
     }
 
-    // console.log("최종 데이터:", result);
+    // 5. 최종 렌더링
+    console.log("최종 데이터:", result);
     res.render("idea_detail", result);
   } catch (err) {
     next(err);
   }
 };
 
+
+// ✅ 파일 다운로드 처리 (워터마크된 파일 기준)
 exports.downloadFile = async (req, res, next) => {
   const file_id = req.params.file_id;
   const fileInfo = await postFileModel.selectOneFile(file_id);
@@ -149,12 +154,13 @@ exports.downloadFile = async (req, res, next) => {
   });
 };
 
-// 답글 등록 및 파일 처리
+
+// ✅ 답글 등록 + 파일 첨부 + 워터마크 처리
 exports.createAnswer = async (req, res, next) => {
   const { post_id, answer_user_id, title, content } = req.body;
 
   try {
-    // 게시글 정보 DB에 저장
+    // 1. 답글 저장
     const answer_id = await postModel.insertAnswer({
       post_id,
       answer_user_id,
@@ -162,32 +168,23 @@ exports.createAnswer = async (req, res, next) => {
       content,
     });
 
-    // 파일 처리
+    // 2. 파일 처리 + 워터마크
     const files = req.files;
     if (files && files.length > 0) {
-      // 파일 정보 DB에 저장
       const insertFileResult = await Promise.all(
         files.map((file) => postFileModel.insertFile(file, answer_id, "answer"))
       );
 
-      // 워터마크 처리 요청 (Flask 서버)
       const options = {
         method: "GET",
         url: "http://localhost:5000/watermark",
-        data: {
-          files: files,
-        },
-        headers: {
-          "Content-Type": "application/json",
-        },
+        data: { files },
+        headers: { "Content-Type": "application/json" },
       };
 
       const result = await axios(options);
       const wmPathList = result.data.wm_path;
-      console.log(insertFileResult);
-      console.log(wmPathList);
 
-      // 워터마크된 파일 경로 저장
       insertFileResult.forEach((result, index) => {
         const insertId = result.insertId;
         const wm_path = wmPathList[index];
@@ -195,9 +192,8 @@ exports.createAnswer = async (req, res, next) => {
       });
     }
 
-    // 게시글 등록 로그 저장
-    const clientIp =
-      req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    // 3. 로그 저장
+    const clientIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     await postlogModel.createLog({
       post_id,
       user_id: answer_user_id,
@@ -205,10 +201,82 @@ exports.createAnswer = async (req, res, next) => {
       post_log_ip: clientIp,
     });
 
-    // 리다이렉트
+    // 4. 리다이렉트
     res.redirect(`/post/idea_detail?post_id=${post_id}`);
   } catch (err) {
     console.error("답글 등록 오류:", err);
     next(err);
+  }
+};
+
+
+// ✅ 게시글 목록 조회 + 필터 처리
+exports.getPost = async (req, res) => {
+  try {
+    // 1. 파라미터 추출
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const sub_id = req.query.sub_id ? parseInt(req.query.sub_id) : null;
+    const main_id = req.query.main_id ? parseInt(req.query.main_id) : null;
+    const file_filter = req.query.file_type || null;
+    const transaction_type = req.query.transaction_type || null;
+    const keyword = req.query.keyword || null;
+    const search_type = req.query.search_type || null;
+    const sort_type = req.query.sort || 'recent';
+
+    // 2. 파일 유형 분류
+    let fileTypes = null;
+    if (file_filter) {
+      const splitTypes = file_filter.split(','); // 다중 선택 가능
+      fileTypes = splitTypes.flatMap(type => {
+        if (type === "문서") return DOCUMENT_TYPES;
+        if (type === "이미지") return IMAGE_TYPES;
+        return [];
+      });
+    }
+
+    // 3. 필터 구성
+    const filter = {
+      sub_id: Number.isInteger(sub_id) ? sub_id : null,
+      main_id: Number.isInteger(main_id) ? main_id : null,
+      fileTypes,
+      transaction_type: transaction_type === "all" ? null : transaction_type,
+      limit,
+      offset,
+      keyword,
+      search_type,
+      sort_type,
+    };
+
+    // 4. 데이터 조회
+    const [posts, totalCount, mainCategoryMap, subCategoryMap] = await Promise.all([
+      postModel.getFilteredPosts(filter),
+      postModel.getFilteredPostCount(filter),
+      postModel.getMainCategoryMap(),
+      postModel.getSubCategoryMap(),
+    ]);
+
+    // 5. 페이지 렌더링
+    const totalPages = Math.ceil(totalCount / limit);
+    res.render("ideas", {
+      posts,
+      currentPage: page,
+      totalPages,
+      limit,
+      mainCategoryMap: mainCategoryMap || {},
+      subCategoryMap: subCategoryMap || {},
+      selectedTransactionType: transaction_type || 'all',
+      transaction_type,
+      searchType: req.query.search_type || 'title',
+      keyword: req.query.keyword || '',
+      main_id,
+      sub_id,
+      file_type: file_filter,
+      sort_type,
+    });
+  } catch (err) {
+    console.error("Error occurred while fetching posts:", err);
+    res.status(500).send("서버 오류");
   }
 };

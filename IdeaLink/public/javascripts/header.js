@@ -35,7 +35,7 @@ window.addEventListener("DOMContentLoaded", () => {
           new CustomEvent("userReady", { detail: window.currentUser })
         );
         menuElement.innerHTML = `
-          <a href="/ideas">아이디어 게시판</a>
+          <a href="/post/ideas">아이디어 게시판</a>
           <a href="#">공모전/전시</a>
           <a href="/notice">공지사항</a>
           <a href="/faq">FAQ&건의</a>
@@ -56,7 +56,7 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     } else {
       menuElement.innerHTML = `
-        <a href="/ideas">아이디어 게시판</a>
+        <a href="/post/ideas">아이디어 게시판</a>
         <a href="#">공모전/전시</a>
         <a href="/notice">공지사항</a>
         <a href="/faq">FAQ&건의</a>

@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="/stylesheets/ideas.css">
 </head>
 <body>
-  <%- include ('header.ejs') %>
+  <%- include('header.ejs') %>
 
   <div class="layout-container">
   
@@ -22,7 +22,8 @@
     <div class="container">
       <a href="/submit_idea" class="register-button">+ 아이디어 등록하기</a>
       <h1>📝 아이디어 목록</h1>
-  
+      
+      
       <!-- 필터 영역 -->
       <div class="filters">
         <!-- 파일유형 선택 -->
@@ -50,43 +51,114 @@
         <div class="filter-box">
           <h3>거래 유형</h3>
           <div id="deal_type_group" class="category-buttons">
-            <button type="button" class="deal_type_btn" data-value="all" class="active">전체</button>
-            <button type="button" class="deal_type_btn" data-value="판매">판매</button>
-            <button type="button" class="deal_type_btn" data-value="구매">구매</button>
+            <button type="button" class="deal_type_btn <%= selectedTransactionType === 'all' ? 'active' : '' %>" data-value="all">전체</button>
+            <button type="button" class="deal_type_btn <%= selectedTransactionType === '판매' ? 'active' : '' %>" data-value="판매">판매</button>
+            <button type="button" class="deal_type_btn <%= selectedTransactionType === '구매' ? 'active' : '' %>" data-value="구매">구매</button>
           </div>
         </div>
-  
-        <div class="search-box">
-          <select id="searchType">
-            <option value="title">제목 검색</option>
-            <option value="author">작성자 검색</option>
-          </select>
-          <input type="text" id="searchInput" placeholder="검색어 입력">
-          <button onclick="searchIdeas()">검색</button>
+        <!-- 검색 -->
+      <div class="search-box">
+      <select id="searchType">
+        <option value="title" <%= searchType === 'title' ? 'selected' : '' %>>제목 검색</option>
+        <option value="author" <%= searchType === 'author' ? 'selected' : '' %>>작성자 검색</option>
+      </select>
+      <input type="text" id="searchInput" value="<%= keyword %>" placeholder="검색어 입력">
+        <button type="button" onclick="searchIdeas()">검색</button>
+        <button id="resetFilters" type="button">초기화</button>
+      </div>
+      </div>    
 
-          <button id="resetFilters" type="button">초기화</button>
-
+      <!-- 정렬 기준 선택 -->
+      <div class="sort-wrapper">
+        <div id="sort_type_group" class="sort-group-right">
+          <button type="button" class="sort_type_btn <%= sort_type === 'recent' ? 'active' : '' %>" data-value="recent">최신순</button>
+          <button type="button" class="sort_type_btn <%= sort_type === 'popular' ? 'active' : '' %>" data-value="popular">인기순</button>
         </div>
       </div>
-  
-      <div class="idea-table-wrapper">
-        <table class="idea-table">
-          <thead>
-            <tr>
-              <th>번호</th>
-              <th>제목</th>
-              <th>작성자</th>
-              <th>거래유형</th>
-              <th>가격</th>
-              <th>날짜</th>
-              <th>조회수</th>
-            </tr>
-          </thead>
-          <tbody id="ideaList"></tbody>
-        </table>
-        <div id="pagination" class="pagination"></div>
-      </div>
-  
+
+
+   <div class="idea-table-wrapper">
+  <table class="idea-table">
+    <thead>
+      <tr>
+        <th>번호</th>
+        <th>제목</th>
+        <th>작성자</th>
+        <th>거래유형</th>
+        <th>가격</th>
+        <th>날짜</th>
+        <th>조회수</th>
+      </tr>
+    </thead>
+    <tbody id="ideaList">
+  <% if (posts && posts.length > 0) { %>
+    <% posts.forEach((post, index) => { %>
+      
+    <tr onclick="window.location.href='/post/idea_detail?post_id=<%= post.post_id %>'" style="cursor:pointer;">
+      <td><%= (currentPage - 1) * 10 + index + 1 %></td>
+      <td><%= post.title %></td>
+      <td><%= post.nick_name %></td>
+      <td><%= post.transaction_type %></td>
+      <td><%= post.price %></td>
+      <td><%= new Date(post.created_at).toLocaleDateString() %></td>
+      <td><%= post.view_count %></td>
+    </tr>
+
+    <% }); %>
+  <% } else { %>
+    <tr><td colspan="7">게시글이 없습니다.</td></tr>  <!-- 게시글이 없을 때 메시지 -->
+  <% } %>
+</tbody>
+
+  </table>
+    <div class="items-per-page">
+  <label for="itemsLimit">표시 개수:</label>
+  <select id="itemsLimit">
+    <option value="10" <%= limit == 10 ? 'selected' : '' %>>10개</option>
+    <option value="20" <%= limit == 20 ? 'selected' : '' %>>20개</option>
+    <option value="30" <%= limit == 30 ? 'selected' : '' %>>30개</option>
+  </select>
+</div>
+
+<% function buildQuery(page, sort = sort_type) { 
+  const params = new URLSearchParams();
+  if (main_id) params.set("main_id", main_id);
+  if (sub_id) params.set("sub_id", sub_id);
+  if (file_type) params.set("file_type", file_type);
+  if (transaction_type && transaction_type !== 'all') params.set("transaction_type", transaction_type);
+  if (keyword) {
+    params.set("keyword", keyword);
+    params.set("search_type", searchType);
+  }
+  params.set("limit", limit);
+  params.set("page", page);
+  params.set("sort", sort);
+   return `?${params.toString()}#pagination`;
+} %>
+
+
+    <!-- 페이징 처리 -->
+    <div id="pagination" class="pagination">
+  <% if (totalPages > 1) { %>
+    <% if (currentPage > 1) { %>
+      <a href="<%= buildQuery(currentPage - 1) %>" class="page-link">이전</a>
+    <% } %>
+
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <% if (i === currentPage) { %>
+        <span class="page-number active"><%= i %></span>
+      <% } else { %>
+        <a href="<%= buildQuery(i) %>" class="page-number"><%= i %></a>
+      <% } %>
+    <% } %>
+
+    <% if (currentPage < totalPages) { %>
+      <a href="<%= buildQuery(currentPage + 1) %>" class="page-link">다음</a>
+    <% } %>
+  <% } %>
+</div>
+
+    </div>
     </div>
   
     <!-- 오른쪽 사이드바 -->
@@ -99,8 +171,15 @@
   
   </div>
 
-  <%- include ('footer.html') %>
+  <%- include('footer.html') %>
+  
+<!-- ✅ 카테고리 매핑 자바스크립트에 전달 -->
+<script type="text/javascript">
+  const category_main_id_map = JSON.parse(`<%- JSON.stringify(mainCategoryMap || {}).replace(/</g, '\\u003c') %>`);
+  const category_sub_id_map = JSON.parse(`<%- JSON.stringify(subCategoryMap || {}).replace(/</g, '\\u003c') %>`);
+</script>
 
-  <script src="/javascripts/ideas.js"></script>
+<script src="/javascripts/ideas.js"></script>
+
 </body>
 </html>

@@ -37,11 +37,6 @@ router.get('/submit_idea', function(req, res, next) {
   res.render('submit_idea');
 });
 
-// 카테고리???
-router.get('/ideas', function(req, res, next) {
-  res.render('ideas');
-});
-
 // 어드민 - 일단 그냥 연결 추후 접근제한 필요(users로 따로 뺄까?)
 router.get('/admin', function(req, res, next) {
   res.render('admin');
