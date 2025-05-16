@@ -12,11 +12,16 @@
         <a href="/">💡IdeaLink</a>
       </div>
       <nav class="nav-menu-desktop">
-        <a href="/ideas">아이디어 게시판</a>
+        <a href="/post/ideas">아이디어 게시판</a>
         <a href="#">공모전/전시</a>
         <a href="/notice">공지사항</a>
         <a href="/faq">FAQ&건의</a>
-        <a href="/login_signup">로그인/회원가입</a>
+        <% if (user) { %>
+          <a href="/users/mypage?user_id=<%= user.user_id %>">☻ <%= user.nick_name %>님</a>
+          <a href="/users/logout" id="logoutBtn">로그아웃</a>
+        <% } else { %>
+          <a href="/login_signup">로그인/회원가입</a>
+        <% } %>
       </nav>
       <button class="nav-toggle">☰</button>
     </div>
@@ -27,17 +32,20 @@
     <div class="mobile-menu-content">
       <button class="close-menu">✕</button>
       <nav class="mobile-nav">
-        <a href="/ideas">아이디어 게시판</a>
+        <a href="/post/ideas">아이디어 게시판</a>
         <a href="#">공모전/전시</a>
         <a href="/notice">공지사항</a>
         <a href="/faq">FAQ&건의</a>
-        <a href="/login_signup">로그인/회원가입</a>
+        <% if (user) { %>
+          <a href="/users/mypage?user_id=<%= user.user_id %>">☻ <%= user.nick_name %>님</a>
+          <a href="/users/logout" id="logoutBtn-mobile">로그아웃</a>
+        <% } else { %>
+          <a href="/login_signup">로그인/회원가입</a>
+        <% } %>
       </nav>
     </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3/build/jwt-decode.min.js"></script>
+
   <script src="/javascripts/header.js"></script>
 </body>
 </html>
-
-

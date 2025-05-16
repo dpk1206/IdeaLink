@@ -80,7 +80,7 @@ exports.ideaDetail = async (req, res, next) => {
 
   try {
     // 1. 중복 조회 방지용 쿠키
-    const cookieName = `viewed_${post_id}`;
+    const cookieName = `viewed_${post_id},${req.user.user_id}`;
     if (!req.cookies[cookieName]) {
       await postModel.increaseViewCount(post_id);
       res.cookie(cookieName, true, { maxAge: 1000 * 60 * 60 });
@@ -100,7 +100,7 @@ exports.ideaDetail = async (req, res, next) => {
     const clientIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     await postlogModel.createLog({
       post_id,
-      user_id: req.session?.user_id || null,
+      user_id: req.user?.user_id || null,
       post_log_event: "VIEW_POST",
       post_log_ip: clientIp,
     });

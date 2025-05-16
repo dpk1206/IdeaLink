@@ -7,6 +7,7 @@ const ejs = require('ejs'); // ejs 뷰엔진진
 const cors = require('cors'); // 외부 url요청청
 const fs = require('fs') // 파일시스템
 const multer = require("multer"); // 이미지 관련
+const authMiddleware = require('./middleware/authMiddleware');
 
 // DB 연결
 const db_config = require('./config/dbconn');
@@ -21,6 +22,8 @@ var postRouter = require('./routes/post'); // 게시글 라우터  파일
 
 var app = express();
 
+app.use(cookieParser());
+app.use(authMiddleware); // 쿠키에 담긴 토큰 매 요청마다 검증
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -28,7 +31,6 @@ app.set('view engine', 'ejs');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use(cors())
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); // 파일업로드 폴더 설정

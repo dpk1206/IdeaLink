@@ -108,7 +108,14 @@ exports.kakaoCallback = async (req, res, next) => {
       }
     );
 
-    res.redirect(`http://localhost:3000/login_signup?token=${token}`);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false, // 로컬환경일 경우 false / 운영에서는 true
+      sameSite: "Lax", // 혹은 "Strict"
+      maxAge: 1000 * 60 * 60 * 24, // 1일
+    });
+
+    res.redirect("/");
   } catch (err) {
     console.error("카카오 로그인 오류:", err);
     next(err); // 에러 전달

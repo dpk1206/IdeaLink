@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <title>아이디어 상세</title>
   <link rel="stylesheet" href="/stylesheets/idea_detail.css">
+  
 </head>
 
 <body>
@@ -133,7 +134,7 @@
       <h1>답글 작성</h1>
       <form id="idea_form" action="/post/submit_answer" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="post_id" value="<%= postInfo.post_id %>">
-        <input type="hidden" id="answer_user_id" name="answer_user_id"> <!-- js에서 설정 -->
+        <input type="hidden" id="answer_user_id" name="answer_user_id" value="<%= user.user_id %>"> <!-- js에서 설정 -->
         <div class="form_card">
           <label for="title">제목</label>
           <input type="text" id="title" name="title" placeholder="답글 제목을 입력하세요" required>

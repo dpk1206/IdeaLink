@@ -3,10 +3,10 @@ const router = express.Router();
 const userController = require("../controllers/authController");
 const kakaoController = require("../controllers/kakaoAuthController");
 const naverController = require("../controllers/naverAuthController");
-const authMiddleware = require("../middleware/authMiddleware"); // 토큰 인증 미들웨어
+const requireLogin = require("../middleware/requireLogin");
 
 // 마이페이지 - 일단 그냥 연결 추후 접근제한 필요
-router.get('/mypage', function(req, res, next) {
+router.get('/mypage', requireLogin, function(req, res, next) {
   res.render('mypage');
 });
 
@@ -54,27 +54,16 @@ router.get("/naver/callback", async (req, res, next) => {
 });
 
 // ✅ 토큰 인증된 사용자만 접근 가능한 예시 라우터 (보호 라우트)
-router.get("/profile", authMiddleware, (req, res) => {
+router.get("/profile", requireLogin, (req, res) => {
   res.json({
     message: "프로필 조회 성공!",
     user: req.user, // 토큰에서 복호화된 사용자 정보
   });
 });
 
-// 토큰 인증 요청
-router.post("/verify", authMiddleware);
-
-// ✅ 테스트 라우트들
-router.get("/", function (req, res, next) {
-  res.send("respond with a resource");
+// 로그아웃
+router.get("/logout", (req, res) => {
+  res.clearCookie("token"); // 쿠키 삭제
+  res.redirect("/"); // 로그인 페이지로 리디렉션
 });
-
-router.get("/aaa", function (req, res, next) {
-  res.render("aaa", { title: "Express" });
-});
-
-router.get("/bbb", async function (req, res, next) {
-  await userController.selectTest(req, res);
-});
-
 module.exports = router;

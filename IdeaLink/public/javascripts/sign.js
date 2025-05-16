@@ -415,9 +415,9 @@ selectCompanyBtn.addEventListener("click", () => {
   selectedType = "company"; // 기업 선택 세팅
 });
 
-// ✅ 로그인 처리 (fetch로 로그인)
+// ✅ 로그인 처리
 const loginSubmitBtn = loginForm.querySelector('button[type="submit"]');
-loginSubmitBtn.type = "button"; // 기본 form 제출 막기
+loginSubmitBtn.type = "button";
 
 loginSubmitBtn.addEventListener("click", async () => {
   const email = loginForm.querySelector('input[name="email"]').value;
@@ -428,29 +428,19 @@ loginSubmitBtn.addEventListener("click", async () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
+      credentials: "include" // ✅ 쿠키 자동 전송 설정
     });
 
     const data = await res.json();
 
-    if (res.ok && data.token) {
-      localStorage.setItem("token", data.token); // 토큰 저장
+    if (res.ok) {
       alert("로그인 성공!");
-      window.location.href = "/"; // 로그인 성공 후 홈으로
+      window.location.href = "/";
     } else {
       alert(data.message || "로그인 실패");
     }
   } catch (err) {
     console.error("로그인 오류:", err);
     alert("서버 오류가 발생했습니다.");
-  }
-});
-// 소셜 로그인 토큰 저장 처리
-document.addEventListener("DOMContentLoaded", () => {
-  const token = new URLSearchParams(window.location.search).get("token");
-  if (token) {
-    localStorage.setItem("token", token);
-    console.log("토큰 저장됨:", token);
-    window.history.replaceState({}, document.title, window.location.pathname);
-    window.location.href = "/"; // 
   }
 });

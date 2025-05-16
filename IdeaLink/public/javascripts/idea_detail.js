@@ -1,23 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // 로그인 확인
-  const token = localStorage.getItem("token");
-  if (!token) {
-    alert("로그인이 필요합니다.");
-    location.href = "/login_signup";
-    return; // 이후 코드 실행 방지
-  }
-});
-
-window.addEventListener("userReady", (e) => {
-  if (!e.detail) {
-    // 로그인 정보가 없으므로 로그인 페이지로 이동
-    alert("로그인이 필요합니다.");
-    location.href = "/login_signup";
-    return; // 이후 코드 실행 방지
-  }
-
-  console.log("디테일페이지유저:", e.detail);
-  document.getElementById("answer_user_id").value = e.detail.user_id;
   // 이후 로직 실행 (댓글, 좋아요 등)
   // 좋아요 토글 기능
   const likeBtn = document.getElementById("like_btn");
@@ -60,5 +41,6 @@ window.addEventListener("userReady", (e) => {
     }
   });
 });
+
 
 

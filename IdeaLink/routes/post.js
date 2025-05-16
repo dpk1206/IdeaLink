@@ -4,7 +4,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const postController = require("../controllers/postController");
-const authenticateToken = require('../middleware/authMiddleware');
+const requireLogin = require("../middleware/requireLogin");
 
 // Multer 셋팅
 const storage = multer.diskStorage({
@@ -52,6 +52,14 @@ const upload = multer({
 });
 //////////////////////////// 라우팅 시작 ///////////////////////////////
 
+// 게시판 리스트
+router.get('/ideas', postController.getPost);
+
+// 아이디어 등록 페이지 이동동
+router.get('/submit_idea', requireLogin, function(req, res, next) {
+  res.render('submit_idea');
+});
+
 // 게시글 등록을 POST 방식으로 처리 (파일 업로드 포함) - JWT 미들웨어 추가
 router.post("/submit_idea", upload.array("files", 5), postController.createPost);
 
@@ -59,12 +67,12 @@ router.post("/submit_idea", upload.array("files", 5), postController.createPost)
 router.post("/submit_answer", upload.array("files", 5), postController.createAnswer);
 
 // 게시물상세
-router.get('/idea_detail', postController.ideaDetail);
+router.get('/idea_detail', requireLogin, postController.ideaDetail);
 
 // 파일 다운로드
 router.get("/download/:file_id", postController.downloadFile);
 
-router.get('/ideas', postController.getPost);
+
 
 //인기,최신 게시글
 router.get("/recent_posts", postController.getRecentPosts);
