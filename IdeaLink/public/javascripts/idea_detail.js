@@ -42,5 +42,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-
+// answer_btn 클래스를 가진 모든 요소에 이벤트 등록
+document.querySelectorAll('.answer_btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const container = document.querySelector('.submit_container');
+    if (container) {
+      // 토글 동작
+      if (container.style.display === 'none' || getComputedStyle(container).display === 'none') {
+        container.style.display = 'block';
+        // 화면을 .submit_container로 스크롤 이동
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        container.style.display = 'none';
+      }
+    }
+  });
+});
 

@@ -119,6 +119,7 @@
         <div class="actions">
           <button id="like_btn">👍 좋아요 (<span id="like_count">0</span>)</button>
           <button class="answer_action">💬 댓글</button>
+          <button class="answer_btn">🗣️ 답글 작성</button>
           <button id="report_btn">🚩 신고</button>
         </div>
         <div class="comment_section">
@@ -130,7 +131,7 @@
       </div>
 
       <!-- 답글 작성 폼(버튼 추가후 클릭해야 보이게 바꾸기) -->
-      <div class="submit_container">
+      <div class="submit_container" style="display: none;">
       <h1>답글 작성</h1>
       <form id="idea_form" action="/post/submit_answer" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="post_id" value="<%= postInfo.post_id %>">

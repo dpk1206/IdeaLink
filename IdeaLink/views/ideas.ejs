@@ -110,7 +110,7 @@
       <td><%= post.title %></td>
       <td><%= post.nick_name %></td>
       <td><%= post.transaction_type %></td>
-      <td><%= post.price %></td>
+      <td><%= post.price.toLocaleString() %></td>
       <td><%= new Date(post.created_at).toLocaleDateString() %></td>
       <td><%= post.view_count %></td>
     </tr>
