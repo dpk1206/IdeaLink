@@ -47,7 +47,7 @@ const fileFilter = (req, file, cb) => {
 // Multer 설정: 사용자 정의 스토리지를 설정하고 파일 크기 제한 및 파일 필터링 적용
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 1024 * 1024 * 5 }, // 5MB 크기 제한
+  limits: { fileSize: 1024 * 1024 * 10 }, // 10MB 크기 제한
   fileFilter: fileFilter,
 });
 //////////////////////////// 라우팅 시작 ///////////////////////////////

@@ -10,64 +10,113 @@
 <body>
   <%- include ('header.ejs') %>
     <div class="admin-container">
-      <h1>🔧 관리자 페이지</h1>
+    <!-- 사이드 메뉴 -->
+    <aside class="admin-sidebar">
+      <button onclick="showSection('suggestions')">💬 건의사항</button>
+      <button onclick="showSection('reports')">🚨 신고글</button>
+      <button onclick="showSection('notices')">📢 공지사항</button>
+      <button onclick="showSection('adminLogs')">🧾 관리자 로그</button>
+      <button onclick="showSection('userLogs')">🧑‍💻 유저 활동</button>
+      <button onclick="showSection('userOnline')">🟢 접속 유저</button>
+    </aside>
 
-      <!-- 📌 신고된 게시글 관리 -->
-      <section class="report-section">
-        <h2>🚨 신고된 게시글</h2>
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>번호</th>
-              <th>제목</th>
-              <th>작성자</th>
-              <th>신고 사유</th>
-              <th>처리</th>
-            </tr>
-          </thead>
-          <tbody id="reportList">
-            <!-- 예시 행 -->
-            <tr>
-              <td>1</td>
-              <td>스팸 아이디어 제목</td>
-              <td>user01</td>
-              <td>광고성 게시물</td>
+    <!-- 콘텐츠 -->
+    <main class="admin-content">
+      <!-- 건의사항 -->
+      <section id="suggestions" class="admin-section">
+        <h2>💬 건의사항 관리</h2>
+        <div class="filter-area">
+          <input type="text" id="searchUser" placeholder="사용자 ID" />
+          <input type="date" id="searchDate" />
+          <select id="filterCategory">
+            <option value="">전체</option>
+            <option value="오류">오류</option>
+            <option value="제안">제안</option>
+            <option value="기타">기타</option>
+          </select>
+          <button onclick="applySuggestionFilter()">검색</button>
+        </div>
+        <table class="styled-table">
+          <thead><tr><th>사용자</th><th>내용</th><th>날짜</th><th>상태</th><th>답변</th></tr></thead>
+          <tbody>
+            <tr class="suggestion-row" data-userid="user123" data-date="2025-04-01" data-category="제안">
+              <td>user123</td>
+              <td>로그인 문제</td>
+              <td>2025-04-01</td>
+              <td class="status-cell status-wait">답변 대기</td>
               <td>
-                <button class="delete-btn">삭제</button>
-                <button class="ignore-btn">무시</button>
+                <button onclick="openAnswerForm(this)">답변</button>
+                <div class="answer-box" style="display:none;">
+                  <textarea></textarea>
+                  <button onclick="submitAnswer(this)">저장</button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
       </section>
-      <!-- ✉️ 건의사항 보기 -->
-      <section class="suggestion-section">
-        <h2>✉️ 사용자 건의사항</h2>
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>번호</th>
-              <th>내용</th>
-              <th>제출일</th>
-              <th>처리</th>
+
+      <!-- 신고글 -->
+      <section id="reports" class="admin-section" style="display:none;">
+        <h2>🚨 신고된 게시글</h2>
+        <table class="styled-table">
+          <thead><tr><th>사용자</th><th>사유</th><th>날짜</th><th>관리</th></tr></thead>
+          <tbody>
+            <tr class="report-row" data-userid="baduser" data-date="2025-03-30" data-category="욕설">
+              <td>baduser</td>
+              <td>욕설 포함</td>
+              <td>2025-03-30</td>
+              <td><button onclick="deleteReport(this)">삭제</button></td>
             </tr>
-          </thead>
-          <tbody id="suggestionList">
-            <!-- JS로 채워짐 -->
           </tbody>
         </table>
       </section>
 
-      <!-- 📢 공지사항 작성 -->
-      <section class="notice-section">
-        <h2>📢 공지사항 작성</h2>
-        <form id="noticeForm">
-          <label>제목<input type="text" id="noticeTitle" required></label>
-          <label>내용<textarea id="noticeContent" rows="5" required></textarea></label>
-          <button type="submit">공지 등록</button>
-        </form>
+      <!-- 공지사항 -->
+      <section id="notices" class="admin-section" style="display:none;">
+        <h2>📢 공지사항 관리</h2>
+        <div class="notice-form">
+          <input type="text" id="noticeTitle" placeholder="공지 제목">
+          <textarea id="noticeContent" placeholder="공지 내용"></textarea>
+          <button onclick="addNotice()">등록</button>
+        </div>
+        <table class="styled-table">
+          <thead><tr><th>제목</th><th>날짜</th><th>관리</th></tr></thead>
+          <tbody id="noticeList">
+            <tr><td>점검 안내</td><td>2025-04-01</td><td><button onclick="editNotice(this)">수정</button> <button onclick="deleteNotice(this)">삭제</button></td></tr>
+          </tbody>
+        </table>
       </section>
-    </div>
+
+      <!-- 관리자 로그 -->
+      <section id="adminLogs" class="admin-section" style="display:none;">
+        <h2>🧾 관리자 로그</h2>
+        <table class="styled-table">
+          <thead><tr><th>시간</th><th>관리자</th><th>작업 내용</th></tr></thead>
+          <tbody id="logList"></tbody>
+        </table>
+      </section>
+
+      <!-- 유저 로그 -->
+      <section id="userLogs" class="admin-section" style="display:none;">
+        <h2>🧑‍💻 유저 활동</h2>
+        <table class="styled-table">
+          <thead><tr><th>시간</th><th>유저</th><th>활동</th></tr></thead>
+          <tbody id="userLogList">
+            <tr><td>2025-04-01 10:25</td><td>userA</td><td>아이디어 등록</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 추가: 현재 로그인 유저 -->
+      <section id="userOnline" class="admin-section" style="display:none;">
+        <h2>🟢 현재 로그인 유저</h2>
+        <ul class="user-list" id="onlineUsers">
+          <!-- JS로 채워짐 -->
+        </ul>
+      </section>
+    </main>
+  </div>
     <%- include ('footer.html') %>
       <script src="/javascripts/admin.js"></script>
 </body>

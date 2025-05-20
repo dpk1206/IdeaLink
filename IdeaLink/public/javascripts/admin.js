@@ -1,87 +1,147 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. 신고 게시글 삭제/무시 처리
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const row = btn.closest('tr');
-        if (confirm('정말 이 게시글을 삭제하시겠습니까?')) {
-          row.remove();
-          alert('삭제되었습니다.');
-        }
-      });
-    });
-  
-    document.querySelectorAll('.ignore-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const row = btn.closest('tr');
-        row.remove();
-        alert('신고를 무시했습니다.');
-      });
-    });
-  
-    // 2. 공지사항 등록 처리
-    const noticeForm = document.getElementById('noticeForm');
-    noticeForm?.addEventListener('submit', function (e) {
-      e.preventDefault();
-      const title = document.getElementById('noticeTitle').value.trim();
-      const content = document.getElementById('noticeContent').value.trim();
-  
-      if (!title || !content) {
-        alert('제목과 내용을 입력해주세요.');
-        return;
-      }
-  
-      alert(`공지 등록 완료!\n\n제목: ${title}\n내용: ${content}`);
-      noticeForm.reset();
-    });
-  
-    // 3. 건의사항 데이터 및 출력
-    const suggestions = [
-      {
-        content: '아이디어 검색 기능에 필터 추가해 주세요.',
-        date: '2025-03-31',
-        reply: ''
-      },
-      {
-        content: '모바일에서 글 쓰기가 너무 어려워요.',
-        date: '2025-03-30',
-        reply: ''
-      },
-      {
-        content: '특허 관련 정보 팁이나 가이드를 보여주면 좋겠어요.',
-        date: '2025-03-28',
-        reply: ''
-      }
-    ];
-  
-    const suggestionList = document.getElementById('suggestionList');
-    if (suggestionList) {
-      suggestions.forEach((sug, idx) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${idx + 1}</td>
-          <td>${sug.content}</td>
-          <td>${sug.date}</td>
-          <td><button class="reply-btn" data-index="${idx}">답변</button></td>
-        `;
-        suggestionList.appendChild(row);
-      });
-    }
-  
-    // 4. 답변 버튼 클릭 시 처리
-    document.addEventListener('click', function (e) {
-      if (e.target.classList.contains('reply-btn')) {
-        const idx = e.target.dataset.index;
-        const reply = prompt('답변 내용을 입력하세요:');
-        if (reply) {
-          suggestions[idx].reply = reply;
-          alert('답변이 등록되었습니다.');
-  
-          // 버튼 상태 업데이트
-          e.target.textContent = '완료됨';
-          e.target.disabled = true;
-          e.target.style.backgroundColor = '#ccc';
-        }
-      }
-    });
+
+// 탭 전환
+function showSection(id) {
+  document.querySelectorAll('.admin-section').forEach(sec => {
+    sec.style.display = (sec.id === id) ? 'block' : 'none';
   });
-  
+}
+
+// 필터링
+function applySuggestionFilter() {
+  const userId = document.getElementById("searchUser").value.trim();
+  const date = document.getElementById("searchDate").value;
+  const category = document.getElementById("filterCategory").value;
+  const rows = document.querySelectorAll(".suggestion-row");
+
+  rows.forEach(row => {
+    const userMatch = row.dataset.userid.includes(userId);
+    const dateMatch = !date || row.dataset.date === date;
+    const categoryMatch = !category || row.dataset.category === category;
+    row.style.display = (userMatch && dateMatch && categoryMatch) ? "" : "none";
+  });
+}
+
+function applyReportFilter() {
+  const rows = document.querySelectorAll(".report-row");
+  rows.forEach(row => {
+    row.style.display = "block"; // 기본 전체 표시
+  });
+}
+
+// 답변창 열기
+function openAnswerForm(button) {
+  const box = button.nextElementSibling;
+  box.style.display = (box.style.display === "none") ? "block" : "none";
+}
+
+// 답변 저장
+function submitAnswer(saveBtn) {
+  const box = saveBtn.closest(".answer-box");
+  const textarea = box.querySelector("textarea");
+  const content = textarea.value.trim();
+  if (!content) {
+    alert("답변을 입력하세요.");
+    return;
+  }
+  const row = saveBtn.closest("tr");
+  const statusCell = row.querySelector(".status-cell");
+  statusCell.textContent = "처리 완료";
+  statusCell.classList.remove("status-wait");
+  statusCell.classList.add("status-done");
+  box.style.display = "none";
+  addAdminLog("건의사항 답변 완료");
+}
+
+// 공지사항 작성/목록
+function addNotice() {
+  const title = document.getElementById("noticeTitle").value.trim();
+  const content = document.getElementById("noticeContent").value.trim();
+  if (!title || !content) {
+    alert("제목과 내용을 입력하세요.");
+    return;
+  }
+  const now = new Date().toISOString().split("T")[0];
+  const notices = JSON.parse(localStorage.getItem("notices") || "[]");
+  notices.unshift({ title, content, date: now });
+  localStorage.setItem("notices", JSON.stringify(notices));
+  renderNotices();
+  addAdminLog(`공지사항 [${title}] 등록`);
+  document.getElementById("noticeTitle").value = "";
+  document.getElementById("noticeContent").value = "";
+}
+
+function renderNotices() {
+  const notices = JSON.parse(localStorage.getItem("notices") || "[]");
+  const list = document.getElementById("noticeList");
+  list.innerHTML = "";
+  notices.forEach(n => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${n.title}</td>
+      <td>${n.date}</td>
+      <td>
+        <button onclick="editNotice(this)">수정</button>
+        <button onclick="deleteNotice(this)">삭제</button>
+      </td>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function editNotice(button) {
+  const row = button.closest("tr");
+  const titleCell = row.children[0];
+  const newTitle = prompt("공지사항 제목 수정:", titleCell.textContent);
+  if (newTitle) {
+    titleCell.textContent = newTitle;
+    addAdminLog(`공지사항 제목 수정 → ${newTitle}`);
+  }
+}
+
+function deleteNotice(button) {
+  const row = button.closest("tr");
+  const title = row.children[0].textContent;
+  if (confirm("삭제하시겠습니까?")) {
+    row.remove();
+    addAdminLog(`공지사항 삭제됨 → ${title}`);
+  }
+}
+
+function deleteReport(button) {
+  const row = button.closest("tr");
+  const user = row.dataset.userid;
+  row.remove();
+  addAdminLog(`신고 게시글 삭제됨 → ${user}`);
+}
+
+// 로그
+function addAdminLog(action) {
+  const logList = document.getElementById("logList");
+  const now = new Date().toLocaleString();
+  const adminId = "admin001";
+  const row = document.createElement("tr");
+  row.innerHTML = `<td>${now}</td><td>${adminId}</td><td>${action}</td>`;
+  logList.prepend(row);
+}
+
+window.onload = () => {
+  renderNotices();
+  showSection('suggestions'); // 기본 탭
+};
+
+function loadOnlineUsers() {
+  const userList = document.getElementById("onlineUsers");
+  const users = ["userA", "userB", "admin001"];  // 예시
+  userList.innerHTML = "";
+  users.forEach(u => {
+    const li = document.createElement("li");
+    li.textContent = u;
+    userList.appendChild(li);
+  });
+}
+
+window.onload = () => {
+  renderNotices();
+  showSection('suggestions');
+  loadOnlineUsers(); // ✅ 추가됨
+};
