@@ -369,3 +369,35 @@ exports.removeComment = async (req, res) => {
     res.status(500).json({ error: "DB 오류" });
   }
 };
+
+//추천
+exports.likePost = async (req, res) => {
+  const { post_id } = req.body;
+  const user_id = req.user.user_id;
+
+  const alreadyLiked = await postModel.hasUserLiked(user_id, post_id);
+  if (alreadyLiked) {
+    return res.status(400).json({ error: "이미 추천하셨습니다." });
+  }
+
+  await postModel.saveLike(user_id, post_id);
+  const count = await postModel.getLikeCount(post_id);
+
+  res.json({ like_count: count });
+};
+
+//추천여부
+exports.getLikeStatus = async (req, res) => {
+  const { post_id } = req.query;
+  const user_id = req.user.user_id;
+
+  try {
+    const liked = await postModel.hasUserLiked(user_id, post_id);
+    const likeCount = await postModel.getLikeCount(post_id);
+
+    res.json({ liked, like_count: likeCount });
+  } catch (err) {
+    console.error("좋아요 상태 확인 오류:", err);
+    res.status(500).json({ error: "상태 확인 실패" });
+  }
+};
