@@ -4,11 +4,10 @@ const userController = require("../controllers/authController");
 const kakaoController = require("../controllers/kakaoAuthController");
 const naverController = require("../controllers/naverAuthController");
 const requireLogin = require("../middleware/requireLogin");
+const userCont = require("../controllers/userController");
 
 // 마이페이지 - 일단 그냥 연결 추후 접근제한 필요
-router.get('/mypage', requireLogin, function(req, res, next) {
-  res.render('mypage');
-});
+router.get('/mypage', requireLogin, userCont.mypage);
 
 // ✅ 회원가입 라우터
 router.post("/register", async function (req, res, next) {

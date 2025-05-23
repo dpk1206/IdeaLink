@@ -384,3 +384,43 @@ exports.getPopularPosts = async () => {
   await conn.end();
   return rows;
 };
+
+// 내가 작성한 게시글
+exports.selectMyPost = async (user_id) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  const sql = 
+  `SELECT post_id, title, created_at, view_count, transaction_type, price, recommend
+  FROM post
+  WHERE user_id = ?`;
+  const [rows] = await conn.promise().query(sql, [user_id]);
+  await conn.end();
+  return rows;
+};
+
+// 내가 작성한 답글
+exports.selectMyAnswer = async (user_id) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  const sql = 
+  `SELECT post_id, title, created_at, is_accepted
+  FROM answer
+  WHERE user_id = ?;`;
+  const [rows] = await conn.promise().query(sql, [user_id]);
+  await conn.end();
+  return rows;
+};
+
+// 내가 작성한 답글
+exports.selectMyComment = async (user_id) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  const sql = 
+  `SELECT content, created_at
+  FROM comment
+  WHERE user_id = ?;`;
+  const [rows] = await conn.promise().query(sql, [user_id]);
+  await conn.end();
+  return rows;
+};
+
