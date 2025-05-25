@@ -43,19 +43,45 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // answer_btn 클래스를 가진 모든 요소에 이벤트 등록
-document.querySelectorAll('.answer_btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const container = document.querySelector('.submit_container');
+document.querySelectorAll(".answer_btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const container = document.querySelector(".submit_container");
     if (container) {
       // 토글 동작
-      if (container.style.display === 'none' || getComputedStyle(container).display === 'none') {
-        container.style.display = 'block';
+      if (
+        container.style.display === "none" ||
+        getComputedStyle(container).display === "none"
+      ) {
+        container.style.display = "block";
         // 화면을 .submit_container로 스크롤 이동
-        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        container.scrollIntoView({ behavior: "smooth", block: "center" });
       } else {
-        container.style.display = 'none';
+        container.style.display = "none";
       }
     }
   });
 });
 
+function toggleBookmark(user_id, post_id) {
+  const btn = document.getElementById("bookmarkBtn");
+  const star = btn.querySelector(".star");
+  if (btn.classList.contains("active")) {
+    btn.classList.remove("active");
+    star.textContent = "☆";
+    // 서버에 북마크 해제 비동기 요청
+    fetch("/users/bookmark", {
+      method: "DELETE",
+      body: JSON.stringify({post_id}),
+      headers: { "Content-Type": "application/json" },
+    });
+  } else {
+    btn.classList.add("active");
+    star.textContent = "★";
+    // 서버에 북마크 등록 비동기 요청
+    fetch("/users/bookmark", {
+      method: "POST",
+      body: JSON.stringify({post_id}),
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}

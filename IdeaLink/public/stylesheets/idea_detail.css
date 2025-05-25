@@ -314,3 +314,26 @@ button[type='submit']:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(79, 124, 255, 0.3);
 }
+
+/* 북마크 버튼 */
+.bookmark-btn {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  color: #bbb;
+  cursor: pointer;
+  vertical-align: middle;
+  padding: 0;
+  padding-bottom: 8px;
+  transition: color 0.2s;
+}
+.bookmark-btn.active .star {
+  color: gold;
+}
+.bookmark-btn .star {
+  font-size: 1.2em;
+  transition: color 0.2s;
+}
+.bookmark-btn:hover .star {
+  color: orange;
+}

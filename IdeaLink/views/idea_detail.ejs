@@ -25,7 +25,20 @@
 
     <main class="detail_wrap">
       <div class="detail_card">
-        <h1 id="idea_title"><%=postInfo.title %></h1>
+        <h1 id="idea_title">
+          <button 
+            id="bookmarkBtn"
+            class="bookmark-btn <%= bookmark ? 'active' : '' %>"
+            title="북마크"
+            onclick="toggleBookmark('<%= user.user_id %>', '<%= postInfo.post_id %>')"
+            type="button"
+          >
+            <span class="star">
+              <%= bookmark ? '★' : '☆' %>
+            </span>
+          </button>
+          <%= postInfo.title %>
+        </h1>
         <div class="meta">
           <span id="author">작성자 : <%=postInfo.nick_name %></span>
           <span id="date">작성일 : <%= formatDate(postInfo.created_at) %></span>

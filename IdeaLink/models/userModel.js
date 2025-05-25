@@ -109,3 +109,23 @@ exports.findUserBySnsId = async function (snsId, joinType) {
     await conn.end();
   }
 };
+
+// user_id로 사용자 정보 조회 (로그인 시 사용)
+exports.selectUserByUserID = async function (user_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  // password는 제외하고 가져와야 하지만
+  const sql = "SELECT * FROM user WHERE user_id = ?";
+
+  try {
+    const [rows] = await conn.promise().query(sql, [user_id]);
+    // 귀찮으니 가져와서 제거
+    delete rows[0].password;
+    return rows[0]; // 사용자 1명 반환
+  } catch (err) {
+    console.error("로그인 사용자 조회 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};

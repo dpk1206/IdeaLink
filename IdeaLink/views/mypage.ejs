@@ -13,11 +13,11 @@
     <div class="mypage-container">
       <aside class="mypage-sidebar">
         <button class="tab-btn active" data-tab="alerts">🔔 알림</button>
+        <button class="tab-btn" data-tab="bookmark">⭐ 북마크</button>
         <button class="tab-btn" data-tab="ideas">💡 등록 아이디어</button>
         <button class="tab-btn" data-tab="history">📑 거래 내역</button>
-        <button class="tab-btn" data-tab="chat">💬 채팅방</button>
+        <button class="tab-btn" data-tab="chat">💬 1:1 채팅</button>
         <button class="tab-btn" data-tab="profile">👤 회원정보 수정</button>
-        <button class="tab-btn" data-tab="suggestions">✉️ 건의사항</button>
       </aside>
 
       <main class="mypage-content-area">
@@ -25,6 +25,45 @@
         <section id="alerts" class="mypage-section">
           <h2>🔔 내 알림</h2>
           <ul class="alert-list" id="alertList"></ul>
+        </section>
+
+        <!-- 북마크 -->
+        <section id="bookmark" class="mypage-section" style="display:none;">
+          <h2>⭐ 북마크</h2>
+          <table class="mypage-table">
+            <thead>
+              <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>아디이어 등록일</th>
+                <th>조회수</th>
+                <th>추천수</th>
+                <th>상태</th>
+                <th>북마크 등록일</th>
+              </tr>
+            </thead>
+            <tbody>
+            <% if (!bookmarks || bookmarks.length === 0) { %>
+              <tr>
+                <td colspan="7" style="text-align:center;">북마크가 없습니다</td>
+              </tr>
+            <% } else { %>
+              <% bookmarks.forEach((bookmark, index) => { %>
+                <tr onclick="window.location.href='/post/idea_detail?post_id=<%= bookmark.post_id %>'" style="cursor:pointer;">
+                  <td><%= index + 1 %></td>
+                  <td><%= bookmark.title %></td>
+                  <td><%= bookmark.nick_name %></td>
+                  <td><%= new Date(bookmark.created_at).toISOString().split('T')[0] %></td>
+                  <td><%= bookmark.view_count %></td>
+                  <td><%= bookmark.recommend %></td>
+                  <td class="status-sale"><%= bookmark.transaction_type %></td>
+                  <td><%= new Date(bookmark.bookmark_created_at).toISOString().split('T')[0] %></td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+          </table>
         </section>
 
         <!-- 등록한 아이디어 -->
@@ -155,27 +194,12 @@
           </table>
         </section>
 
-        <section id="suggestions" class="mypage-section" style="display:none;">
-          <h2>✉️ 내 건의사항</h2>
-          <table class="mypage-table">
-            <thead>
-              <tr>
-                <th>번호</th>
-                <th>내용</th>
-                <th>답변</th>
-                <th>제출일</th>
-              </tr>
-            </thead>
-            <tbody id="mySuggestionList"></tbody>
-          </table>
-        </section>
-
         <section id="chat" class="mypage-section" style="display: none;">
-          <h2>💬 참여 중인 채팅방</h2>
+          <h2>💬 참여 중인 채팅</h2>
           <div class="chat-container">
             <div class="chat-room-list" id="chatRoomList"></div>
             <div class="chat-box">
-              <div class="chat-header" id="chatRoomTitle">채팅방</div>
+              <div class="chat-header" id="chatRoomTitle">채팅</div>
               <div class="chat-messages" id="chatMessages"></div>
               <div class="chat-input-area">
                 <input type="text" id="chatInput" placeholder="메시지를 입력하세요..." />
@@ -185,19 +209,26 @@
           </div>
         </section>
 
+        <!-- 회원정보 수정 -->
+         <!-- TODO  
+        1. 닉네임등 수정 후 다시로그인 하게 해서 jwt 토큰 새로 발급
+        2. 중복확인? 유저 구분 어떻게? 닉네임(이름)?
+        3. 비밀번호 변경시 확인란으로 동일한지 체크 필요
+        4. 이메일, 전화번호 수정 불가 -> 관리자 문의
+         -->
         <section id="profile" class="mypage-section" style="display:none;">
           <h2>👤 회원정보 수정</h2>
           <form id="personalForm" style="display: none;">
             <label>닉네임
               <div class="input-check-group">
-                <input type="text" id="username" required />
+                <input type="text" id="username" required value="<%= userInfo.nick_name %>"/>
                 <button type="button" id="checkUsername">중복 확인</button>
               </div>
             </label>
             <label>비밀번호<input type="password" required /></label>
-            <label>이름<input type="text" required /></label>
-            <label>이메일<input type="email" required /></label>
-            <label>핸드폰 번호<input type="tel" required /></label>
+            <label>이름<input type="text" disabled value="<%= userInfo.name %>"/></label>
+            <label>이메일<input type="email" disabled value="<%= userInfo.email %>" /></label>
+            <label>핸드폰 번호<input type="tel" disabled value="<%= userInfo.phone %>" /></label>
             <button type="submit">정보 수정</button>
           </form>
 
