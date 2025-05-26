@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
         container.style.display = 'block';
         container.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else {
-        container.style.display = 'none';
+        container.style.display = "none";
       }
     });
   });
@@ -186,3 +186,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // 댓글 최초 로드
   loadComments();
 });
+
+function toggleBookmark(user_id, post_id) {
+  const btn = document.getElementById("bookmarkBtn");
+  const star = btn.querySelector(".star");
+  if (btn.classList.contains("active")) {
+    btn.classList.remove("active");
+    star.textContent = "☆";
+    // 서버에 북마크 해제 비동기 요청
+    fetch("/users/bookmark", {
+      method: "DELETE",
+      body: JSON.stringify({post_id}),
+      headers: { "Content-Type": "application/json" },
+    });
+  } else {
+    btn.classList.add("active");
+    star.textContent = "★";
+    // 서버에 북마크 등록 비동기 요청
+    fetch("/users/bookmark", {
+      method: "POST",
+      body: JSON.stringify({post_id}),
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}

@@ -2,6 +2,7 @@ const path = require("path");
 const postModel = require("../models/postModel");
 const postFileModel = require("../models/postFileModel");
 const postlogModel = require("../models/postlogModel");
+const bookmarkModel = require("../models/bookmarkModel");
 const axios = require("axios");
 
 // 파일 유형 필터용 확장자 정의
@@ -125,8 +126,10 @@ exports.ideaDetail = async (req, res, next) => {
     } else {
       result.answerInfo = null;
     }
-
-    // 5. 최종 렌더링
+    
+    // 5. 북마크 여부 확인후 result에 추가
+    result.bookmark = await bookmarkModel.isBookmarked(req.user?.user_id, post_id);
+    // 6. 최종 렌더링
     console.log("최종 데이터:", result);
     res.render("idea_detail", result);
   } catch (err) {

@@ -12,52 +12,140 @@
 
     <div class="mypage-container">
       <aside class="mypage-sidebar">
-        <button class="tab-btn active" data-tab="profile">👤 회원정보 수정</button>
+        <button class="tab-btn active" data-tab="alerts">🔔 알림</button>
+        <button class="tab-btn" data-tab="bookmark">⭐ 북마크</button>
         <button class="tab-btn" data-tab="ideas">💡 등록 아이디어</button>
         <button class="tab-btn" data-tab="history">📑 거래 내역</button>
-        <button class="tab-btn" data-tab="suggestions">✉️ 건의사항</button>
-        <button class="tab-btn" data-tab="chat">💬 채팅방</button>
-        <button class="tab-btn" data-tab="alerts">🔔 알림</button>
+        <button class="tab-btn" data-tab="chat">💬 1:1 채팅</button>
+        <button class="tab-btn" data-tab="profile">👤 회원정보 수정</button>
       </aside>
 
       <main class="mypage-content-area">
-        <section id="profile" class="mypage-section">
-          <h2>👤 회원정보 수정</h2>
-          <form id="personalForm" style="display: none;">
-            <label>닉네임
-              <div class="input-check-group">
-                <input type="text" id="username" required />
-                <button type="button" id="checkUsername">중복 확인</button>
-              </div>
-            </label>
-            <label>비밀번호<input type="password" required /></label>
-            <label>이름<input type="text" required /></label>
-            <label>이메일<input type="email" required /></label>
-            <label>핸드폰 번호<input type="tel" required /></label>
-            <button type="submit">정보 수정</button>
-          </form>
-
-          <form id="companyForm" style="display: none;">
-            <label>회사이름<input type="text" required /></label>
-            <label>사업자 등록번호<input type="text" required /></label>
-            <label>회사 전화번호<input type="tel" required /></label>
-            <label>회사 주소<input type="text" required /></label>
-            <label>회사 웹사이트<input type="url" /></label>
-            <label>담당자 이메일<input type="email" required /></label>
-            <label>비밀번호<input type="password" required /></label>
-            <button type="submit">정보 수정</button>
-          </form>
+        <!-- 알림 -->
+        <section id="alerts" class="mypage-section">
+          <h2>🔔 내 알림</h2>
+          <ul class="alert-list" id="alertList"></ul>
         </section>
 
-        <section id="ideas" class="mypage-section" style="display:none;">
-          <h2>💡 내가 등록한 아이디어</h2>
+        <!-- 북마크 -->
+        <section id="bookmark" class="mypage-section" style="display:none;">
+          <h2>⭐ 북마크</h2>
           <table class="mypage-table">
+            <thead>
+              <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>아디이어 등록일</th>
+                <th>조회수</th>
+                <th>추천수</th>
+                <th>상태</th>
+                <th>북마크 등록일</th>
+              </tr>
+            </thead>
+            <tbody>
+            <% if (!bookmarks || bookmarks.length === 0) { %>
+              <tr>
+                <td colspan="7" style="text-align:center;">북마크가 없습니다</td>
+              </tr>
+            <% } else { %>
+              <% bookmarks.forEach((bookmark, index) => { %>
+                <tr onclick="window.location.href='/post/idea_detail?post_id=<%= bookmark.post_id %>'" style="cursor:pointer;">
+                  <td><%= index + 1 %></td>
+                  <td><%= bookmark.title %></td>
+                  <td><%= bookmark.nick_name %></td>
+                  <td><%= new Date(bookmark.created_at).toISOString().split('T')[0] %></td>
+                  <td><%= bookmark.view_count %></td>
+                  <td><%= bookmark.recommend %></td>
+                  <td class="status-sale"><%= bookmark.transaction_type %></td>
+                  <td><%= new Date(bookmark.bookmark_created_at).toISOString().split('T')[0] %></td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+          </table>
+        </section>
+
+        <!-- 등록한 아이디어 -->
+        <section id="ideas" class="mypage-section" style="display:none;">
+          <div class="mypost-tab-menu">
+            <button class="mypost-tab-btn active" data-tab="ideas-table">아이디어</button>
+            <button class="mypost-tab-btn" data-tab="answer-table">답글</button>
+            <button class="mypost-tab-btn" data-tab="comment-table">댓글</button>
+          </div>
+          <h2>💡 내가 등록한 <span id="post-type">아이디어</span></h2>
+          <!-- 게시물 -->
+          <table id="ideas-table" class="mypage-table">
+            <thead>
+              <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>가격</th>
+                <th>등록일</th>
+                <th>조회수</th>
+                <th>추천수</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+            <% if (!myPosts || myPosts.length === 0) { %>
+              <tr>
+                <td colspan="7" style="text-align:center;">작성한 아이디어가 없습니다</td>
+              </tr>
+            <% } else { %>
+              <% myPosts.forEach((post, index) => { %>
+                <tr onclick="window.location.href='/post/idea_detail?post_id=<%= post.post_id %>'" style="cursor:pointer;">
+                  <td><%= index + 1 %></td>
+                  <td><%= post.title %></td>
+                  <td><%= post.price.toLocaleString() %>원</td>
+                  <td><%= new Date(post.created_at).toISOString().split('T')[0] %></td>
+                  <td><%= post.view_count %></td>
+                  <td><%= post.recommend %></td>
+                  <td class="status-sale"><%= post.transaction_type %></td>
+                </tr>
+              <% }) %>
+            <% } %>
+            </tbody>
+          </table>
+
+          <!-- 답글 -->
+          <table id="answer-table" class="mypage-table" style="display:none;">
+            <thead>
+              <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>등록일</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+            <% if (!myAnswers || myAnswers.length === 0) { %>
+              <tr>
+                <td colspan="4" style="text-align:center;">작성한 답글이 없습니다</td>
+              </tr>
+            <% } else { %>
+              <% myAnswers.forEach((answer, index) => { %>
+                <tr onclick="window.location.href='/post/idea_detail?post_id=<%= answer.post_id %>'" style="cursor:pointer;">
+                  <td><%= index + 1 %></td>
+                  <td><%= answer.title %></td>
+                  <td><%= new Date(answer.created_at).toISOString().split('T')[0] %></td>
+                  <td class="status-sale"><%= answer.is_accepted ?? 0 %></td>
+                </tr>
+              <% }) %>
+            <% } %>
+            </tbody>
+          </table>
+
+          <!-- 댓글 -->
+          <table id="comment-table" class="mypage-table" style="display:none;">
             <thead>
               <tr>
                 <th>번호</th>
                 <th>제목</th>
                 <th>카테고리</th>
                 <th>등록일</th>
+                <th>조회수</th>
+                <th>추천수</th>
                 <th>상태</th>
               </tr>
             </thead>
@@ -67,14 +155,9 @@
                 <td>스마트 화분 시스템</td>
                 <td>생활/주방</td>
                 <td>2024-12-21</td>
+                <td>00</td>
+                <td>00</td>
                 <td class="status-sale">판매중</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>AI 주방 도우미</td>
-                <td>IT/전자</td>
-                <td>2024-11-02</td>
-                <td class="status-done">거래완료</td>
               </tr>
             </tbody>
           </table>
@@ -111,27 +194,12 @@
           </table>
         </section>
 
-        <section id="suggestions" class="mypage-section" style="display:none;">
-          <h2>✉️ 내 건의사항</h2>
-          <table class="mypage-table">
-            <thead>
-              <tr>
-                <th>번호</th>
-                <th>내용</th>
-                <th>답변</th>
-                <th>제출일</th>
-              </tr>
-            </thead>
-            <tbody id="mySuggestionList"></tbody>
-          </table>
-        </section>
-
         <section id="chat" class="mypage-section" style="display: none;">
-          <h2>💬 참여 중인 채팅방</h2>
+          <h2>💬 참여 중인 채팅</h2>
           <div class="chat-container">
             <div class="chat-room-list" id="chatRoomList"></div>
             <div class="chat-box">
-              <div class="chat-header" id="chatRoomTitle">채팅방</div>
+              <div class="chat-header" id="chatRoomTitle">채팅</div>
               <div class="chat-messages" id="chatMessages"></div>
               <div class="chat-input-area">
                 <input type="text" id="chatInput" placeholder="메시지를 입력하세요..." />
@@ -141,11 +209,40 @@
           </div>
         </section>
 
-        <section id="alerts" class="mypage-section" style="display: none;">
-          <h2>🔔 내 알림</h2>
-          <ul class="alert-list" id="alertList"></ul>
-        </section>
+        <!-- 회원정보 수정 -->
+         <!-- TODO  
+        1. 닉네임등 수정 후 다시로그인 하게 해서 jwt 토큰 새로 발급
+        2. 중복확인? 유저 구분 어떻게? 닉네임(이름)?
+        3. 비밀번호 변경시 확인란으로 동일한지 체크 필요
+        4. 이메일, 전화번호 수정 불가 -> 관리자 문의
+         -->
+        <section id="profile" class="mypage-section" style="display:none;">
+          <h2>👤 회원정보 수정</h2>
+          <form id="personalForm" style="display: none;">
+            <label>닉네임
+              <div class="input-check-group">
+                <input type="text" id="username" required value="<%= userInfo.nick_name %>"/>
+                <button type="button" id="checkUsername">중복 확인</button>
+              </div>
+            </label>
+            <label>비밀번호<input type="password" required /></label>
+            <label>이름<input type="text" disabled value="<%= userInfo.name %>"/></label>
+            <label>이메일<input type="email" disabled value="<%= userInfo.email %>" /></label>
+            <label>핸드폰 번호<input type="tel" disabled value="<%= userInfo.phone %>" /></label>
+            <button type="submit">정보 수정</button>
+          </form>
 
+          <form id="companyForm" style="display: none;">
+            <label>회사이름<input type="text" required /></label>
+            <label>사업자 등록번호<input type="text" required /></label>
+            <label>회사 전화번호<input type="tel" required /></label>
+            <label>회사 주소<input type="text" required /></label>
+            <label>회사 웹사이트<input type="url" /></label>
+            <label>담당자 이메일<input type="email" required /></label>
+            <label>비밀번호<input type="password" required /></label>
+            <button type="submit">정보 수정</button>
+          </form>
+        </section>
       </main>
     </div>
     <%- include ('footer.html') %>

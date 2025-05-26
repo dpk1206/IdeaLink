@@ -24,7 +24,7 @@ router.get('/terms', function(req, res, next) {
 
 // FAQ, 건의
 router.get('/faq', function(req, res, next) {
-  res.render('suggest_faq');
+  res.render('faq');
 });
 
 // 공지

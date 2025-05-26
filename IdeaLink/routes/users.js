@@ -4,11 +4,11 @@ const userController = require("../controllers/authController");
 const kakaoController = require("../controllers/kakaoAuthController");
 const naverController = require("../controllers/naverAuthController");
 const requireLogin = require("../middleware/requireLogin");
+const mypageController = require("../controllers/mypageController");
+const bookmarkController = require("../controllers/bookmarkController");
 
-// 마이페이지 - 일단 그냥 연결 추후 접근제한 필요
-router.get('/mypage', requireLogin, function(req, res, next) {
-  res.render('mypage');
-});
+// 마이페이지
+router.get('/mypage', requireLogin, mypageController.mypage);
 
 // ✅ 회원가입 라우터
 router.post("/register", async function (req, res, next) {
@@ -66,4 +66,11 @@ router.get("/logout", (req, res) => {
   res.clearCookie("token"); // 쿠키 삭제
   res.redirect("/"); // 로그인 페이지로 리디렉션
 });
+
+// TODO: 북마크 비동기 요청 라우터 추가
+router.post("/bookmark", bookmarkController.addBookmark);
+router.delete("/bookmark", bookmarkController.removeBookmark);
+
+
+
 module.exports = router;
