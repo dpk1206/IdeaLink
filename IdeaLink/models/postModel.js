@@ -390,7 +390,7 @@ exports.selectMyPost = async (user_id) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
   const sql = 
-  `SELECT post_id, title, created_at, view_count, transaction_type, price, recommend
+  `SELECT post_id, title, created_at, view_count, transaction_type, price
   FROM post
   WHERE user_id = ?`;
   const [rows] = await conn.promise().query(sql, [user_id]);

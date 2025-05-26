@@ -75,7 +75,6 @@ async function getUserBookmarks(user_id) {
     p.post_id,
     p.title,
     p.view_count,
-    p.recommend,
     p.transaction_type,
     p.created_at,
     u.nick_name
