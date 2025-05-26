@@ -106,7 +106,7 @@
     <% posts.forEach((post, index) => { %>
       
     <tr onclick="window.location.href='/post/idea_detail?post_id=<%= post.post_id %>'" style="cursor:pointer;">
-      <td><%= (currentPage - 1) * 10 + index + 1 %></td>
+      <td><%= (currentPage - 1) * limit + index + 1 %></td>
       <td><%= post.title %></td>
       <td><%= post.nick_name %></td>
       <td><%= post.transaction_type %></td>
@@ -114,6 +114,7 @@
       <td><%= new Date(post.created_at).toLocaleDateString() %></td>
       <td><%= post.view_count %></td>
     </tr>
+
 
     <% }); %>
   <% } else { %>
@@ -140,26 +141,31 @@
 } %>
 
 
-    <!-- 페이징 처리 -->
+    <% 
+  const pageGroupSize = 5;
+  const startPage = Math.floor((currentPage - 1) / pageGroupSize) * pageGroupSize + 1;
+  const endPage = Math.min(startPage + pageGroupSize - 1, totalPages);
+    %>
+    <!--페이징처리리-->
     <div id="pagination" class="pagination">
-  <% if (totalPages > 1) { %>
-    <% if (currentPage > 1) { %>
-      <a href="<%= buildQuery(currentPage - 1) %>" class="page-link">이전</a>
-    <% } %>
+      <% if (totalPages > 1) { %>
+        <% if (startPage > 1) { %>
+          <a href="<%= buildQuery(startPage - pageGroupSize) %>" class="page-link">이전</a>
+        <% } %>
 
-    <% for (let i = 1; i <= totalPages; i++) { %>
-      <% if (i === currentPage) { %>
-        <span class="page-number active"><%= i %></span>
-      <% } else { %>
-        <a href="<%= buildQuery(i) %>" class="page-number"><%= i %></a>
+        <% for (let i = startPage; i <= endPage; i++) { %>
+          <% if (i === currentPage) { %>
+            <span class="page-number active"><%= i %></span>
+          <% } else { %>
+            <a href="<%= buildQuery(i) %>" class="page-number"><%= i %></a>
+          <% } %>
+        <% } %>
+
+        <% if (endPage < totalPages) { %>
+          <a href="<%= buildQuery(startPage + pageGroupSize) %>" class="page-link">다음</a>
+        <% } %>
       <% } %>
-    <% } %>
-
-    <% if (currentPage < totalPages) { %>
-      <a href="<%= buildQuery(currentPage + 1) %>" class="page-link">다음</a>
-    <% } %>
-  <% } %>
-</div>
+    </div>
 
     </div>
     </div>

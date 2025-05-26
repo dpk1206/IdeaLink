@@ -385,6 +385,138 @@ exports.getPopularPosts = async () => {
   return rows;
 };
 
+// 댓글 추가
+exports.addComment = async function(post_id, user_id, content) {
+  const conn = await dbconn.init();    
+  await dbconn.connect(conn);         
+  const sql = `INSERT INTO comment (post_id, user_id, content) VALUES (?, ?, ?)`;
+  try {
+    await conn.promise().query(sql, [post_id, user_id, content]);
+  } finally {
+    await conn.end();
+  }
+};
+
+// 댓글 목록 조회
+exports.getCommentsByPostId = async function(post_id) {
+  const conn = await dbconn.init();   
+  await dbconn.connect(conn);      
+  const sql = `
+    SELECT c.comment_id, c.user_id, c.content, c.created_at, u.nick_name
+    FROM comment c
+    JOIN user u ON c.user_id = u.user_id
+    WHERE c.post_id = ?
+    ORDER BY c.created_at ASC
+  `;
+  try {
+    const [rows] = await conn.promise().query(sql, [post_id]);
+    return rows;
+  } finally {
+    await conn.end();
+  }
+};
+
+// 댓글 수정 (내 댓글인지 확인 포함)
+exports.updateComment = async (comment_id, user_id, content) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `
+    UPDATE comment
+    SET content = ?
+    WHERE comment_id = ? AND user_id = ?
+  `;
+  try {
+    const [result] = await conn.promise().query(sql, [content, comment_id, user_id]);
+    return result.affectedRows > 0; // 수정 성공 여부 반환
+  } catch (err) {
+    console.error("댓글 수정 오류:", err);
+    return false; // 실패 시 false 반환
+  } finally {
+    await conn.end();
+  }
+};
+
+
+// 댓글 삭제 (내 댓글인지 확인 포함)
+exports.deleteComment = async (comment_id, user_id) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `
+    DELETE FROM comment
+    WHERE comment_id = ? AND user_id = ?
+  `;
+  try {
+    const [result] = await conn.promise().query(sql, [comment_id, user_id]);
+    return result.affectedRows > 0; // 삭제 성공 여부
+  } finally {
+    await conn.end();
+  }
+};
+
+// 추천
+// 좋아요 중복 확인
+exports.hasUserLiked = async function(user_id, post_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  try {
+    const sql = `
+      SELECT 1 
+      FROM post_likes 
+      WHERE user_id = ? AND post_id = ?
+    `;
+    const [rows] = await conn.promise().query(sql, [user_id, post_id]);
+    return rows.length > 0;
+  } catch (err) {
+    console.error("hasUserLiked 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+// 좋아요 저장
+exports.saveLike = async function(user_id, post_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  try {
+    const sql = `
+      INSERT INTO post_likes (user_id, post_id) 
+      VALUES (?, ?)
+    `;
+    await conn.promise().query(sql, [user_id, post_id]);
+  } catch (err) {
+    console.error("saveLike 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+// 좋아요 수 조회
+exports.getLikeCount = async function(post_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  try {
+    const sql = `
+      SELECT COUNT(*) AS count 
+      FROM post_likes 
+      WHERE post_id = ?
+    `;
+    const [[row]] = await conn.promise().query(sql, [post_id]);
+    return row.count;
+  } catch (err) {
+    console.error("getLikeCount 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
 // 내가 작성한 게시글
 exports.selectMyPost = async (user_id) => {
   const conn = await dbconn.init();
@@ -405,19 +537,6 @@ exports.selectMyAnswer = async (user_id) => {
   const sql = 
   `SELECT post_id, title, created_at, is_accepted
   FROM answer
-  WHERE user_id = ?;`;
-  const [rows] = await conn.promise().query(sql, [user_id]);
-  await conn.end();
-  return rows;
-};
-
-// 내가 작성한 답글
-exports.selectMyComment = async (user_id) => {
-  const conn = await dbconn.init();
-  await dbconn.connect(conn);
-  const sql = 
-  `SELECT content, created_at
-  FROM comment
   WHERE user_id = ?;`;
   const [rows] = await conn.promise().query(sql, [user_id]);
   await conn.end();

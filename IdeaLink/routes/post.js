@@ -72,8 +72,18 @@ router.get('/idea_detail', requireLogin, postController.ideaDetail);
 // 파일 다운로드
 router.get("/download/:file_id", postController.downloadFile);
 
-
-
+// 댓글 작성
+router.post("/add_comment", requireLogin, postController.addComment);
+// 댓글 조회
+router.get("/get_comments", postController.getComments);
+// 댓글 수정 
+router.put("/edit_comment", requireLogin, postController.editComment);
+// 댓글 삭제 
+router.delete("/delete_comment", requireLogin, postController.removeComment);
+// 추천
+router.post("/like", requireLogin, postController.likePost);
+// 추천 여부 확인
+router.get("/like_status", requireLogin, postController.getLikeStatus);
 //인기,최신 게시글
 router.get("/recent_posts", postController.getRecentPosts);
 router.get("/popular_posts", postController.getPopularPosts);

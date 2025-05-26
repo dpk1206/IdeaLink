@@ -231,6 +231,9 @@
 
     </main>
     <%- include ('footer.html') %>
+    <script>
+      const currentUserId = "<%= user?.user_id || '' %>";
+    </script>
       <script src="/javascripts/idea_detail.js"></script>
 </body>
 
