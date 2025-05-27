@@ -98,6 +98,7 @@
         <th>거래유형</th>
         <th>가격</th>
         <th>날짜</th>
+        <th>추천수(좋아요)</th>
         <th>조회수</th>
       </tr>
     </thead>
@@ -112,6 +113,7 @@
       <td><%= post.status %></td>
       <td><%= post.price.toLocaleString() %></td>
       <td><%= new Date(post.created_at).toLocaleDateString() %></td>
+      <td><%= post.like_count ?? 0 %></td>
       <td><%= post.view_count %></td>
     </tr>
 

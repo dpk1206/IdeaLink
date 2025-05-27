@@ -13,6 +13,7 @@
     <div class="mypage-container">
       <aside class="mypage-sidebar">
         <button class="tab-btn active" data-tab="alerts">🔔 알림</button>
+        <button class="tab-btn" data-tab="point-charge">💰 포인트</button>
         <button class="tab-btn" data-tab="bookmark">⭐ 북마크</button>
         <button class="tab-btn" data-tab="ideas">💡 등록 아이디어</button>
         <button class="tab-btn" data-tab="history">📑 거래 내역</button>
@@ -26,6 +27,51 @@
           <h2>🔔 내 알림</h2>
           <ul class="alert-list" id="alertList"></ul>
         </section>
+
+        <!-- 포인트 충전 + 사용 내역 -->
+        <section id="point-charge" class="mypage-section" style="display: none;">
+          <h2>💰 포인트</h2>
+          <p>현재 보유 포인트: <strong><%= userInfo.point.toLocaleString() %>P</strong></p>
+
+        <!-- 충전 폼 -->
+        <form id="payForm" style="margin-top: 10px;">
+          <input type="hidden" id="sellerId" value="<%= userInfo.user_id %>">
+          <input type="hidden" id="title" value="포인트 충전">
+          <input type="number" id="amount" placeholder="충전 금액 (원)" min="1000" step="500" required style="padding: 5px;">
+          <button type="submit" style="padding: 5px 10px;">충전하기</button>
+        </form>
+
+        <!-- 포인트 사용 내역 -->
+        <div style="margin-top: 30px;">
+          <h3>📜 포인트 사용 내역</h3>
+          <table class="mypage-table">
+            <thead>
+              <tr>
+                <th>날짜</th>
+                <th>유형</th>
+                <th>금액</th>
+                <th>설명</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (!pointLogs || pointLogs.length === 0) { %>
+                <tr>
+                  <td colspan="4" style="text-align:center;">포인트 사용 내역이 없습니다</td>
+                </tr>
+              <% } else { %>
+                <% pointLogs.forEach(log => { %>
+                  <tr>
+                    <td><%= new Date(log.created_at).toISOString().split('T')[0] %></td>
+                    <td><%= log.type === 'charge' ? '충전' : log.type === 'use' ? '사용' : '환불' %></td>
+                    <td><%= log.amount.toLocaleString() %>P</td>
+                    <td><%= log.description || '-' %></td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
         <!-- 북마크 -->
         <section id="bookmark" class="mypage-section" style="display:none;">
@@ -254,6 +300,8 @@
       </main>
     </div>
     <%- include ('footer.html') %>
+
+     <script src="https://js.tosspayments.com/v1"></script>
       <script src="/javascripts/mypage.js"></script>
 </body>
 

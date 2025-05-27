@@ -8,6 +8,7 @@ const cors = require('cors'); // 외부 url요청청
 const fs = require('fs') // 파일시스템
 const multer = require("multer"); // 이미지 관련
 const authMiddleware = require('./middleware/authMiddleware');
+const paymentRouter = require("./routes/payment"); // 결제 라우터
 
 // DB 연결
 const db_config = require('./config/dbconn');
@@ -21,6 +22,7 @@ var usersRouter = require('./routes/users'); // 라우터 파일 설정2
 var postRouter = require('./routes/post'); // 게시글 라우터  파일
 
 var app = express();
+
 
 app.use(cookieParser());
 app.use(authMiddleware); // 쿠키에 담긴 토큰 매 요청마다 검증
@@ -39,7 +41,8 @@ app.use('/wm_uploads', express.static(path.join(__dirname, '../wm_uploads'))); /
 //라우터 연결
 app.use('/', indexRouter); // 그냥 요청은 index.js 라우터파일 처리
 app.use('/users', usersRouter); // /users/~~ 요청은 users.js 라우터파일 처리
-app.use('/post', postRouter);  
+app.use('/post', postRouter); 
+app.use("/payment", paymentRouter); // 결제 관련 라우터 연결
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

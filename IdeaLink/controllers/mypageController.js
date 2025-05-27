@@ -19,12 +19,14 @@ exports.mypage = async (req, res, next) => {
     const myAnswers = await answerModel.getMyAnswers(user_id); // 내가 작성한 답글
     const myComments = await commentModel.getMyComments(user_id); // 내가 작성한 댓글
     const bookmarks = await bookmarkModel.getUserBookmarks(user_id); // 내 북마크
+    const pointLogs = await userModel.getPointLogsByUserId(user_id); // 포인트 로그
     const result ={
       userInfo: userInfo || null,
       myPosts: myPosts || null,
       myAnswers: myAnswers || null,
       myComments: myComments || null,
       bookmarks: bookmarks || null,
+      pointLogs: pointLogs || null,
     }
     // console.log("최종 데이터:", result);
     res.render("mypage", result);

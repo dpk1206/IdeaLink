@@ -58,7 +58,6 @@ document.addEventListener("DOMContentLoaded", function () {
         },
       ],
     },
-
     {
       room_id: "room2",
       title: "AI 주방 도우미 제안",
@@ -91,12 +90,9 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
     roomEl.addEventListener("click", () => {
       currentRoom = chat;
-
-      // 상대방 메시지 읽음 처리
       currentRoom.messages.forEach((msg) => {
         if (msg.from === "상대") msg.read = true;
       });
-
       updateNotifBadge();
       chatRoomTitle.textContent = chat.title;
       renderMessages(currentRoom.messages);
@@ -132,56 +128,64 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // 초기 배지 업데이트
   updateNotifBadge();
 
   // ===== 등록아이디어 탭 =====
   document.querySelectorAll(".mypost-tab-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
-      // 모든 버튼에서 active 클래스 제거
-      document
-        .querySelectorAll(".mypost-tab-btn")
-        .forEach((b) => b.classList.remove("active"));
-      // 클릭한 버튼에 active 클래스 추가
+      document.querySelectorAll(".mypost-tab-btn").forEach((b) => b.classList.remove("active"));
       this.classList.add("active");
 
-      // 모든 탭 콘텐츠 숨김
-      document
-        .querySelectorAll("#ideas .mypage-table")
-        .forEach((tab) => (tab.style.display = "none"));
-      // data-tab 속성에 맞는 콘텐츠만 표시
+      document.querySelectorAll("#ideas .mypage-table").forEach((tab) => {
+        tab.style.display = "none";
+      });
+
       const target = this.getAttribute("data-tab");
-      if (target == "ideas-table") {
-        document.getElementById("post-type").innerText = "아이디어";
-      } else if (target == "answer-table") {
-        document.getElementById("post-type").innerText = "답글";
-      } else if (target == "comment-table") {
-        document.getElementById("post-type").innerText = "댓글";
-      }
+      document.getElementById("post-type").innerText =
+        target === "ideas-table" ? "아이디어" :
+        target === "answer-table" ? "답글" : "댓글";
+
       document.getElementById(target).style.display = "table";
     });
   });
 
+  // ===== 💳 포인트 충전 기능 =====
+  const tossPayments = TossPayments("test_ck_Z1aOwX7K8mOBXbPzKEKqVyQxzvNP");
 
+  const payForm = document.getElementById("payForm");
+  if (payForm) {
+    payForm.onsubmit = function (e) {
+      e.preventDefault();
 
+      const title = document.getElementById("title").value;
+      const sellerId = document.getElementById("sellerId").value;
+      const amount = Number(document.getElementById("amount").value);
+      const orderId = `order_${Date.now()}`;
+
+      tossPayments.requestPayment("카드", {
+        amount: amount,
+        orderId: orderId,
+        orderName: title,
+        customerName: sellerId,
+        successUrl: `http://localhost:3000/payment/success?sellerId=${sellerId}`,
+        failUrl: "http://localhost:3000/payment/fail"
+      });
+    };
+  }
 });
 
+// ===== 북마크 삭제 비동기 처리 =====
 async function toggleDeleteBookmark(event, userId, postId) {
   event.stopPropagation();
-  console.log(event.target);          // 실제 클릭된 요소
-  console.log(event.currentTarget);   // 이벤트 핸들러가 바인딩된 요소
-  console.log(event.currentTarget.closest("tr")); // 찾는 tr이 맞는지 확인
   try {
     const response = await fetch('/users/bookmark', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId, post_id: postId })
     });
-
-    const tr = event.currentTarget.closest("tr")
+    const tr = event.currentTarget.closest("tr");
     tr.remove();
   } catch (error) {
     alert('에러 발생: ' + error);
   }
 }
-

@@ -159,14 +159,19 @@ exports.getFilteredPosts = async ({
   await dbconn.connect(conn);
 
   let sql = `
-    SELECT DISTINCT p.*, cs.name AS sub_name, cm.name AS main_name, u.nick_name
-    FROM post p
-    JOIN category_sub cs ON p.category_id = cs.sub_id
-    JOIN category_main cm ON cs.main_id = cm.main_id
-    LEFT JOIN post_file pf ON p.post_id = pf.post_id
-    JOIN user u ON p.user_id = u.user_id
-    WHERE 1=1
-  `;
+  SELECT DISTINCT 
+    p.*, 
+    cs.name AS sub_name, 
+    cm.name AS main_name, 
+    u.nick_name,
+    (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.post_id) AS like_count
+  FROM post p
+  JOIN category_sub cs ON p.category_id = cs.sub_id
+  JOIN category_main cm ON cs.main_id = cm.main_id
+  LEFT JOIN post_file pf ON p.post_id = pf.post_id
+  JOIN user u ON p.user_id = u.user_id
+  WHERE 1=1
+`;
   const values = [];
 
   if (sub_id) {

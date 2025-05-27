@@ -129,3 +129,55 @@ exports.selectUserByUserID = async function (user_id) {
     await conn.end();
   }
 };
+
+// 포인트 로그 삽입 함수
+exports.insertPointLog = async function (user_id, type, amount, description) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `
+    INSERT INTO point_log (user_id, type, amount, description)
+    VALUES (?, ?, ?, ?)
+  `;
+
+  try {
+    await conn.promise().query(sql, [user_id, type, amount, description]);
+  } catch (err) {
+    console.error("포인트 로그 삽입 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+//  포인트 적립 함수
+exports.addPointToUser = async function (user_id, amount) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  const sql = "UPDATE user SET point = point + ? WHERE user_id = ?";
+
+  try {
+    await conn.promise().query(sql, [amount, user_id]);
+  } catch (err) {
+    console.error("포인트 적립 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+// 포인트 로그 조회 함수
+exports.getPointLogsByUserId = async function (user_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  const sql = `SELECT * FROM point_log WHERE user_id = ? ORDER BY created_at DESC`;
+
+  try {
+    const [rows] = await conn.promise().query(sql, [user_id]);
+    return rows;
+  } catch (err) {
+    console.error("포인트 로그 조회 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
