@@ -1,12 +1,13 @@
 const dbconn = require("../config/dbconn");
 
+// 게시글을 데이터베이스에 등록합니다.
 exports.insertPost = async function ({
   user_id,
   title,
   summary,
   content,
   category_id,
-  transaction_type,
+  status,
   price,
 }) {
   const conn = await dbconn.init();
@@ -14,7 +15,7 @@ exports.insertPost = async function ({
 
   const sql = `
     INSERT INTO post (
-      user_id, title, summary, content, category_id, transaction_type, price
+      user_id, title, summary, content, category_id, status, price
     )
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
@@ -26,7 +27,7 @@ exports.insertPost = async function ({
       summary,
       content,
       category_id,
-      transaction_type,
+      status,
       price,
     ]);
 
@@ -38,7 +39,7 @@ exports.insertPost = async function ({
         summary,
         content,
         category_id,
-        transaction_type,
+        status,
         price,
       ]);
 
@@ -51,7 +52,6 @@ exports.insertPost = async function ({
     await conn.end();
   }
 };
-
 
 // post_id로 게시물 1개 조회
 exports.selectOnePost = async function (post_id) {
@@ -89,95 +89,28 @@ exports.selectOnePost = async function (post_id) {
   }
 };
 
-// 답글 등록
-exports.insertAnswer = async function ({
-  post_id,
-  answer_user_id,
-  title,
-  content,
-}) {
-  const conn = await dbconn.init(); // dbconn에서 커넥션 초기화
-  await dbconn.connect(conn);
-
-  const sql = `
-    INSERT INTO ANSWER (
-      post_id, user_id, title, content
-    )
-    VALUES (?, ?, ?, ?)
-  `;
-
-  try {
-    // 디버깅: 실행할 쿼리와 파라미터 출력
-    console.log("Executing query:", sql, [
-      post_id,
-      answer_user_id,
-      title,
-      content,
-    ]);
-
-    // 쿼리 실행
-    const [result] = await conn
-      .promise()
-      .query(sql, [post_id, answer_user_id, title, content]);
-
-    return result.insertId; // 새 게시글의 answer_id 반환
-  } catch (err) {
-    console.error("게시글 등록 오류:", err); // 오류 출력
-    throw err; // 오류를 호출한 곳으로 던짐
-  } finally {
-    // 커넥션 종료 (연결 후에는 꼭 종료해야 함)
-    await conn.end();
-  }
-};
-
-// post_id로 답글 조회
-exports.selectAnswer = async function (post_id) {
-  const conn = await dbconn.init();
-  await dbconn.connect(conn);
-
-  const sql = `
-    SELECT 
-      a.*,
-      u.nick_name
-    FROM
-      answer a
-    INNER JOIN
-      user u ON a.user_id = u.user_id
-    WHERE
-      a.post_id = ?;`;
-
-  try {
-    const [rows] = await conn.promise().query(sql, [post_id]);
-    return [rows][0];
-  } catch (err) {
-    console.error("답글 조회 오류:", err);
-    throw err;
-  } finally {
-    await conn.end();
-  }
-};
-
 // 게시글 가져오기
 exports.getPosts = async (limit, offset) => {
   console.log("getPosts 호출");
   const conn = await dbconn.init();
-  
+
   try {
-    await dbconn.connect(conn);  // DB 연결
-    const sql = 'SELECT post_id, title, user_id, transaction_type, price, created_at FROM post ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    await dbconn.connect(conn); // DB 연결
+    const sql =
+      "SELECT post_id, title, user_id, status, price, created_at FROM post ORDER BY created_at DESC LIMIT ? OFFSET ?";
     return await new Promise((resolve, reject) => {
       conn.query(sql, [limit, offset], (err, results) => {
         if (err) {
-          console.error("Error occurred while fetching posts:", err);  // 오류 로그 출력
+          console.error("Error occurred while fetching posts:", err); // 오류 로그 출력
           return reject(err); // 오류를 reject로 전달
         }
-        console.log("Fetched posts:", results);  // 쿼리 결과 확인
+        console.log("Fetched posts:", results); // 쿼리 결과 확인
         resolve(results); // 결과 반환
       });
     });
   } catch (err) {
     console.error("Database connection error:", err);
-    throw err;  // DB 연결 에러 발생 시 throw
+    throw err; // DB 연결 에러 발생 시 throw
   } finally {
     // DB 연결 종료
     conn.end();
@@ -187,32 +120,41 @@ exports.getPosts = async (limit, offset) => {
 // 게시글 개수 가져오기
 exports.getPostCount = async () => {
   const conn = await dbconn.init();
-  
+
   try {
-    await dbconn.connect(conn);  // DB 연결
-    const sql = 'SELECT COUNT(*) AS total FROM post';
+    await dbconn.connect(conn); // DB 연결
+    const sql = "SELECT COUNT(*) AS total FROM post";
     return await new Promise((resolve, reject) => {
       conn.query(sql, (err, results) => {
         if (err) {
-          console.error("Error occurred while fetching post count:", err);  // 오류 로그 출력
+          console.error("Error occurred while fetching post count:", err); // 오류 로그 출력
           return reject(err); // 오류를 reject로 전달
         }
-        console.log("Total posts count:", results[0].total);  // 총 게시글 개수 확인
+        console.log("Total posts count:", results[0].total); // 총 게시글 개수 확인
         resolve(results[0].total); // 총 개수 반환
       });
     });
   } catch (err) {
     console.error("Database connection error:", err);
-    throw err;  // DB 연결 에러 발생 시 throw
+    throw err; // DB 연결 에러 발생 시 throw
   } finally {
     // DB 연결 종료
     conn.end();
   }
 };
 
-
 // ✅ 조건에 맞는 게시글 목록 가져오기
-exports.getFilteredPosts = async ({ sub_id, main_id, fileTypes, transaction_type, keyword, search_type, sort_type, limit, offset }) => {
+exports.getFilteredPosts = async ({
+  sub_id,
+  main_id,
+  fileTypes,
+  status,
+  keyword,
+  search_type,
+  sort_type,
+  limit,
+  offset,
+}) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
@@ -241,28 +183,28 @@ exports.getFilteredPosts = async ({ sub_id, main_id, fileTypes, transaction_type
     values.push(...fileTypes);
   }
 
-  if (transaction_type) {
-    sql += " AND p.transaction_type = ?";
-    values.push(transaction_type);
+  if (status) {
+    sql += " AND p.status = ?";
+    values.push(status);
   }
 
-  if (keyword && search_type === 'title') {
+  if (keyword && search_type === "title") {
     sql += " AND p.title LIKE ?";
     values.push(`%${keyword}%`);
-  } else if (keyword && search_type === 'author') {
+  } else if (keyword && search_type === "author") {
     sql += " AND u.nick_name LIKE ?";
     values.push(`%${keyword}%`);
   }
 
   // 정렬 기준 분기 처리
-if (sort_type === 'popular') {
-  sql += " ORDER BY p.view_count DESC";
-} else {
-  sql += " ORDER BY p.created_at DESC"; // 기본값: 최신순
-}
+  if (sort_type === "popular") {
+    sql += " ORDER BY p.view_count DESC";
+  } else {
+    sql += " ORDER BY p.created_at DESC"; // 기본값: 최신순
+  }
 
-sql += " LIMIT ? OFFSET ?";
-values.push(limit, offset);
+  sql += " LIMIT ? OFFSET ?";
+  values.push(limit, offset);
 
   const [rows] = await conn.promise().query(sql, values);
   await conn.end();
@@ -270,7 +212,14 @@ values.push(limit, offset);
 };
 
 // ✅ 조건에 맞는 게시글 총 개수 조회
-exports.getFilteredPostCount = async ({ sub_id, main_id, fileTypes, transaction_type, keyword, search_type }) => {
+exports.getFilteredPostCount = async ({
+  sub_id,
+  main_id,
+  fileTypes,
+  status,
+  keyword,
+  search_type,
+}) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
@@ -299,15 +248,15 @@ exports.getFilteredPostCount = async ({ sub_id, main_id, fileTypes, transaction_
     values.push(...fileTypes);
   }
 
-  if (transaction_type) {
-    sql += " AND p.transaction_type = ?";
-    values.push(transaction_type);
+  if (status) {
+    sql += " AND p.status = ?";
+    values.push(status);
   }
 
-  if (keyword && search_type === 'title') {
+  if (keyword && search_type === "title") {
     sql += " AND p.title LIKE ?";
     values.push(`%${keyword}%`);
-  } else if (keyword && search_type === 'author') {
+  } else if (keyword && search_type === "author") {
     sql += " AND u.nick_name LIKE ?";
     values.push(`%${keyword}%`);
   }
@@ -316,7 +265,6 @@ exports.getFilteredPostCount = async ({ sub_id, main_id, fileTypes, transaction_
   await conn.end();
   return rows[0]?.total ?? 0;
 };
-
 
 // 대분류 카테고리 매핑 가져오기
 exports.getMainCategoryMap = async () => {
@@ -329,7 +277,7 @@ exports.getMainCategoryMap = async () => {
   await conn.end();
 
   const map = {};
-  rows.forEach(row => {
+  rows.forEach((row) => {
     map[row.name] = row.main_id;
   });
   return map;
@@ -346,10 +294,10 @@ exports.getSubCategoryMap = async () => {
   await conn.end();
 
   const map = {};
-  rows.forEach(row => {
+  rows.forEach((row) => {
     map[row.name] = {
       sub_id: row.sub_id,
-      main_id: row.main_id
+      main_id: row.main_id,
     };
   });
   return map;
@@ -359,9 +307,12 @@ exports.getSubCategoryMap = async () => {
 exports.increaseViewCount = async (post_id) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
-  await conn.promise().query(`
+  await conn.promise().query(
+    `
     UPDATE post SET view_count = view_count + 1 WHERE post_id = ?
-  `, [post_id]);
+  `,
+    [post_id]
+  );
   await conn.end();
 };
 
@@ -385,161 +336,27 @@ exports.getPopularPosts = async () => {
   return rows;
 };
 
-// 댓글 추가
-exports.addComment = async function(post_id, user_id, content) {
-  const conn = await dbconn.init();    
-  await dbconn.connect(conn);         
-  const sql = `INSERT INTO comment (post_id, user_id, content) VALUES (?, ?, ?)`;
-  try {
-    await conn.promise().query(sql, [post_id, user_id, content]);
-  } finally {
-    await conn.end();
-  }
-};
-
-// 댓글 목록 조회
-exports.getCommentsByPostId = async function(post_id) {
-  const conn = await dbconn.init();   
-  await dbconn.connect(conn);      
-  const sql = `
-    SELECT c.comment_id, c.user_id, c.content, c.created_at, u.nick_name
-    FROM comment c
-    JOIN user u ON c.user_id = u.user_id
-    WHERE c.post_id = ?
-    ORDER BY c.created_at ASC
-  `;
-  try {
-    const [rows] = await conn.promise().query(sql, [post_id]);
-    return rows;
-  } finally {
-    await conn.end();
-  }
-};
-
-// 댓글 수정 (내 댓글인지 확인 포함)
-exports.updateComment = async (comment_id, user_id, content) => {
-  const conn = await dbconn.init();
-  await dbconn.connect(conn);
-
-  const sql = `
-    UPDATE comment
-    SET content = ?
-    WHERE comment_id = ? AND user_id = ?
-  `;
-  try {
-    const [result] = await conn.promise().query(sql, [content, comment_id, user_id]);
-    return result.affectedRows > 0; // 수정 성공 여부 반환
-  } catch (err) {
-    console.error("댓글 수정 오류:", err);
-    return false; // 실패 시 false 반환
-  } finally {
-    await conn.end();
-  }
-};
-
-
-// 댓글 삭제 (내 댓글인지 확인 포함)
-exports.deleteComment = async (comment_id, user_id) => {
-  const conn = await dbconn.init();
-  await dbconn.connect(conn);
-
-  const sql = `
-    DELETE FROM comment
-    WHERE comment_id = ? AND user_id = ?
-  `;
-  try {
-    const [result] = await conn.promise().query(sql, [comment_id, user_id]);
-    return result.affectedRows > 0; // 삭제 성공 여부
-  } finally {
-    await conn.end();
-  }
-};
-
-// 추천
-// 좋아요 중복 확인
-exports.hasUserLiked = async function(user_id, post_id) {
-  const conn = await dbconn.init();
-  await dbconn.connect(conn);
-
-  try {
-    const sql = `
-      SELECT 1 
-      FROM post_likes 
-      WHERE user_id = ? AND post_id = ?
-    `;
-    const [rows] = await conn.promise().query(sql, [user_id, post_id]);
-    return rows.length > 0;
-  } catch (err) {
-    console.error("hasUserLiked 오류:", err);
-    throw err;
-  } finally {
-    await conn.end();
-  }
-};
-
-// 좋아요 저장
-exports.saveLike = async function(user_id, post_id) {
-  const conn = await dbconn.init();
-  await dbconn.connect(conn);
-
-  try {
-    const sql = `
-      INSERT INTO post_likes (user_id, post_id) 
-      VALUES (?, ?)
-    `;
-    await conn.promise().query(sql, [user_id, post_id]);
-  } catch (err) {
-    console.error("saveLike 오류:", err);
-    throw err;
-  } finally {
-    await conn.end();
-  }
-};
-
-// 좋아요 수 조회
-exports.getLikeCount = async function(post_id) {
-  const conn = await dbconn.init();
-  await dbconn.connect(conn);
-
-  try {
-    const sql = `
-      SELECT COUNT(*) AS count 
-      FROM post_likes 
-      WHERE post_id = ?
-    `;
-    const [[row]] = await conn.promise().query(sql, [post_id]);
-    return row.count;
-  } catch (err) {
-    console.error("getLikeCount 오류:", err);
-    throw err;
-  } finally {
-    await conn.end();
-  }
-};
-
 // 내가 작성한 게시글
-exports.selectMyPost = async (user_id) => {
+exports.getMyPosts = async (user_id) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
   const sql = 
-  `SELECT post_id, title, created_at, view_count, transaction_type, price
-  FROM post
-  WHERE user_id = ?`;
+  `SELECT 
+  p.post_id, 
+  p.title, 
+  p.created_at, 
+  p.view_count, 
+  p.status, 
+  p.price,
+  (
+    SELECT COUNT(*) 
+    FROM post_likes pl 
+    WHERE pl.post_id = p.post_id
+  ) AS like_count
+  FROM post p
+  WHERE p.user_id = ?
+  ORDER BY p.created_at DESC;`;
   const [rows] = await conn.promise().query(sql, [user_id]);
   await conn.end();
   return rows;
 };
-
-// 내가 작성한 답글
-exports.selectMyAnswer = async (user_id) => {
-  const conn = await dbconn.init();
-  await dbconn.connect(conn);
-  const sql = 
-  `SELECT post_id, title, created_at, is_accepted
-  FROM answer
-  WHERE user_id = ?;`;
-  const [rows] = await conn.promise().query(sql, [user_id]);
-  await conn.end();
-  return rows;
-};
-

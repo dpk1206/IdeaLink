@@ -187,6 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadComments();
 });
 
+// 북마크 등록, 해제
 function toggleBookmark(user_id, post_id) {
   const btn = document.getElementById("bookmarkBtn");
   const star = btn.querySelector(".star");

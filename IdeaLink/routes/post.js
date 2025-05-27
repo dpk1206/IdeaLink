@@ -4,6 +4,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const postController = require("../controllers/postController");
+const commentController = require("../controllers/commentController");
 const requireLogin = require("../middleware/requireLogin");
 
 // Multer 셋팅
@@ -73,13 +74,13 @@ router.get('/idea_detail', requireLogin, postController.ideaDetail);
 router.get("/download/:file_id", postController.downloadFile);
 
 // 댓글 작성
-router.post("/add_comment", requireLogin, postController.addComment);
+router.post("/add_comment", requireLogin, commentController.addComment);
 // 댓글 조회
-router.get("/get_comments", postController.getComments);
+router.get("/get_comments", commentController.getComments);
 // 댓글 수정 
-router.put("/edit_comment", requireLogin, postController.editComment);
+router.put("/edit_comment", requireLogin, commentController.editComment);
 // 댓글 삭제 
-router.delete("/delete_comment", requireLogin, postController.removeComment);
+router.delete("/delete_comment", requireLogin, commentController.removeComment);
 // 추천
 router.post("/like", requireLogin, postController.likePost);
 // 추천 여부 확인

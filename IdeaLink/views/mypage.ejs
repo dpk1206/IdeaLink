@@ -56,9 +56,17 @@
                   <td><%= bookmark.nick_name %></td>
                   <td><%= new Date(bookmark.created_at).toISOString().split('T')[0] %></td>
                   <td><%= bookmark.view_count %></td>
-                  <td><%= bookmark.recommend %></td>
-                  <td class="status-sale"><%= bookmark.transaction_type %></td>
-                  <td><%= new Date(bookmark.bookmark_created_at).toISOString().split('T')[0] %></td>
+                  <td><%= bookmark.like %></td>
+                  <td class="status-sale"><%= bookmark.status %></td>
+                  <td>
+                    <%= new Date(bookmark.bookmark_created_at).toISOString().split('T')[0] %>
+                    <button 
+                      class="delete-btn"
+                      onclick="toggleDeleteBookmark(event,'<%= user.user_id %>', '<%= bookmark.post_id %>')"
+                      style="border:none; background:none; cursor:pointer; margin-left:10px;">
+                      ❌
+                    </button>
+                  </td>
                 </tr>
               <% }) %>
             <% } %>
@@ -100,8 +108,8 @@
                   <td><%= post.price.toLocaleString() %>원</td>
                   <td><%= new Date(post.created_at).toISOString().split('T')[0] %></td>
                   <td><%= post.view_count %></td>
-                  <td><%= post.recommend %></td>
-                  <td class="status-sale"><%= post.transaction_type %></td>
+                  <td><%= post.like_count %></td>
+                  <td class="status-sale"><%= post.status %></td>
                 </tr>
               <% }) %>
             <% } %>
@@ -129,7 +137,7 @@
                   <td><%= index + 1 %></td>
                   <td><%= answer.title %></td>
                   <td><%= new Date(answer.created_at).toISOString().split('T')[0] %></td>
-                  <td class="status-sale"><%= answer.is_accepted ?? 0 %></td>
+                  <td class="status-sale"><%= answer.status ?? 0 %></td>
                 </tr>
               <% }) %>
             <% } %>
@@ -141,24 +149,24 @@
             <thead>
               <tr>
                 <th>번호</th>
-                <th>제목</th>
-                <th>카테고리</th>
+                <th>내용</th>
                 <th>등록일</th>
-                <th>조회수</th>
-                <th>추천수</th>
-                <th>상태</th>
               </tr>
             </thead>
             <tbody>
+            <% if (!myComments || myComments.length === 0) { %>
               <tr>
-                <td>1</td>
-                <td>스마트 화분 시스템</td>
-                <td>생활/주방</td>
-                <td>2024-12-21</td>
-                <td>00</td>
-                <td>00</td>
-                <td class="status-sale">판매중</td>
+                <td colspan="3" style="text-align:center;">작성한 댓글이 없습니다</td>
               </tr>
+            <% } else { %>
+              <% myComments.forEach((comment, index) => { %>
+                <tr onclick="window.location.href='/post/idea_detail?post_id=<%= comment.post_id %>'" style="cursor:pointer;">
+                  <td><%= index + 1 %></td>
+                  <td><%= comment.content %></td>
+                  <td><%= new Date(comment.created_at).toISOString().split('T')[0] %></td>
+                </tr>
+              <% }) %>
+            <% } %>
             </tbody>
           </table>
         </section>

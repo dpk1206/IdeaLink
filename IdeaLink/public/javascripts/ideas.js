@@ -252,7 +252,7 @@ document.querySelectorAll('.file_type_btn').forEach(button => {
     button.classList.add('active');
 
     const type = button.dataset.value;
-    updateQueryParams({ transaction_type: type });
+    updateQueryParams({ status: type });
   });
 });
 
@@ -274,7 +274,7 @@ document.querySelectorAll('.file_type_btn').forEach(button => {
     sub_id: null,
     main_id: null,
     file_type: null,
-    transaction_type: null,
+    status: null,
     keyword: null,
     search_type: null
   });

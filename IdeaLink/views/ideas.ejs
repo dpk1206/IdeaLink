@@ -109,7 +109,7 @@
       <td><%= (currentPage - 1) * limit + index + 1 %></td>
       <td><%= post.title %></td>
       <td><%= post.nick_name %></td>
-      <td><%= post.transaction_type %></td>
+      <td><%= post.status %></td>
       <td><%= post.price.toLocaleString() %></td>
       <td><%= new Date(post.created_at).toLocaleDateString() %></td>
       <td><%= post.view_count %></td>
@@ -129,7 +129,7 @@
   if (main_id) params.set("main_id", main_id);
   if (sub_id) params.set("sub_id", sub_id);
   if (file_type) params.set("file_type", file_type);
-  if (transaction_type && transaction_type !== 'all') params.set("transaction_type", transaction_type);
+  if (status && status !== 'all') params.set("status", status);
   if (keyword) {
     params.set("keyword", keyword);
     params.set("search_type", searchType);

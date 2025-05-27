@@ -3,17 +3,29 @@ const postModel = require("../models/postModel");
 const postFileModel = require("../models/postFileModel");
 const postlogModel = require("../models/postlogModel");
 const bookmarkModel = require("../models/bookmarkModel");
+const answerModel = require("../models/answerModel");
+const commentModel = require("../models/commentModel");
+const likeModel = require("../models/likeModel");
 const axios = require("axios");
 
 // 파일 유형 필터용 확장자 정의
 const DOCUMENT_TYPES = [".pdf", ".doc", ".docx", ".hwp"];
 const IMAGE_TYPES = [".png", ".jpg", ".jpeg", ".gif"];
 
-
 // ✅ 게시글 등록 + 파일 저장 + 워터마크 처리
 exports.createPost = async (req, res, next) => {
-  const { user_id, title, summary, content, category_id, transaction_type, price } = req.body;
-  const parsedCategoryId = Array.isArray(category_id) ? category_id[0] : category_id;
+  const {
+    user_id,
+    title,
+    summary,
+    content,
+    category_id,
+    status,
+    price,
+  } = req.body;
+  const parsedCategoryId = Array.isArray(category_id)
+    ? category_id[0]
+    : category_id;
 
   try {
     // 1. 게시글 저장
@@ -23,7 +35,7 @@ exports.createPost = async (req, res, next) => {
       summary,
       content,
       category_id: parsedCategoryId,
-      transaction_type,
+      status,
       price,
     });
 
@@ -55,7 +67,8 @@ exports.createPost = async (req, res, next) => {
     }
 
     // 4. 게시글 등록 로그 기록
-    const clientIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    const clientIp =
+      req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     await postlogModel.createLog({
       post_id,
       user_id,
@@ -70,7 +83,6 @@ exports.createPost = async (req, res, next) => {
     res.status(500).send("게시글 등록 실패");
   }
 };
-
 
 // 게시글 상세조회 + 첨부파일 + 답글 + 조회수 증가
 exports.ideaDetail = async (req, res, next) => {
@@ -98,7 +110,8 @@ exports.ideaDetail = async (req, res, next) => {
     }
 
     // 3. 조회 로그 기록
-    const clientIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    const clientIp =
+      req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     await postlogModel.createLog({
       post_id,
       user_id: req.user?.user_id || null,
@@ -112,11 +125,14 @@ exports.ideaDetail = async (req, res, next) => {
       files: files.length > 0 ? files : null,
     };
 
-    const answerInfo = await postModel.selectAnswer(post_id);
+    const answerInfo = await answerModel.selectAnswer(post_id);
     if (answerInfo && answerInfo.length > 0) {
       await Promise.all(
         answerInfo.map(async (answer) => {
-          const files = await postFileModel.selectDetailFile(answer.answer_id, "answer");
+          const files = await postFileModel.selectDetailFile(
+            answer.answer_id,
+            "answer"
+          );
           if (files && files.length > 0) {
             answer.files = files;
           }
@@ -126,9 +142,12 @@ exports.ideaDetail = async (req, res, next) => {
     } else {
       result.answerInfo = null;
     }
-    
+
     // 5. 북마크 여부 확인후 result에 추가
-    result.bookmark = await bookmarkModel.isBookmarked(req.user?.user_id, post_id);
+    result.bookmark = await bookmarkModel.isBookmarked(
+      req.user?.user_id,
+      post_id
+    );
     // 6. 최종 렌더링
     console.log("최종 데이터:", result);
     res.render("idea_detail", result);
@@ -136,7 +155,6 @@ exports.ideaDetail = async (req, res, next) => {
     next(err);
   }
 };
-
 
 // ✅ 파일 다운로드 처리 (워터마크된 파일 기준)
 exports.downloadFile = async (req, res, next) => {
@@ -157,14 +175,13 @@ exports.downloadFile = async (req, res, next) => {
   });
 };
 
-
 // ✅ 답글 등록 + 파일 첨부 + 워터마크 처리
 exports.createAnswer = async (req, res, next) => {
   const { post_id, answer_user_id, title, content } = req.body;
 
   try {
     // 1. 답글 저장
-    const answer_id = await postModel.insertAnswer({
+    const answer_id = await answerModel.insertAnswer({
       post_id,
       answer_user_id,
       title,
@@ -196,7 +213,8 @@ exports.createAnswer = async (req, res, next) => {
     }
 
     // 3. 로그 저장
-    const clientIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    const clientIp =
+      req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     await postlogModel.createLog({
       post_id,
       user_id: answer_user_id,
@@ -212,7 +230,6 @@ exports.createAnswer = async (req, res, next) => {
   }
 };
 
-
 // ✅ 게시글 목록 조회 + 필터 처리
 exports.getPost = async (req, res) => {
   try {
@@ -223,16 +240,16 @@ exports.getPost = async (req, res) => {
     const sub_id = req.query.sub_id ? parseInt(req.query.sub_id) : null;
     const main_id = req.query.main_id ? parseInt(req.query.main_id) : null;
     const file_filter = req.query.file_type || null;
-    const transaction_type = req.query.transaction_type || null;
+    const status = req.query.status || null;
     const keyword = req.query.keyword || null;
     const search_type = req.query.search_type || null;
-    const sort_type = req.query.sort || 'recent';
+    const sort_type = req.query.sort || "recent";
 
     // 2. 파일 유형 분류
     let fileTypes = null;
     if (file_filter) {
-      const splitTypes = file_filter.split(','); // 다중 선택 가능
-      fileTypes = splitTypes.flatMap(type => {
+      const splitTypes = file_filter.split(","); // 다중 선택 가능
+      fileTypes = splitTypes.flatMap((type) => {
         if (type === "문서") return DOCUMENT_TYPES;
         if (type === "이미지") return IMAGE_TYPES;
         return [];
@@ -244,7 +261,7 @@ exports.getPost = async (req, res) => {
       sub_id: Number.isInteger(sub_id) ? sub_id : null,
       main_id: Number.isInteger(main_id) ? main_id : null,
       fileTypes,
-      transaction_type: transaction_type === "all" ? null : transaction_type,
+      status: status === "all" ? null : status,
       limit,
       offset,
       keyword,
@@ -253,12 +270,13 @@ exports.getPost = async (req, res) => {
     };
 
     // 4. 데이터 조회
-    const [posts, totalCount, mainCategoryMap, subCategoryMap] = await Promise.all([
-      postModel.getFilteredPosts(filter),
-      postModel.getFilteredPostCount(filter),
-      postModel.getMainCategoryMap(),
-      postModel.getSubCategoryMap(),
-    ]);
+    const [posts, totalCount, mainCategoryMap, subCategoryMap] =
+      await Promise.all([
+        postModel.getFilteredPosts(filter),
+        postModel.getFilteredPostCount(filter),
+        postModel.getMainCategoryMap(),
+        postModel.getSubCategoryMap(),
+      ]);
 
     // 5. 페이지 렌더링
     const totalPages = Math.ceil(totalCount / limit);
@@ -269,10 +287,10 @@ exports.getPost = async (req, res) => {
       limit,
       mainCategoryMap: mainCategoryMap || {},
       subCategoryMap: subCategoryMap || {},
-      selectedTransactionType: transaction_type || 'all',
-      transaction_type,
-      searchType: req.query.search_type || 'title',
-      keyword: req.query.keyword || '',
+      selectedTransactionType: status || "all",
+      status,
+      searchType: req.query.search_type || "title",
+      keyword: req.query.keyword || "",
       main_id,
       sub_id,
       file_type: file_filter,
@@ -306,85 +324,18 @@ exports.getPopularPosts = async (req, res) => {
   }
 };
 
-// 댓글 추가
-exports.addComment = async (req, res) => {
-  const { post_id, content } = req.body;
-  const user_id = req.user?.user_id;
-
-  if (!user_id) return res.status(401).json({ error: "로그인 필요" });
-  if (!content || !post_id) return res.status(400).json({ error: "필수 정보 없음" });
-
-  try {
-    await postModel.addComment(post_id, user_id, content);
-    res.json({ message: "댓글 등록 완료" });
-  } catch (err) {
-    console.error("댓글 등록 오류:", err);
-    res.status(500).json({ error: "DB 오류" });
-  }
-};
-
-// 댓글 조회
-exports.getComments = async (req, res) => {
-  const { post_id } = req.query;
-  if (!post_id) return res.status(400).json({ error: "post_id 누락" });
-
-  try {
-    const comments = await postModel.getCommentsByPostId(post_id);
-    res.json(comments);
-  } catch (err) {
-    console.error("댓글 조회 오류:", err);
-    res.status(500).json({ error: "DB 오류" });
-  }
-};
-
-// 댓글 수정
-exports.editComment = async (req, res) => {
-  const { comment_id, content } = req.body;
-  const user_id = req.user?.user_id;
-
-  if (!user_id) return res.status(401).json({ error: "로그인 필요" });
-  if (!comment_id || !content) return res.status(400).json({ error: "입력 누락" });
-
-  try {
-    const success = await postModel.updateComment(comment_id, user_id, content);
-    if (success) res.json({ message: "댓글 수정 완료" });
-    else res.status(403).json({ error: "권한 없음" });
-  } catch (err) {
-    console.error("댓글 수정 오류:", err);
-    res.status(500).json({ error: "DB 오류" });
-  }
-};
-
-// 댓글 삭제
-exports.removeComment = async (req, res) => {
-  const { comment_id } = req.body;
-  const user_id = req.user?.user_id;
-
-  if (!user_id) return res.status(401).json({ error: "로그인 필요" });
-  if (!comment_id) return res.status(400).json({ error: "입력 누락" });
-
-  try {
-    const success = await postModel.deleteComment(comment_id, user_id);
-    if (success) res.json({ message: "댓글 삭제 완료" });
-    else res.status(403).json({ error: "권한 없음" });
-  } catch (err) {
-    console.error("댓글 삭제 오류:", err);
-    res.status(500).json({ error: "DB 오류" });
-  }
-};
-
 //추천
 exports.likePost = async (req, res) => {
   const { post_id } = req.body;
   const user_id = req.user.user_id;
 
-  const alreadyLiked = await postModel.hasUserLiked(user_id, post_id);
+  const alreadyLiked = await likeModel.hasUserLiked(user_id, post_id);
   if (alreadyLiked) {
     return res.status(400).json({ error: "이미 추천하셨습니다." });
   }
 
-  await postModel.saveLike(user_id, post_id);
-  const count = await postModel.getLikeCount(post_id);
+  await likeModel.saveLike(user_id, post_id);
+  const count = await likeModel.getLikeCount(post_id);
 
   res.json({ like_count: count });
 };
@@ -395,8 +346,8 @@ exports.getLikeStatus = async (req, res) => {
   const user_id = req.user.user_id;
 
   try {
-    const liked = await postModel.hasUserLiked(user_id, post_id);
-    const likeCount = await postModel.getLikeCount(post_id);
+    const liked = await likeModel.hasUserLiked(user_id, post_id);
+    const likeCount = await likeModel.getLikeCount(post_id);
 
     res.json({ liked, like_count: likeCount });
   } catch (err) {

@@ -151,11 +151,11 @@ document.addEventListener("DOMContentLoaded", function () {
         .forEach((tab) => (tab.style.display = "none"));
       // data-tab 속성에 맞는 콘텐츠만 표시
       const target = this.getAttribute("data-tab");
-      if(target =="ideas-table"){
+      if (target == "ideas-table") {
         document.getElementById("post-type").innerText = "아이디어";
-      }else if(target == "answer-table"){
+      } else if (target == "answer-table") {
         document.getElementById("post-type").innerText = "답글";
-      }else if(target == "comment-table"){
+      } else if (target == "comment-table") {
         document.getElementById("post-type").innerText = "댓글";
       }
       document.getElementById(target).style.display = "table";
@@ -165,3 +165,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 });
+
+async function toggleDeleteBookmark(event, userId, postId) {
+  event.stopPropagation();
+  console.log(event.target);          // 실제 클릭된 요소
+  console.log(event.currentTarget);   // 이벤트 핸들러가 바인딩된 요소
+  console.log(event.currentTarget.closest("tr")); // 찾는 tr이 맞는지 확인
+  try {
+    const response = await fetch('/users/bookmark', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, post_id: postId })
+    });
+
+    const tr = event.currentTarget.closest("tr")
+    tr.remove();
+  } catch (error) {
+    alert('에러 발생: ' + error);
+  }
+}
+
