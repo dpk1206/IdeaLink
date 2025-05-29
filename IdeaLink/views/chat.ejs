@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>1:1 채팅</title>
+  <style>
+    #chat-box { border:1px solid #ccc; height:300px; overflow-y:auto; margin-bottom:10px; }
+    .mine { text-align:right; color:blue; }
+    .other { text-align:left; color:green; }
+  </style>
+</head>
+<body>
+  <h2>1:1 채팅</h2>
+  <div id="chat-box">
+    <% const userId = user.user_id %>
+    <% messages.forEach(msg => { %>
+      <div class="<%= msg.sender_id === userId ? 'mine' : 'other' %>">
+        <%= msg.content %> <small><%= msg.created_at.toLocaleString() %></small>
+      </div>
+    <% }) %>
+  </div>
+  <form id="chat-form">
+    <input type="text" id="message-input" autocomplete="off" />
+    <button type="submit">전송</button>
+  </form>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const userId = '<%= user.user_id %>';
+    const partnerId = '<%= partnerId %>';
+    // 두 값이 없으면 에러 페이지로 이동
+    if (userId == '' || partnerId == '') {
+        window.location.href = "/error";
+    }
+    const socket = io({ auth: { user_id: userId } });
+    const chatBox = document.getElementById('chat-box');
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('message-input');
+
+    // 채팅 메시지 수신
+    socket.on('privateMessage', function(msg) {
+      const div = document.createElement('div');
+      div.className = msg.sender_id === userId ? 'mine' : 'other';
+      div.innerHTML = msg.content + ' <small>' + new Date().toLocaleString() + '</small>';
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    // 메시지 전송
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const content = input.value.trim();
+      if (!content) return;
+      socket.emit('privateMessage', {
+        sender_id: userId,
+        receiver_id: partnerId,
+        content
+      });
+      const div = document.createElement('div');
+      div.className = 'mine';
+      div.innerHTML = content + ' <small>' + new Date().toLocaleString() + '</small>';
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      input.value = '';
+    });
+  </script>
+</body>
+</html>
