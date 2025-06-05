@@ -211,3 +211,12 @@ function toggleBookmark(user_id, post_id) {
     });
   }
 }
+
+// 채팅 창
+function chatBtn(user_id, writer_id, post_id, type) {
+  // 채팅 상대(파트너) id와 게시글 id를 쿼리로 전달
+  const url = `/chat?sender_id=${user_id}&receiver_id=${writer_id}&post_id=${post_id}&type=${type}`;
+  // 새 창 옵션 (필요에 따라 조정)
+  const windowFeatures = "width=600,height=800,resizable=yes,scrollbars=yes";
+  window.open(url, "_blank", windowFeatures);
+}
