@@ -214,9 +214,35 @@ function toggleBookmark(user_id, post_id) {
 
 // 채팅 창
 function chatBtn(user_id, writer_id, post_id, type) {
-  // 채팅 상대(파트너) id와 게시글 id를 쿼리로 전달
-  const url = `/chat?sender_id=${user_id}&receiver_id=${writer_id}&post_id=${post_id}&type=${type}`;
-  // 새 창 옵션 (필요에 따라 조정)
-  const windowFeatures = "width=600,height=800,resizable=yes,scrollbars=yes";
-  window.open(url, "_blank", windowFeatures);
+  // 1. 폼 요소 생성
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/chat';
+  form.target = 'chatWindow'; // 새 창 이름
+
+  // 2. 필요한 데이터 input 요소로 추가
+  const params = {
+    sender_id: user_id,
+    receiver_id: writer_id,
+    post_id: post_id,
+    type: type
+  };
+
+  for (const key in params) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = params[key];
+    form.appendChild(input);
+  }
+
+  // 3. 폼을 body에 추가
+  document.body.appendChild(form);
+
+  // 4. 새 창을 먼저 연 뒤 폼 제출
+  window.open('', 'chatWindow', 'width=600,height=800,resizable=yes,scrollbars=yes');
+  form.submit();
+
+  // 5. 폼 제거(클린업)
+  document.body.removeChild(form);
 }

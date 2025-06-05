@@ -3,6 +3,7 @@ const postModel = require("../models/postModel");
 const answerModel = require("../models/answerModel");
 const commentModel = require("../models/commentModel");
 const bookmarkModel = require("../models/bookmarkModel");
+const chatModel = require("../models/chatModel");
 
 // 내가 작성한 게시글 + 답글 + 댓글(예정) 조회
 exports.mypage = async (req, res, next) => {
@@ -20,6 +21,7 @@ exports.mypage = async (req, res, next) => {
     const myComments = await commentModel.getMyComments(user_id); // 내가 작성한 댓글
     const bookmarks = await bookmarkModel.getUserBookmarks(user_id); // 내 북마크
     const pointLogs = await userModel.getPointLogsByUserId(user_id); // 포인트 로그
+    const chattings = await chatModel.getChattingRooms(user_id); // 내 채팅방
     const result ={
       userInfo: userInfo || null,
       myPosts: myPosts || null,
@@ -27,6 +29,7 @@ exports.mypage = async (req, res, next) => {
       myComments: myComments || null,
       bookmarks: bookmarks || null,
       pointLogs: pointLogs || null,
+      chattings: chattings || null,
     }
     // console.log("최종 데이터:", result);
     res.render("mypage", result);

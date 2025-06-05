@@ -16,7 +16,7 @@ module.exports = {
   connect: function (conn) {
     conn.connect(function (err) {
       if (err) console.error("mysql 연결 오류 : " + err);
-      else console.log("mysql 연결 성공!");
+      // else console.log("mysql 연결 성공!");
     });
   },
 };

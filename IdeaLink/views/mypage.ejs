@@ -12,20 +12,33 @@
 
     <div class="mypage-container">
       <aside class="mypage-sidebar">
-        <button class="tab-btn active" data-tab="alerts">🔔 알림</button>
+        <button class="tab-btn active" data-tab="alerts">🔔 알림 / 💬 1:1 채팅</button>
         <button class="tab-btn" data-tab="point-charge">💰 포인트</button>
         <button class="tab-btn" data-tab="bookmark">⭐ 북마크</button>
         <button class="tab-btn" data-tab="ideas">💡 등록 아이디어</button>
         <button class="tab-btn" data-tab="history">📑 거래 내역</button>
-        <button class="tab-btn" data-tab="chat">💬 1:1 채팅</button>
         <button class="tab-btn" data-tab="profile">👤 회원정보 수정</button>
       </aside>
 
       <main class="mypage-content-area">
-        <!-- 알림 -->
+        <!-- 알림 & 채팅 -->
         <section id="alerts" class="mypage-section">
-          <h2>🔔 내 알림</h2>
-          <ul class="alert-list" id="alertList"></ul>
+          <div class="alert-chat-wrapper">
+          <div class="alert-list" id="alertList"><h2>🔔 알림</h2></div>
+          <div class="chat-room-list" id="chatRoomList">
+            <h2>💬 채팅방</h2>
+            <% chattings.forEach(room => { %>
+              <div 
+                class="chat-room" 
+                onclick="chatWindow('<%= user.user_id %>', '<%= room.partnerId %>', '<%= room.post_id %>', '<%= room.type %>')"
+              >
+                <div class="chat-title"><%= room.title %></div>
+                <div class="chat-nickname"><%= room.partner_nickname %> 님과의 대화</div>
+                <div class="chat-date"><%= room.updated_at.toLocaleString() %></div>
+              </div>
+            <% }) %>
+          </div>
+        </div>
         </section>
 
         <!-- 포인트 충전 + 사용 내역 -->

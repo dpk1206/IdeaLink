@@ -10,13 +10,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-const socket = io({ auth: { user_id: user_id } }); // 소켓 생성 및 handshake
+// 채팅용 소켓 연결
+const chatSocket = io('/chat', {
+    auth: { user_id: user_id }
+});
+// 채팅방 입장
+chatSocket.emit('joinRoom', chatting_room_id);
+
 const chatBox = document.getElementById('chatMessages');
 const form = document.getElementById('chat-form');
 const input = document.getElementById('message-input');
 
-// 채팅방 입장
-socket.emit('joinRoom', chatting_room_id);
+
 
 // 안읽은 상대방 메시지 관찰 (Intersection Observer)
 const observer = new IntersectionObserver((entries) => {
@@ -29,7 +34,7 @@ const observer = new IntersectionObserver((entries) => {
             // data-is-read="0"이고 상대방 메시지인지 확인
             if (statusElement?.dataset.isRead === '0' && messageDiv.classList.contains('other')) {
                 console.log("옵저버 발동", message_id);
-                socket.emit('markAsRead', message_id);
+                chatSocket.emit('markAsRead', message_id);
                 observer.unobserve(messageDiv); // 관찰 중단
             }
         }
@@ -45,7 +50,7 @@ document.querySelectorAll('.message.other').forEach(msg => {
 });
 
 // 채팅 메시지 수신
-socket.on('message', function (msg) {
+chatSocket.on('message', function (msg) {
     if (msg.chatting_room_id != chatting_room_id) return;
 
     const div = document.createElement('div');
@@ -88,7 +93,7 @@ form.addEventListener('submit', function (e) {
     const content = input.value.trim();
     if (!content) return;
 
-    socket.emit('message', {
+    chatSocket.emit('message', {
         sender_id: user_id,
         receiver_id: receiver_id,
         chatting_room_id: chatting_room_id,
@@ -101,7 +106,7 @@ form.addEventListener('submit', function (e) {
 });
 
 // 서버에서 읽음 알림 수신
-socket.on('messageRead', (data) => {
+chatSocket.on('messageRead', (data) => {
     const messageElement = document.querySelector(`[data-message-id="${data.message_id}"]`);
     if (messageElement) {
         const statusElement = messageElement.querySelector('.message-status');

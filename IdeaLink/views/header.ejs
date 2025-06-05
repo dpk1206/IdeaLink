@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/stylesheets/header.css">
 </head>
+
 <body>
   <header class="header">
     <div class="header-container">
@@ -18,14 +20,14 @@
         <% if (user) { %>
           <a href="/users/mypage?user_id=<%= user.user_id %>">👤 <%= user.nick_name %> 님</a>
           <a href="/users/logout" id="logoutBtn">로그아웃</a>
-        <% } else { %>
-          <a href="/login_signup">로그인/회원가입</a>
-        <% } %>
+          <% } else { %>
+            <a href="/login_signup">로그인/회원가입</a>
+            <% } %>
       </nav>
       <button class="nav-toggle">☰</button>
     </div>
   </header>
-  
+
   <!-- 모바일 전용 메뉴 모달 -->
   <div class="mobile-menu">
     <div class="mobile-menu-content">
@@ -37,13 +39,18 @@
         <% if (user) { %>
           <a href="/users/mypage?user_id=<%= user.user_id %>">👤 <%= user.nick_name %> 님</a>
           <a href="/users/logout" id="logoutBtn-mobile">로그아웃</a>
-        <% } else { %>
-          <a href="/login_signup">로그인/회원가입</a>
-        <% } %>
+          <% } else { %>
+            <a href="/login_signup">로그인/회원가입</a>
+            <% } %>
       </nav>
     </div>
   </div>
-
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const user_id = "<%= user ? user.user_id : null %>";
+  </script>
   <script src="/javascripts/header.js"></script>
+
 </body>
+
 </html>

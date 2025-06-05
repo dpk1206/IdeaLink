@@ -3,12 +3,12 @@ const chatModel = require('../models/chatModel');
 exports.renderChatPage = async (req, res, next) => {
     try {
         const sender_id = req.user.user_id;
-        const receiver_id = req.query.receiver_id;
-        const post_id = req.query.post_id;
-        const type = req.query.type;
+        const receiver_id = req.body.receiver_id;
+        const post_id = req.body.post_id;
+        const type = req.body.type;
 
         // 1. 채팅방 확인/생성
-        const chatting_room_id = await chatModel.findOrCreateConversation(
+        const chatting_room_id = await chatModel.findOrCreateChattingRoom(
             sender_id,
             receiver_id,
             post_id,

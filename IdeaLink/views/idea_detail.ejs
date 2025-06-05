@@ -40,7 +40,7 @@
           <%= postInfo.title %>
           <!-- FIXME 본 게시물 채팅 버튼 -->
           <% if(postInfo.user_id != user.user_id) { %>
-          <button id="chatBtn"
+          <button class="chatBtn"
             onclick="chatBtn('<%= user.user_id %>', '<%= postInfo.user_id %>', '<%= postInfo.post_id %>', 'post')"
             type="button">1:1채팅</button>
             <% } %>
@@ -192,7 +192,7 @@
             <h1 id="answer_title">Ⓐ <%= answer.title %>
             <!-- FIXME 답글 채팅 버튼 -->
           <% if(answer.user_id != user.user_id) { %>
-          <button id="chatBtn"
+          <button class="chatBtn"
             onclick="chatBtn('<%= user.user_id %>', '<%= answer.user_id %>', '<%= answer.answer_id %>', 'answer')"
             type="button">1:1채팅</button>
             <% } %>

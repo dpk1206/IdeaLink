@@ -1,6 +1,6 @@
 const dbconn = require("../config/dbconn");
 
-// 채팅 저장
+// 채팅 저장 및 채팅방 시간 업데이트
 exports.saveMessage = async (senderId, receiverId, content, chatting_room_id) => {
     let conn;
     try {
@@ -10,6 +10,12 @@ exports.saveMessage = async (senderId, receiverId, content, chatting_room_id) =>
         (sender_id, receiver_id, content, chatting_room_id)
         VALUES (?, ?, ?, ?)`;
         const result = await conn.promise().query(sql, [senderId, receiverId, content, chatting_room_id])
+
+        // 채팅방의 updated_at 필드도 현재 시간으로 업데이트
+        await conn.promise().query(
+            'UPDATE chatting_room SET updated_at = now() where chatting_room_id = ?',
+            [chatting_room_id]
+        );
         return result[0].insertId; // 새로 생성된 메시지 ID 반환
     } catch (err) {
         console.error('saveMessage error:', err);
@@ -42,7 +48,7 @@ exports.getMessages = async (chatting_room_id) => {
 };
 
 // 채팅방 존재 여부 확인 및 생성
-exports.findOrCreateConversation = async (sender_id, receiver_id, post_id, type) => {
+exports.findOrCreateChattingRoom = async (sender_id, receiver_id, post_id, type) => {
     let conn;
     try {
         conn = await dbconn.init();
@@ -146,6 +152,78 @@ exports.getMessageById = async (message_id) => {
         return rows[0];
     } catch (err) {
         console.error('getMessageByMessageId error:', err);
+        throw err;
+    } finally {
+        if (conn) conn.end();
+    }
+};
+
+// 마이페이지 채팅방 목록
+exports.getChattingRooms = async (user_id) => {
+    let conn;
+    try {
+        conn = await dbconn.init();
+        await dbconn.connect(conn);
+
+        // 1. 기존 채팅방 조회
+        const [rows] = await conn.promise().query(`
+            SELECT * 
+            FROM chatting_room 
+            WHERE user_id1 = ? OR user_id2 = ?;
+        `, [user_id, user_id]);
+
+        // 2. 각 채팅방에 제목(title)과 상대 닉네임(partner_nickname) 정보 추가
+        if (rows.length > 0) {
+            const roomsWithTitlesAndNicknames = await Promise.all(
+                rows.map(async (room) => {
+                    try {
+                        // 내 아이디가 아닌 상대방 아이디 구하기
+                        const partnerId = room.user_id1 === user_id ? room.user_id2 : room.user_id1;
+
+                        // 파트너 닉네임 조회
+                        let partner_nickname = '';
+                        try {
+                            const userModel = require("../models/userModel");
+                            const partnerUser = await userModel.selectUserByUserID(partnerId);
+                            partner_nickname = partnerUser?.nick_name || '알 수 없는 유저';
+                        } catch (err) {
+                            console.error(`채팅방 ${room.chatting_room_id} 상대 닉네임 조회 실패:`, err);
+                            partner_nickname = '닉네임 조회 실패';
+                        }
+
+                        // 방 제목 조회
+                        let title = '';
+                        try {
+                            title = await this.getTitle(room.post_id, room.type);
+                        } catch (err) {
+                            console.error(`채팅방 ${room.chatting_room_id} 제목 조회 실패:`, err);
+                            title = '제목 조회 실패';
+                        }
+
+                        return {
+                            ...room, // ... 객체의 모든 속성(key-value 쌍)을 펼쳐서 새 객체에 복사하는 문법
+                            title: title || '알 수 없는 제목',
+                            partnerId,
+                            partner_nickname
+                        };
+                    } catch (err) {
+                        console.error(`채팅방 ${room.chatting_room_id} 정보 조회 실패:`, err);
+                        return {
+                            ...room,
+                            title: '제목 조회 실패',
+                            partner_nickname: '닉네임 조회 실패'
+                        };
+                    }
+                })
+            );
+
+            return roomsWithTitlesAndNicknames;
+        }
+
+        return []; // 조회 결과가 없으면 빈 배열 반환
+
+    } catch (err) {
+        console.error('getChattingRooms error:', err);
         throw err;
     } finally {
         if (conn) conn.end();
