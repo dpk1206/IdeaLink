@@ -6,6 +6,7 @@ const bookmarkModel = require("../models/bookmarkModel");
 const answerModel = require("../models/answerModel");
 const commentModel = require("../models/commentModel");
 const likeModel = require("../models/likeModel");
+const userModel = require("../models/userModel"); 
 const axios = require("axios");
 
 // 파일 유형 필터용 확장자 정의
@@ -109,9 +110,23 @@ exports.ideaDetail = async (req, res, next) => {
       return next(err);
     }
 
-    // 3. 조회 로그 기록
-    const clientIp =
-      req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    const post = postInfo[0];
+
+    // 3. 거래완료된 글 열람 권한 확인
+    if (post.status === '거래완료') {
+      const currentUserId = req.user?.user_id;
+      const isSeller = currentUserId === post.user_id;
+      const isBuyer = await userModel.hasUserPurchased(currentUserId, post_id);
+
+      if (!isSeller && !isBuyer) {
+        return res.status(403).render("access_denied", {
+          message: "이 게시물은 거래가 완료되어 열람할 수 없습니다.",
+        });
+      }
+    }
+
+    // 4. 조회 로그 기록
+    const clientIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     await postlogModel.createLog({
       post_id,
       user_id: req.user?.user_id || null,
@@ -119,42 +134,37 @@ exports.ideaDetail = async (req, res, next) => {
       post_log_ip: clientIp,
     });
 
-    // 4. 답글 + 답글 첨부파일 조회
-    const result = {
-      postInfo: postInfo[0],
-      files: files.length > 0 ? files : null,
-    };
-
+    // 5. 답글 + 첨부파일 조회
     const answerInfo = await answerModel.selectAnswer(post_id);
     if (answerInfo && answerInfo.length > 0) {
       await Promise.all(
         answerInfo.map(async (answer) => {
-          const files = await postFileModel.selectDetailFile(
-            answer.answer_id,
-            "answer"
-          );
-          if (files && files.length > 0) {
-            answer.files = files;
-          }
+          const files = await postFileModel.selectDetailFile(answer.answer_id, "answer");
+          if (files && files.length > 0) answer.files = files;
         })
       );
-      result.answerInfo = answerInfo;
-    } else {
-      result.answerInfo = null;
     }
 
-    // 5. 북마크 여부 확인후 result에 추가
-    result.bookmark = await bookmarkModel.isBookmarked(
-      req.user?.user_id,
-      post_id
-    );
-    // 6. 최종 렌더링
-    console.log("최종 데이터:", result);
-    res.render("idea_detail", result);
+    // 6. 유저 포인트 포함된 정보 병합
+    let user = req.user;
+    if (user) {
+      const pointRow = await userModel.getUserPoint(user.user_id); // { point: 1234 }
+      user = { ...user, ...pointRow };
+    }
+
+    // 7. 최종 렌더링
+    res.render("idea_detail", {
+      postInfo: post,
+      files: files.length > 0 ? files : null,
+      answerInfo: answerInfo || null,
+      bookmark: await bookmarkModel.isBookmarked(req.user?.user_id, post_id),
+      user // ✅ point 포함된 user 객체 전달
+    });
   } catch (err) {
     next(err);
   }
 };
+
 
 // ✅ 파일 다운로드 처리 (워터마크된 파일 기준)
 exports.downloadFile = async (req, res, next) => {
@@ -353,5 +363,55 @@ exports.getLikeStatus = async (req, res) => {
   } catch (err) {
     console.error("좋아요 상태 확인 오류:", err);
     res.status(500).json({ error: "상태 확인 실패" });
+  }
+};
+
+exports.purchaseIdea = async (req, res) => {
+  const { post_id } = req.body;
+  const user_id = req.user.user_id;
+
+  try {
+    console.log("구매 요청:", { post_id, user_id });
+
+    const post = await postModel.getPostPrice(post_id);
+    if (!post) {
+      console.log("게시물 없음");
+      return res.status(404).json({ error: "해당 게시물이 없습니다." });
+    }
+
+    const seller_id = post.user_id;
+
+    const user = await userModel.getUserPoint(user_id);
+    if (!user) {
+      console.log("유저 없음");
+      return res.status(404).json({ error: "사용자 정보를 찾을 수 없습니다." });
+    }
+
+    if (user.point < post.price) {
+      console.log("포인트 부족");
+      return res.status(400).json({ error: "포인트가 부족합니다." });
+    }
+
+    console.log("포인트 차감 중...");
+    await userModel.deductPointFromUser(user_id, post.price);
+
+    console.log("구매자 포인트 로그 삽입 중...");
+    await userModel.insertPointLog(user_id, "use", post.price, `아이디어 구매 - post_id: ${post_id}`);
+
+    console.log("판매자 포인트 적립 중...");
+    await userModel.addPointToUser(seller_id, post.price);
+
+    console.log("판매자 포인트 로그 삽입 중...");
+    await userModel.insertPointLog(seller_id, "charge", post.price, `아이디어 판매 - post_id: ${post_id}`);
+
+    console.log("글 상태 '거래완료'로 변경 중...");
+    await postModel.updatePostStatus(post_id, "거래완료");
+
+    console.log("구매 완료");
+    return res.json({ success: true });
+
+  } catch (err) {
+    console.error("구매 오류:", err);
+    return res.status(500).json({ error: "서버 오류 발생" });
   }
 };

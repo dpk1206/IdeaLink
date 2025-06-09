@@ -6,6 +6,7 @@ const fs = require("fs");
 const postController = require("../controllers/postController");
 const commentController = require("../controllers/commentController");
 const requireLogin = require("../middleware/requireLogin");
+const authMiddleware = require("../middleware/authMiddleware");
 
 // Multer 셋팅
 const storage = multer.diskStorage({
@@ -89,5 +90,6 @@ router.get("/like_status", requireLogin, postController.getLikeStatus);
 router.get("/recent_posts", postController.getRecentPosts);
 router.get("/popular_posts", postController.getPopularPosts);
 
-
+// 구매 라우터
+router.post("/purchase", authMiddleware, postController.purchaseIdea);
 module.exports = router;

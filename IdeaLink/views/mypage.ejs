@@ -61,7 +61,7 @@
               <% } else { %>
                 <% pointLogs.forEach(log => { %>
                   <tr>
-                    <td><%= new Date(log.created_at).toISOString().split('T')[0] %></td>
+                    <td><%= new Date(log.created_at).toLocaleString('ko-KR', { hour12: false }) %></td>
                     <td><%= log.type === 'charge' ? '충전' : log.type === 'use' ? '사용' : '환불' %></td>
                     <td><%= log.amount.toLocaleString() %>P</td>
                     <td><%= log.description || '-' %></td>

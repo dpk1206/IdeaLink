@@ -365,3 +365,59 @@ exports.getMyPosts = async (user_id) => {
   await conn.end();
   return rows;
 };
+
+
+// 아이디어 가격 조회
+exports.getPostPrice = async (post_id) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  try {
+    const [rows] = await conn.promise().query(
+      "SELECT price, user_id FROM post WHERE post_id = ?",
+      [post_id]
+    );
+    return rows[0]; // { price: ..., user_id: ... }
+  } catch (err) {
+    console.error("getPostPrice 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+
+// 구매 로그 삽입
+exports.insertPurchaseLog = async (user_id, post_id, price) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  try {
+    await conn.promise().query(
+      "INSERT INTO purchase_log (user_id, post_id, price) VALUES (?, ?, ?)",
+      [user_id, post_id, price]
+    );
+  } catch (err) {
+    console.error("insertPurchaseLog 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+//상태변경함수
+exports.updatePostStatus = async (post_id, status) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  try {
+    await conn.promise().query(
+      "UPDATE post SET status = ? WHERE post_id = ?",
+      [status, post_id]
+    );
+  } catch (err) {
+    console.error("게시물 상태 업데이트 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};

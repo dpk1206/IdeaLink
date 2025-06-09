@@ -211,3 +211,81 @@ function toggleBookmark(user_id, post_id) {
     });
   }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const buyBtn = document.getElementById("buyBtn");
+  const promiseModal = document.getElementById("promiseModal");
+  const confirmPromise = document.getElementById("confirmPromise");
+  const promiseCheck = document.getElementById("promiseCheck");
+  const paymentModal = document.getElementById("paymentModal");
+  const confirmPurchase = document.getElementById("confirmPurchase");
+
+  // ✅ post_id 추출
+  const urlParams = new URLSearchParams(window.location.search);
+  const post_id = urlParams.get("post_id");
+
+  // ✅ 공통 구매 진행 함수
+  const handlePurchase = (postId, answerId = null, price = null) => {
+    promiseModal.style.display = "flex";
+
+    // 기존 이벤트 제거 후 재등록
+    confirmPromise.replaceWith(confirmPromise.cloneNode(true));
+    const newConfirmPromise = document.getElementById("confirmPromise");
+
+    newConfirmPromise.onclick = () => {
+      if (!promiseCheck.checked) {
+        alert("서약에 동의해야 진행 가능합니다.");
+        return;
+      }
+      promiseModal.style.display = "none";
+      paymentModal.style.display = "flex";
+
+      confirmPurchase.replaceWith(confirmPurchase.cloneNode(true));
+      const newConfirmPurchase = document.getElementById("confirmPurchase");
+
+      newConfirmPurchase.onclick = async () => {
+        try {
+          const res = await fetch("/post/purchase", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              post_id: postId,
+              answer_id: answerId,
+              price: price
+            })
+          });
+
+          const result = await res.json();
+          if (res.ok) {
+            alert("✅ 구매가 완료되었습니다.");
+            paymentModal.style.display = "none";
+            location.reload();
+          } else {
+            alert(result.error || "❌ 포인트 부족 또는 오류 발생");
+          }
+        } catch (err) {
+          console.error("구매 실패:", err);
+          alert("❌ 구매 처리 중 오류 발생");
+        }
+      };
+    };
+  };
+
+  // 📌 본문용 구매 버튼
+  if (buyBtn) {
+    buyBtn.addEventListener("click", () => {
+      handlePurchase(post_id);
+    });
+  }
+
+  // 📌 답글용 구매 버튼들
+  document.querySelectorAll('.buy_answer_btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const answerId = btn.dataset.answerId;
+      const postId = btn.dataset.postId;
+      const price = btn.dataset.price;
+      handlePurchase(postId, answerId, price);
+    });
+  });
+});
