@@ -1,4 +1,5 @@
 const chatModel = require('../models/chatModel');
+const notificationModel = require('../models/notificationModel');
 
 // 알림용 네임스페이스와 채팅용 네임스페이스 분리
 const notificationUsers = {};  // 알림용 유저 매핑
@@ -41,8 +42,7 @@ module.exports = (io) => {
         socket.on('message', async (data) => {
             const { sender_id, receiver_id, content, chatting_room_id } = data;
             console.log(`[채팅] 사용자 ${sender_id}가 방 ${chatting_room_id}에서 사용자 ${receiver_id}에게 메시지: ${content}`);
-
-
+            // 메시지 저장
             const insertId = await chatModel.saveMessage(sender_id, receiver_id, content, chatting_room_id);
 
             // 해당 채팅방(room)에만 메시지 전송
@@ -53,6 +53,32 @@ module.exports = (io) => {
                 content,
                 chatting_room_id,
                 created_at: new Date()
+            });
+
+            // 같은 채팅방ID의 안읽은 알림이 있는지 확인
+            const hasUnreadNotification = await notificationModel.hasUnreadChatNotification(receiver_id, chatting_room_id);
+            if (hasUnreadNotification) {
+                console.log(`[알림] 이미 채팅방 ${chatting_room_id}에 대한 안읽은 알림이 있으므로 무시`);
+                return;
+            }
+
+            // 없으면 새 알림 생성
+            const notificationContent = `새 메시지가 도착했습니다 : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
+            await notificationModel.createNotification(
+                receiver_id,
+                sender_id,
+                'chat',
+                chatting_room_id,
+                notificationContent
+            );
+
+            // 알림 이벤트 전송
+            unreadCount = await notificationModel.getUnreadNotificationCount(receiver_id);
+            notificationNamespace.to(notificationUsers[receiver_id]).emit('notification', {
+                type: 'chat',
+                chatting_room_id,
+                content: notificationContent,
+                count: unreadCount
             });
         });
 

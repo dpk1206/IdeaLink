@@ -1,4 +1,5 @@
 const dbconn = require("../config/dbconn");
+const userModel = require('../models/userModel');
 
 // 채팅 저장 및 채팅방 시간 업데이트
 exports.saveMessage = async (senderId, receiverId, content, chatting_room_id) => {
@@ -169,12 +170,13 @@ exports.getChattingRooms = async (user_id) => {
         const [rows] = await conn.promise().query(`
             SELECT * 
             FROM chatting_room 
-            WHERE user_id1 = ? OR user_id2 = ?;
+            WHERE user_id1 = ? OR user_id2 = ?
+            ORDER BY updated_at DESC;
         `, [user_id, user_id]);
 
-        // 2. 각 채팅방에 제목(title)과 상대 닉네임(partner_nickname) 정보 추가
+        // 2. 각 채팅방에 제목(title), 상대 닉네임(partner_nickname), 안읽은 메시지 개수(unreadCount) 추가
         if (rows.length > 0) {
-            const roomsWithTitlesAndNicknames = await Promise.all(
+            const roomsWithDetails = await Promise.all(
                 rows.map(async (room) => {
                     try {
                         // 내 아이디가 아닌 상대방 아이디 구하기
@@ -183,7 +185,6 @@ exports.getChattingRooms = async (user_id) => {
                         // 파트너 닉네임 조회
                         let partner_nickname = '';
                         try {
-                            const userModel = require("../models/userModel");
                             const partnerUser = await userModel.selectUserByUserID(partnerId);
                             partner_nickname = partnerUser?.nick_name || '알 수 없는 유저';
                         } catch (err) {
@@ -200,24 +201,35 @@ exports.getChattingRooms = async (user_id) => {
                             title = '제목 조회 실패';
                         }
 
+                        // 안읽은 메시지 개수 조회
+                        let unreadCount = 0;
+                        try {
+                            unreadCount = await this.getUnreadMessageCount(user_id, room.chatting_room_id);
+                        } catch (err) {
+                            console.error(`채팅방 ${room.chatting_room_id} 안읽은 메시지 개수 조회 실패:`, err);
+                            unreadCount = 0; // 실패 시 0으로 처리
+                        }
+
                         return {
-                            ...room, // ... 객체의 모든 속성(key-value 쌍)을 펼쳐서 새 객체에 복사하는 문법
+                            ...room,
                             title: title || '알 수 없는 제목',
                             partnerId,
-                            partner_nickname
+                            partner_nickname,
+                            unreadCount
                         };
                     } catch (err) {
                         console.error(`채팅방 ${room.chatting_room_id} 정보 조회 실패:`, err);
                         return {
                             ...room,
                             title: '제목 조회 실패',
-                            partner_nickname: '닉네임 조회 실패'
+                            partner_nickname: '닉네임 조회 실패',
+                            unreadCount: 0
                         };
                     }
                 })
             );
 
-            return roomsWithTitlesAndNicknames;
+            return roomsWithDetails;
         }
 
         return []; // 조회 결과가 없으면 빈 배열 반환
@@ -225,6 +237,27 @@ exports.getChattingRooms = async (user_id) => {
     } catch (err) {
         console.error('getChattingRooms error:', err);
         throw err;
+    } finally {
+        if (conn) conn.end();
+    }
+};
+
+// 안읽은 메시지 개수 조회
+exports.getUnreadMessageCount = async (user_id, chatting_room_id) => {
+    const conn = await dbconn.init();
+    try {
+        await dbconn.connect(conn);
+        const sql = `
+        SELECT COUNT(*) AS count
+        FROM message
+        WHERE chatting_room_id = ? 
+          AND receiver_id = ? 
+          AND is_read = 0`;
+        const [rows] = await conn.promise().query(sql, [chatting_room_id, user_id]);
+        return rows[0]?.count || 0;
+    } catch (err) {
+        console.error('안읽은 메시지 개수 조회 실패:', err);
+        return 0;
     } finally {
         if (conn) conn.end();
     }

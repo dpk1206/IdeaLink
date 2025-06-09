@@ -4,6 +4,7 @@ const answerModel = require("../models/answerModel");
 const commentModel = require("../models/commentModel");
 const bookmarkModel = require("../models/bookmarkModel");
 const chatModel = require("../models/chatModel");
+const notificationModel = require("../models/notificationModel");
 
 // 내가 작성한 게시글 + 답글 + 댓글(예정) 조회
 exports.mypage = async (req, res, next) => {
@@ -15,6 +16,8 @@ exports.mypage = async (req, res, next) => {
     // 마이페이지 탭 메뉴 클릭 시 맞는 데이터를 비동기로 가져오려 했는데
     // 일단 그냥 한번에 다 가져가는 걸로
     // 알림가져오는게 초기세팅
+    const notifications = await notificationModel.getNotificationsByUserId(user_id); // 알림 정보
+    console.log("알림 정보:", notifications);
     const userInfo = await userModel.selectUserByUserID(user_id); // 유저 정보
     const myPosts = await postModel.getMyPosts(user_id); // 내가 작성한 게시글
     const myAnswers = await answerModel.getMyAnswers(user_id); // 내가 작성한 답글
@@ -23,6 +26,7 @@ exports.mypage = async (req, res, next) => {
     const pointLogs = await userModel.getPointLogsByUserId(user_id); // 포인트 로그
     const chattings = await chatModel.getChattingRooms(user_id); // 내 채팅방
     const result ={
+      notifications: notifications || null,
       userInfo: userInfo || null,
       myPosts: myPosts || null,
       myAnswers: myAnswers || null,

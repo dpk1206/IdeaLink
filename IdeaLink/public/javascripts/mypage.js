@@ -31,24 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ===== 🔔 알림 기능 =====
-  const dummyAlerts = [
-    "스마트 화분 시스템에 새 메시지가 도착했습니다.",
-    "관리자가 건의사항에 답변을 등록했습니다.",
-  ];
-
-  const alertList = document.getElementById("alertList");
-  dummyAlerts.forEach((alert) => {
-    const li = document.createElement("li");
-    li.textContent = alert;
-    alertList.appendChild(li);
-  });
-
-  // ===== 💬 채팅 기능 =====
-
-  const chatRoomList = document.getElementById("chatRoomList");
-  const chatRoomTitle = document.getElementById("chatRoomTitle");
-
   // ===== 등록아이디어 탭 =====
   document.querySelectorAll(".mypost-tab-btn").forEach((btn) => {
     btn.addEventListener("click", function () {

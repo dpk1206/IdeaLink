@@ -24,7 +24,16 @@
         <!-- 알림 & 채팅 -->
         <section id="alerts" class="mypage-section">
           <div class="alert-chat-wrapper">
-          <div class="alert-list" id="alertList"><h2>🔔 알림</h2></div>
+          <div class="alert-list" id="alertList"><h2>🔔 알림</h2>
+          <% notifications.forEach(notification => { %>
+              <li>
+                <%= notification.content %>
+                <button onclick="chatWindow('<%= user.user_id %>', '<%= notification.sender_id %>', '<%= notification.post_id %>', '<%= notification.post_type %>')" >이동</button> <button>읽음</button> <button>삭제</button>
+                <div class="chat-date"><%= notification.created_at.toLocaleString() %></div>
+              </li>
+            <% }) %>
+          </div>
+
           <div class="chat-room-list" id="chatRoomList">
             <h2>💬 채팅방</h2>
             <% chattings.forEach(room => { %>
@@ -32,7 +41,8 @@
                 class="chat-room" 
                 onclick="chatWindow('<%= user.user_id %>', '<%= room.partnerId %>', '<%= room.post_id %>', '<%= room.type %>')"
               >
-                <div class="chat-title"><%= room.title %></div>
+                <div class="chat-title"><%= room.title %><span class="notification"><%= room.unreadCount ? ' • ' + room.unreadCount : '' %>
+                </span></div>
                 <div class="chat-nickname"><%= room.partner_nickname %> 님과의 대화</div>
                 <div class="chat-date"><%= room.updated_at.toLocaleString() %></div>
               </div>
