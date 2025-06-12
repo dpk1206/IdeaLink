@@ -20,10 +20,7 @@
         <% if (user) { %>
           <a href="/users/mypage?user_id=<%= user.user_id %>">
             👤 <%= user.nick_name %> 님
-              <% if (unreadNotificationCount> 0) { %>
-                <span class="notification"> • <%= unreadNotificationCount %>
-                </span>
-                <% } %>
+                <span class="notification"><%= unreadNotificationCount ? ' • ' + unreadNotificationCount : '' %></span>
           </a>
           <a href="/users/logout" id="logoutBtn">로그아웃</a>
           <% } else { %>

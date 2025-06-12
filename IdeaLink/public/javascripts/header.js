@@ -9,25 +9,34 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // 알림 이벤트 수신
     notificationSocket.on('notification', (data) => {
+      console.log("새 알림 수신", data);
       // class가 "notification"인 모든 요소를 찾아서
       const badgeElements = document.querySelectorAll('.notification');
       badgeElements.forEach(el => {
         // 안읽은 알림이 0이면 빈 문자열, 1 이상이면 숫자 표시
-        el.textContent = data.count > 0 ? "•"+data.count : '';
-        // (옵션) 빨간 점 스타일 추가
-        if (count > 0) {
-          el.style.color = 'red';
-          el.style.fontSize = 'smaller';
-          el.style.position = 'relative';
-          el.style.top = '-5px';
-        } else {
-          el.style.color = '';
-          el.style.fontSize = '';
-          el.style.position = '';
-          el.style.top = '';
-        }
+        el.textContent = data.count > 0 ? "•" + data.count : '';
       });
+      // 2. 타이틀 플래시 효과
+      let titleCounter = 0;
+      const originalTitle = document.title;
+      const titleBlink = setInterval(() => {
+        document.title = (titleCounter++ % 2) ? '새 알림!' : originalTitle;
+      }, 1000);
 
+      // 3. 탭 포커스 시 효과 중지
+      const stopBlinking = () => {
+        clearInterval(titleBlink);
+        document.title = originalTitle;
+        window.removeEventListener('focus', stopBlinking);
+      };
+
+      if (document.hidden) {
+        window.addEventListener('focus', stopBlinking);
+        // 5초 후 자동 중지
+        setTimeout(stopBlinking, 5000);
+      } else {
+        stopBlinking();
+      }
     });
   } else {
     console.warn('user_id가 없어 소켓 연결을 하지 않습니다.');

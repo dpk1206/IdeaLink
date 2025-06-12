@@ -263,6 +263,13 @@ form button {
   color: #007bff;
 }
 
+.chat-unread {
+  color: red;
+  font-size: smaller;
+  position: relative;
+  top: -5px;
+}
+
 @media (max-width: 768px) {
   .mypage-container {
     flex-direction: column;

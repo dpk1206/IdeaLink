@@ -31,6 +31,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // ===== 💬 채팅 기능 =====
+
+
   // ===== 등록아이디어 탭 =====
   document.querySelectorAll(".mypost-tab-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
@@ -44,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const target = this.getAttribute("data-tab");
       document.getElementById("post-type").innerText =
         target === "ideas-table" ? "아이디어" :
-        target === "answer-table" ? "답글" : "댓글";
+          target === "answer-table" ? "답글" : "댓글";
 
       document.getElementById(target).style.display = "table";
     });
@@ -124,4 +127,54 @@ function chatWindow(user_id, writer_id, post_id, type) {
 
   // 5. 폼 제거(클린업)
   document.body.removeChild(form);
+}
+
+// ===== 🔔 알림 기능 =====
+// 알림 읽음 처리
+async function markAsRead(btn, notification_id, type) {
+  try {
+    const response = await fetch('/users/notification/read', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ notification_id: notification_id, type: type })
+    });
+
+    if (response.ok) {
+      alert('읽음 처리되었습니다.');
+
+      // 버튼이 속한 li 요소 찾기
+      const liElement = btn.closest('li');
+
+      // 해당 li 내부의 .chat-unread 요소 찾기
+      const chatUnreadEl = liElement.querySelector('.chat-unread');
+      const currentText = chatUnreadEl.textContent;
+      // "• 2" 형태에서 숫자만 추출
+      const match = currentText.match(/\d+/);
+      const num = parseInt(match[0], 10);
+      // 해당 누적 알림 개수 제거
+      chatUnreadEl.textContent = '';
+      document.querySelectorAll('.notification').forEach(el => {
+        // "• 2" 형태에서 숫자만 추출
+        const match = el.textContent.match(/\d+/);
+        if (match) {
+          const notiNum = parseInt(match[0], 10);
+          if (notiNum - num <= 0) {
+            el.textContent = ''; // 0 이하이면 빈 문자열
+          } else {
+            el.textContent = `• ${notiNum - num}`; // 1 이상이면 "• 숫자"로 표시
+          }
+        }
+      });
+
+      // 4. 버튼 비활성화
+      btn.disabled = true;
+    } else {
+      alert('읽음 처리에 실패했습니다.');
+    }
+  } catch (err) {
+    console.error('에러:', err);
+    alert('서버 오류가 발생했습니다.');
+  }
 }

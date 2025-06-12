@@ -25,41 +25,75 @@ exports.getNotificationsByUserId = async (user_id) => {
     try {
         await dbconn.connect(conn);
 
-        // 1. 기본 알림 조회
-        const sql = `
-            SELECT *
-            FROM notification
-            WHERE user_id = ?
-            ORDER BY created_at DESC`;
-        const [rows] = await conn.promise().query(sql, [user_id]);
+        // 1. 모든 알림 조회 (최신순)
+        const [allNotifications] = await conn.promise().query(`
+            SELECT * 
+            FROM notification 
+            WHERE user_id = ? 
+            ORDER BY created_at DESC`,
+            [user_id]
+        );
 
-        // 2. 채팅 알림 필터링 및 추가 정보 조회
-        const chatNotifications = rows.filter(n => n.type === 'chat');
-        const chatRoomIds = chatNotifications.map(n => n.target_id);
+        // 2. 채팅 알림 중복 제거 (같은 채팅방의 최신 알림만 남김)
+        const uniqueNotifications = [];
+        const seenChatRooms = new Set(); // 중복 체크용 Set
+
+        allNotifications.forEach(notification => {
+            if (notification.type === 'chat') {
+                if (!seenChatRooms.has(notification.target_id)) {
+                    seenChatRooms.add(notification.target_id);
+                    uniqueNotifications.push(notification);
+                }
+            } else {
+                uniqueNotifications.push(notification);
+            }
+        });
+
+        // 3. 채팅방별 안읽은 알림 개수 조회
+        const chatRoomIds = Array.from(seenChatRooms);
+        let unreadCounts = new Map();
 
         if (chatRoomIds.length > 0) {
-            // 3. 채팅방 정보 일괄 조회
+            // 안읽은 알림 개수 조회
+            const [countRows] = await conn.promise().query(`
+                SELECT target_id, COUNT(*) AS count 
+                FROM notification 
+                WHERE 
+                    user_id = ? 
+                    AND type = 'chat' 
+                    AND target_id IN (?) 
+                    AND is_read = 0 
+                GROUP BY target_id`,
+                [user_id, chatRoomIds]
+            );
+            // Map으로 변환: { target_id → count }
+            countRows.forEach(row => {
+                unreadCounts.set(row.target_id, row.count);
+            });
+
+            // 채팅방 정보 일괄 조회
             const [chatRooms] = await conn.promise().query(`
                 SELECT chatting_room_id, post_id, type 
                 FROM chatting_room 
-                WHERE chatting_room_id IN (?)
-            `, [chatRoomIds]);
-
-            // 4. 채팅방 정보 매핑 테이블 생성
+                WHERE chatting_room_id IN (?)`,
+                [chatRoomIds]
+            );
+            // 채팅방 정보 매핑 테이블 생성
             const chatRoomMap = new Map();
             chatRooms.forEach(room => {
                 chatRoomMap.set(room.chatting_room_id, {
                     post_id: room.post_id,
-                    post_type: room.type // 컬럼명 충돌 방지를 위해 chat_type으로 변경
+                    post_type: room.type
                 });
             });
 
-            // 5. 알림 데이터에 추가 정보 병합
-            return rows.map(notification => {
+            // 4. 최종 알림 목록에 추가 정보 병합
+            return uniqueNotifications.map(notification => {
                 if (notification.type === 'chat') {
                     const roomInfo = chatRoomMap.get(notification.target_id) || {};
                     return {
                         ...notification,
+                        unreadCount: unreadCounts.get(notification.target_id) || 0,
                         post_id: roomInfo.post_id,
                         post_type: roomInfo.post_type
                     };
@@ -68,7 +102,8 @@ exports.getNotificationsByUserId = async (user_id) => {
             });
         }
 
-        return rows;
+        // 채팅 알림이 없으면 그냥 반환
+        return uniqueNotifications;
 
     } catch (err) {
         console.error('알림 조회 실패:', err);
@@ -77,7 +112,6 @@ exports.getNotificationsByUserId = async (user_id) => {
         if (conn) conn.end();
     }
 };
-
 
 // 안 읽은 알림 갯수 조회
 exports.getUnreadNotificationCount = async (user_id) => {
@@ -99,16 +133,30 @@ exports.getUnreadNotificationCount = async (user_id) => {
 };
 
 // 알림 읽음 처리
-exports.markAsRead = async (notification_id) => {
+exports.markAsRead = async (notification_id, type, user_id) => {
     const conn = await dbconn.init();
     try {
         await dbconn.connect(conn);
-        const sql = `
-        UPDATE notification 
-        SET is_read = 1 
-        WHERE notification_id = ?`;
-        const [result] = await conn.promise().query(sql, [notification_id]);
-        return result.affectedRows > 0;
+        if (type == 'chat') {
+            console.log('aaaaaaaaaaa')
+            const sql = `
+            UPDATE notification n1
+            JOIN notification n2 ON n1.target_id = n2.target_id
+            SET n1.is_read = 1
+            WHERE 
+            n2.notification_id = ? 
+            AND n1.user_id = ? 
+            AND n1.type = 'chat'`;
+            const [result] = await conn.promise().query(sql, [notification_id, user_id]);
+            return result.affectedRows > 0;
+        } else {
+            const sql = `
+            UPDATE notification 
+            SET is_read = 1 
+            WHERE notification_id = ?`;
+            const [result] = await conn.promise().query(sql, [notification_id]);
+            return result.affectedRows > 0;
+        }
     } catch (err) {
         console.error('알림 읽음 처리 실패:', err);
         return false; // 오류 시 false 반환
