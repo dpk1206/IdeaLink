@@ -73,20 +73,37 @@ router.get("/logout", (req, res) => {
 router.post("/bookmark", bookmarkController.addBookmark);
 router.delete("/bookmark", bookmarkController.removeBookmark);
 
+// 알림 읽음
 router.post("/notification/read", async (req, res, next) => {
   try {
     const result = await notificationModel.markAsRead(req.body.notification_id, req.body.type, req.user.user_id);
-    // markAsRead가 성공하면 result로 처리 결과를 받는다고 가정
-    res.status(200).json({
-      success: true,
-      message: "알림 읽음 처리 완료"
-    });
+    if (result) {
+      res.status(200).json({
+        success: true,
+        message: "알림 읽음 처리 완료"
+      });
+    }
   } catch (err) {
-    console.error("오류:", err);
+    console.error("알림 읽음 오류:", err);
     next(err); // 에러시 에러핸들러 일괄처리
   }
 });
 
+// 알림 삭제
+router.delete("/notification/delete", async (req, res, next) => {
+  try {
+    const result = await notificationModel.deleteNotification(req.body.notification_id, req.body.type, req.user.user_id);
+    if (result) {
+      res.status(200).json({
+        success: true,
+        message: "알림 삭제 완료"
+      });
+    }
+  } catch (err) {
+    console.error("알림 삭제 오류:", err);
+    next(err); // 에러시 에러핸들러 일괄처리
+  }
+});
 
 
 module.exports = router;

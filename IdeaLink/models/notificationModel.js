@@ -138,7 +138,6 @@ exports.markAsRead = async (notification_id, type, user_id) => {
     try {
         await dbconn.connect(conn);
         if (type == 'chat') {
-            console.log('aaaaaaaaaaa')
             const sql = `
             UPDATE notification n1
             JOIN notification n2 ON n1.target_id = n2.target_id
@@ -185,13 +184,26 @@ exports.markAllAsRead = async (user_id) => {
 };
 
 // 알림 삭제
-exports.deleteNotification = async (notification_id) => {
+exports.deleteNotification = async (notification_id, type, user_id) => {
     const conn = await dbconn.init();
-    try {
+    try {   
         await dbconn.connect(conn);
-        const sql = `DELETE FROM notification WHERE notification_id = ?`;
-        const [result] = await conn.promise().query(sql, [notification_id]);
-        return result.affectedRows > 0;
+        if (type == 'chat') {
+            const sql = `
+            DELETE n1 FROM notification n1
+            JOIN notification n2 ON n1.target_id = n2.target_id
+            WHERE n2.notification_id = ?
+            AND n1.user_id = ?
+            AND n1.type = 'chat'`;
+            const [result] = await conn.promise().query(sql, [notification_id, user_id]);
+            return result.affectedRows > 0;
+        } else {
+            const sql = `
+            DELETE FROM notification
+            WHERE notification_id = ?`;
+            const [result] = await conn.promise().query(sql, [notification_id]);
+            return result.affectedRows > 0;
+        }
     } catch (err) {
         console.error('알림 삭제 실패:', err);
         return false; // 오류 시 false 반환

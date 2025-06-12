@@ -37,7 +37,7 @@
                           onclick="chatWindow('<%= user.user_id %>', '<%= noti.sender_id %>', '<%= noti.post_id %>', '<%= noti.post_type %>')">이동</button>
                         <button onclick="markAsRead(this, '<%= noti.notification_id %>', '<%= noti.type %>')"
                           <%=noti.is_read ? 'disabled' : '' %>>읽음</button>
-                        <button>삭제</button>
+                        <button onclick="deleteNotification(this, '<%= noti.notification_id %>', '<%= noti.type %>')">삭제</button>
                         <div class="chat-date">
                           <%= noti.created_at.toLocaleString() %>
                         </div>

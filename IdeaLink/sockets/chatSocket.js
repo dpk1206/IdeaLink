@@ -2,30 +2,12 @@ const chatModel = require('../models/chatModel');
 const notificationModel = require('../models/notificationModel');
 
 // 알림용 네임스페이스와 채팅용 네임스페이스 분리
-const notificationUsers = {};  // 알림용 유저 매핑
-const chatUsers = {};          // 채팅용 유저 매핑
+const { notificationUsers, chatUsers } = require('./userSocketMapping');
 
 module.exports = (io) => {
-    // 1. 알림용 네임스페이스 (/notification)
-    const notificationNamespace = io.of('/notification');
-    notificationNamespace.on('connection', (socket) => {
-        const userId = socket.handshake.auth.user_id;
-        notificationUsers[userId] = socket.id;
-        console.log('알림 소켓 연결:', userId);
 
-        // 알림 이벤트 핸들러
-        socket.on('notification', (data) => {
-            console.log('새 알림:', data);
-            // 알림 관련 로직 처리
-        });
-
-        socket.on('disconnect', () => {
-            delete notificationUsers[userId];
-        });
-    });
-
-    // 2. 채팅용 네임스페이스 (/chat)
-    const chatNamespace = io.of('/chat');
+    const chatNamespace = io.of('/chat'); // 채팅용 네임스페이스 (/chat)
+    const notificationNamespace = io.of('/notification'); // 알림용 네임스페이스 (/notification)
     chatNamespace.on('connection', (socket) => {
         const userId = socket.handshake.auth.user_id;
         chatUsers[userId] = socket.id;

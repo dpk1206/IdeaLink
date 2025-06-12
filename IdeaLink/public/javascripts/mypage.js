@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // ===== 💬 채팅 기능 =====
 
 
-    // ===== 등록아이디어 탭 =====
+  // ===== 등록아이디어 탭 =====
   document.querySelectorAll(".mypost-tab-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
       document.querySelectorAll(".mypost-tab-btn").forEach((b) => b.classList.remove("active"));
@@ -165,7 +165,7 @@ async function markAsRead(btn, notification_id, type) {
         }
       });
 
-      // 4. 버튼 비활성화
+      // 버튼 비활성화
       btn.disabled = true;
     } else {
       alert('읽음 처리에 실패했습니다.');
@@ -173,5 +173,51 @@ async function markAsRead(btn, notification_id, type) {
   } catch (err) {
     console.error('에러:', err);
     alert('서버 오류가 발생했습니다.');
+  }
+}
+
+// 알림 삭제
+async function deleteNotification(btn, notification_id, type) {
+  try {
+    const response = await fetch('/users/notification/delete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notification_id: notification_id, type: type })
+    });
+    if (response.ok) {
+      alert('삭제 처리되었습니다.');
+
+      // 버튼이 속한 li 요소 찾기
+      const liElement = btn.closest('li');
+
+      // 해당 li 내부의 .chat-unread 요소 찾기
+      const chatUnreadEl = liElement.querySelector('.chat-unread');
+      const currentText = chatUnreadEl.textContent;
+      // "• 2" 형태에서 숫자만 추출
+      const match = currentText.match(/\d+/);
+      let num = 0;
+      // 삭제할 알림에 안 읽은 알림이 있으면 헤더 알림 개수 수정
+      if (match) {
+        num = parseInt(match[0], 10);
+        document.querySelectorAll('.notification').forEach(el => {
+          const notiMatch = el.textContent.match(/\d+/);
+          if (notiMatch) {
+            const notiNum = parseInt(notiMatch[0], 10);
+            if (notiNum - num <= 0) {
+              el.textContent = '';
+            } else {
+              el.textContent = `• ${notiNum - num}`;
+            }
+          }
+        });
+      }
+
+      // 알림 li 삭제
+      liElement.remove();
+    } else {
+      alert('삭제 처리에 실패했습니다.');
+    }
+  } catch (error) {
+    alert('에러 발생: ' + error);
   }
 }
