@@ -6,6 +6,7 @@ const naverController = require("../controllers/naverAuthController");
 const requireLogin = require("../middleware/requireLogin");
 const mypageController = require("../controllers/mypageController");
 const bookmarkController = require("../controllers/bookmarkController");
+const notificationModel = require("../models/notificationModel");
 
 // 마이페이지
 router.get('/mypage', requireLogin, mypageController.mypage);
@@ -70,6 +71,20 @@ router.get("/logout", (req, res) => {
 // TODO: 북마크 비동기 요청 라우터 추가
 router.post("/bookmark", bookmarkController.addBookmark);
 router.delete("/bookmark", bookmarkController.removeBookmark);
+
+router.post("/notification/read", async (req, res, next) => {
+  try {
+    const result = await notificationModel.markAsRead(req.body.notification_id, req.body.type, req.user.user_id);
+    // markAsRead가 성공하면 result로 처리 결과를 받는다고 가정
+    res.status(200).json({
+      success: true,
+      message: "알림 읽음 처리 완료"
+    });
+  } catch (err) {
+    console.error("오류:", err);
+    next(err); // 에러시 에러핸들러 일괄처리
+  }
+});
 
 
 

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>1:1 채팅</title>
+    <link rel="stylesheet" href="/stylesheets/chat.css">
+</head>
+
+<body>
+    <div class="chat-container">
+            <div class="chat-header" id="chatRoomTitle"><%= title %></div>
+            <% const userId=user.user_id %>
+                <div class="chat-messages" id="chatMessages">
+                <% 
+                    let unreadMarkShown = false;
+                    messages.forEach(msg => { 
+                    // 내 메시지가 아니고, 읽지 않은 메시지(is_read == 0)를 처음 만났을 때
+                    if (!unreadMarkShown && msg.sender_id != userId && msg.is_read == 0) { 
+                %>
+                    <div class="unread-mark" style="text-align:center; color:#888; margin:10px 0;">
+                        여기까지 읽으셨습니다.
+                        <hr>
+                    </div>
+                <% 
+                        unreadMarkShown = true; 
+                    } 
+                %>
+                    <div 
+                    class="message <%= msg.sender_id === userId ? 'mine' : 'other' %>" 
+                    data-message-id="<%= msg.message_id %>">
+                    <%= msg.content %>
+                    <% if (msg.is_read == 1) { %>
+                        <span class="message-status" data-is-read="1">✔️읽음</span>
+                    <% } else { %>
+                        <span class="message-status" data-is-read="0">🔵읽지 않음</span>
+                    <% } %>
+                    <br>
+                    <small><%= msg.created_at.toLocaleString() %></small>
+                    </div>
+                <% }) %>
+                </div>
+
+        <div class="chat-input-area">
+            <form id="chat-form">
+                <input type="text" id="message-input" placeholder="메시지를 입력하세요..." autocomplete="off" />
+                <button type="submit" class="send-btn" id="sendBtn">전송</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const user_id = '<%= user.user_id %>';
+        const receiver_id = '<%= receiver_id %>';
+        const chatting_room_id = '<%= chatting_room_id %>';
+        // 두 값이 없으면 에러 페이지로 이동
+        if (user_id == '' || receiver_id == '') {
+            window.location.href = "/error";
+        }
+    </script>
+    <script src="/javascripts/chat.js"></script>
+</body>
+
+</html>

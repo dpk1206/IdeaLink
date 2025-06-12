@@ -1,4 +1,47 @@
 window.addEventListener("DOMContentLoaded", () => {
+
+  if (user_id) {
+    // 헤더 알림용 소켓 연결
+    const notificationSocket = io('/notification', {
+      auth: { user_id: user_id },
+      autoConnect: true  // 필요시 수동 연결
+    });
+
+    // 알림 이벤트 수신
+    notificationSocket.on('notification', (data) => {
+      console.log("새 알림 수신", data);
+      // class가 "notification"인 모든 요소를 찾아서
+      const badgeElements = document.querySelectorAll('.notification');
+      badgeElements.forEach(el => {
+        // 안읽은 알림이 0이면 빈 문자열, 1 이상이면 숫자 표시
+        el.textContent = data.count > 0 ? "•" + data.count : '';
+      });
+      // 2. 타이틀 플래시 효과
+      let titleCounter = 0;
+      const originalTitle = document.title;
+      const titleBlink = setInterval(() => {
+        document.title = (titleCounter++ % 2) ? '새 알림!' : originalTitle;
+      }, 1000);
+
+      // 3. 탭 포커스 시 효과 중지
+      const stopBlinking = () => {
+        clearInterval(titleBlink);
+        document.title = originalTitle;
+        window.removeEventListener('focus', stopBlinking);
+      };
+
+      if (document.hidden) {
+        window.addEventListener('focus', stopBlinking);
+        // 5초 후 자동 중지
+        setTimeout(stopBlinking, 5000);
+      } else {
+        stopBlinking();
+      }
+    });
+  } else {
+    console.warn('user_id가 없어 소켓 연결을 하지 않습니다.');
+  }
+
   const toggleBtn = document.querySelector(".nav-toggle");
   const mobileMenu = document.querySelector(".mobile-menu");
   const closeBtn = document.querySelector(".close-menu");

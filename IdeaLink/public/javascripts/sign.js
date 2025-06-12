@@ -218,9 +218,8 @@ nicknameInput = signupInputs[4];
 phoneInput = signupInputs[5];
 
 // 이메일 실시간 검사
-/**
- * @TODO 이메일 중복 체크 조건
- */
+// TODO 이메일 중복 체크 조건
+
 emailInput.addEventListener("input", () => {
   if (!regExp.email.test(emailInput.value)) {
     emailMsg.style.color = "red";

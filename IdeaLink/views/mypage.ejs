@@ -12,34 +12,75 @@
 
     <div class="mypage-container">
       <aside class="mypage-sidebar">
-        <button class="tab-btn active" data-tab="alerts">🔔 알림</button>
+        <button class="tab-btn active" data-tab="alerts">🔔 알림 / 💬 1:1 채팅</button>
         <button class="tab-btn" data-tab="point-charge">💰 포인트</button>
         <button class="tab-btn" data-tab="bookmark">⭐ 북마크</button>
         <button class="tab-btn" data-tab="ideas">💡 등록 아이디어</button>
         <button class="tab-btn" data-tab="history">📑 거래 내역</button>
-        <button class="tab-btn" data-tab="chat">💬 1:1 채팅</button>
         <button class="tab-btn" data-tab="profile">👤 회원정보 수정</button>
       </aside>
 
       <main class="mypage-content-area">
-        <!-- 알림 -->
+        <!-- 알림 & 채팅 -->
         <section id="alerts" class="mypage-section">
-          <h2>🔔 내 알림</h2>
-          <ul class="alert-list" id="alertList"></ul>
+          <div class="alert-chat-wrapper">
+            <div class="alert-list" id="alertList">
+              <h2>🔔 알림</h2>
+              <% notifications.forEach(noti=> { %>
+                <li>
+                  <%= noti.content %>
+                    <% if (noti.type==='chat' ) { %>
+                      <span class="chat-unread"><%= noti.unreadCount ? ' • ' + noti.unreadCount : '' %></span>
+                      <% } %>
+                        <button
+                          onclick="chatWindow('<%= user.user_id %>', '<%= noti.sender_id %>', '<%= noti.post_id %>', '<%= noti.post_type %>')">이동</button>
+                        <button onclick="markAsRead(this, '<%= noti.notification_id %>', '<%= noti.type %>')"
+                          <%=noti.is_read ? 'disabled' : '' %>>읽음</button>
+                        <button>삭제</button>
+                        <div class="chat-date">
+                          <%= noti.created_at.toLocaleString() %>
+                        </div>
+                </li>
+                <% }) %>
+            </div>
+
+            <div class="chat-room-list" id="chatRoomList">
+              <h2>💬 채팅방</h2>
+              <% chattings.forEach(room=> { %>
+                <div class="chat-room"
+                  onclick="chatWindow('<%= user.user_id %>', '<%= room.partnerId %>', '<%= room.post_id %>', '<%= room.type %>')">
+                  <div class="chat-title">
+                    <%= room.title %><span class="chat-unread">
+                        <%= room.unreadCount ? ' • ' + room.unreadCount : '' %>
+                      </span>
+                  </div>
+                  <div class="chat-nickname">
+                    <%= room.partner_nickname %> 님과의 대화
+                  </div>
+                  <div class="chat-date">
+                    <%= room.updated_at.toLocaleString() %>
+                  </div>
+                </div>
+                <% }) %>
+            </div>
+          </div>
         </section>
 
         <!-- 포인트 충전 + 사용 내역 -->
         <section id="point-charge" class="mypage-section" style="display: none;">
           <h2>💰 포인트</h2>
-          <p>현재 보유 포인트: <strong><%= userInfo.point.toLocaleString() %>P</strong></p>
+          <p>현재 보유 포인트: <strong>
+              <%= userInfo.point.toLocaleString() %>P
+            </strong></p>
 
-        <!-- 충전 폼 -->
-        <form id="payForm" style="margin-top: 10px;">
-          <input type="hidden" id="sellerId" value="<%= userInfo.user_id %>">
-          <input type="hidden" id="title" value="포인트 충전">
-          <input type="number" id="amount" placeholder="충전 금액 (원)" min="1000" step="500" required style="padding: 5px;">
-          <button type="submit" style="padding: 5px 10px;">충전하기</button>
-        </form>
+          <!-- 충전 폼 -->
+          <form id="payForm" style="margin-top: 10px;">
+            <input type="hidden" id="sellerId" value="<%= userInfo.user_id %>">
+            <input type="hidden" id="title" value="포인트 충전">
+            <input type="number" id="amount" placeholder="충전 금액 (원)" min="1000" step="500" required
+              style="padding: 5px;">
+            <button type="submit" style="padding: 5px 10px;">충전하기</button>
+          </form>
 
         <!-- 포인트 사용 내역 -->
         <div style="margin-top: 30px;">
@@ -90,33 +131,47 @@
               </tr>
             </thead>
             <tbody>
-            <% if (!bookmarks || bookmarks.length === 0) { %>
-              <tr>
-                <td colspan="7" style="text-align:center;">북마크가 없습니다</td>
-              </tr>
-            <% } else { %>
-              <% bookmarks.forEach((bookmark, index) => { %>
-                <tr onclick="window.location.href='/post/idea_detail?post_id=<%= bookmark.post_id %>'" style="cursor:pointer;">
-                  <td><%= index + 1 %></td>
-                  <td><%= bookmark.title %></td>
-                  <td><%= bookmark.nick_name %></td>
-                  <td><%= new Date(bookmark.created_at).toISOString().split('T')[0] %></td>
-                  <td><%= bookmark.view_count %></td>
-                  <td><%= bookmark.like %></td>
-                  <td class="status-sale"><%= bookmark.status %></td>
-                  <td>
-                    <%= new Date(bookmark.bookmark_created_at).toISOString().split('T')[0] %>
-                    <button 
-                      class="delete-btn"
-                      onclick="toggleDeleteBookmark(event,'<%= user.user_id %>', '<%= bookmark.post_id %>')"
-                      style="border:none; background:none; cursor:pointer; margin-left:10px;">
-                      ❌
-                    </button>
-                  </td>
+              <% if (!bookmarks || bookmarks.length===0) { %>
+                <tr>
+                  <td colspan="8" style="text-align:center;">북마크가 없습니다</td>
                 </tr>
-              <% }) %>
-            <% } %>
-          </tbody>
+                <% } else { %>
+                  <% bookmarks.forEach((bookmark, index)=> { %>
+                    <tr onclick="window.location.href='/post/idea_detail?post_id=<%= bookmark.post_id %>'"
+                      style="cursor:pointer;">
+                      <td>
+                        <%= index + 1 %>
+                      </td>
+                      <td>
+                        <%= bookmark.title %>
+                      </td>
+                      <td>
+                        <%= bookmark.nick_name %>
+                      </td>
+                      <td>
+                        <%= new Date(bookmark.created_at).toISOString().split('T')[0] %>
+                      </td>
+                      <td>
+                        <%= bookmark.view_count %>
+                      </td>
+                      <td>
+                        <%= bookmark.like %>
+                      </td>
+                      <td class="status-sale">
+                        <%= bookmark.status %>
+                      </td>
+                      <td>
+                        <%= new Date(bookmark.bookmark_created_at).toISOString().split('T')[0] %>
+                          <button class="delete-btn"
+                            onclick="toggleDeleteBookmark(event,'<%= user.user_id %>', '<%= bookmark.post_id %>')"
+                            style="border:none; background:none; cursor:pointer; margin-left:10px;">
+                            ❌
+                          </button>
+                      </td>
+                    </tr>
+                    <% }) %>
+                      <% } %>
+            </tbody>
           </table>
         </section>
 
@@ -142,23 +197,38 @@
               </tr>
             </thead>
             <tbody>
-            <% if (!myPosts || myPosts.length === 0) { %>
-              <tr>
-                <td colspan="7" style="text-align:center;">작성한 아이디어가 없습니다</td>
-              </tr>
-            <% } else { %>
-              <% myPosts.forEach((post, index) => { %>
-                <tr onclick="window.location.href='/post/idea_detail?post_id=<%= post.post_id %>'" style="cursor:pointer;">
-                  <td><%= index + 1 %></td>
-                  <td><%= post.title %></td>
-                  <td><%= post.price.toLocaleString() %>원</td>
-                  <td><%= new Date(post.created_at).toISOString().split('T')[0] %></td>
-                  <td><%= post.view_count %></td>
-                  <td><%= post.like_count %></td>
-                  <td class="status-sale"><%= post.status %></td>
+              <% if (!myPosts || myPosts.length===0) { %>
+                <tr>
+                  <td colspan="7" style="text-align:center;">작성한 아이디어가 없습니다</td>
                 </tr>
-              <% }) %>
-            <% } %>
+                <% } else { %>
+                  <% myPosts.forEach((post, index)=> { %>
+                    <tr onclick="window.location.href='/post/idea_detail?post_id=<%= post.post_id %>'"
+                      style="cursor:pointer;">
+                      <td>
+                        <%= index + 1 %>
+                      </td>
+                      <td>
+                        <%= post.title %>
+                      </td>
+                      <td>
+                        <%= post.price.toLocaleString() %>원
+                      </td>
+                      <td>
+                        <%= new Date(post.created_at).toISOString().split('T')[0] %>
+                      </td>
+                      <td>
+                        <%= post.view_count %>
+                      </td>
+                      <td>
+                        <%= post.like_count %>
+                      </td>
+                      <td class="status-sale">
+                        <%= post.status %>
+                      </td>
+                    </tr>
+                    <% }) %>
+                      <% } %>
             </tbody>
           </table>
 
@@ -173,20 +243,29 @@
               </tr>
             </thead>
             <tbody>
-            <% if (!myAnswers || myAnswers.length === 0) { %>
-              <tr>
-                <td colspan="4" style="text-align:center;">작성한 답글이 없습니다</td>
-              </tr>
-            <% } else { %>
-              <% myAnswers.forEach((answer, index) => { %>
-                <tr onclick="window.location.href='/post/idea_detail?post_id=<%= answer.post_id %>'" style="cursor:pointer;">
-                  <td><%= index + 1 %></td>
-                  <td><%= answer.title %></td>
-                  <td><%= new Date(answer.created_at).toISOString().split('T')[0] %></td>
-                  <td class="status-sale"><%= answer.status ?? 0 %></td>
+              <% if (!myAnswers || myAnswers.length===0) { %>
+                <tr>
+                  <td colspan="4" style="text-align:center;">작성한 답글이 없습니다</td>
                 </tr>
-              <% }) %>
-            <% } %>
+                <% } else { %>
+                  <% myAnswers.forEach((answer, index)=> { %>
+                    <tr onclick="window.location.href='/post/idea_detail?post_id=<%= answer.post_id %>'"
+                      style="cursor:pointer;">
+                      <td>
+                        <%= index + 1 %>
+                      </td>
+                      <td>
+                        <%= answer.title %>
+                      </td>
+                      <td>
+                        <%= new Date(answer.created_at).toISOString().split('T')[0] %>
+                      </td>
+                      <td class="status-sale">
+                        <%= answer.status ?? 0 %>
+                      </td>
+                    </tr>
+                    <% }) %>
+                      <% } %>
             </tbody>
           </table>
 
@@ -200,19 +279,26 @@
               </tr>
             </thead>
             <tbody>
-            <% if (!myComments || myComments.length === 0) { %>
-              <tr>
-                <td colspan="3" style="text-align:center;">작성한 댓글이 없습니다</td>
-              </tr>
-            <% } else { %>
-              <% myComments.forEach((comment, index) => { %>
-                <tr onclick="window.location.href='/post/idea_detail?post_id=<%= comment.post_id %>'" style="cursor:pointer;">
-                  <td><%= index + 1 %></td>
-                  <td><%= comment.content %></td>
-                  <td><%= new Date(comment.created_at).toISOString().split('T')[0] %></td>
+              <% if (!myComments || myComments.length===0) { %>
+                <tr>
+                  <td colspan="3" style="text-align:center;">작성한 댓글이 없습니다</td>
                 </tr>
-              <% }) %>
-            <% } %>
+                <% } else { %>
+                  <% myComments.forEach((comment, index)=> { %>
+                    <tr onclick="window.location.href='/post/idea_detail?post_id=<%= comment.post_id %>'"
+                      style="cursor:pointer;">
+                      <td>
+                        <%= index + 1 %>
+                      </td>
+                      <td>
+                        <%= comment.content %>
+                      </td>
+                      <td>
+                        <%= new Date(comment.created_at).toISOString().split('T')[0] %>
+                      </td>
+                    </tr>
+                    <% }) %>
+                      <% } %>
             </tbody>
           </table>
         </section>
@@ -264,7 +350,7 @@
         </section>
 
         <!-- 회원정보 수정 -->
-         <!-- TODO  
+        <!-- TODO  
         1. 닉네임등 수정 후 다시로그인 하게 해서 jwt 토큰 새로 발급
         2. 중복확인? 유저 구분 어떻게? 닉네임(이름)?
         3. 비밀번호 변경시 확인란으로 동일한지 체크 필요
@@ -275,12 +361,12 @@
           <form id="personalForm" style="display: none;">
             <label>닉네임
               <div class="input-check-group">
-                <input type="text" id="username" required value="<%= userInfo.nick_name %>"/>
+                <input type="text" id="username" required value="<%= userInfo.nick_name %>" />
                 <button type="button" id="checkUsername">중복 확인</button>
               </div>
             </label>
             <label>비밀번호<input type="password" required /></label>
-            <label>이름<input type="text" disabled value="<%= userInfo.name %>"/></label>
+            <label>이름<input type="text" disabled value="<%= userInfo.name %>" /></label>
             <label>이메일<input type="email" disabled value="<%= userInfo.email %>" /></label>
             <label>핸드폰 번호<input type="tel" disabled value="<%= userInfo.phone %>" /></label>
             <button type="submit">정보 수정</button>
@@ -301,7 +387,7 @@
     </div>
     <%- include ('footer.html') %>
 
-     <script src="https://js.tosspayments.com/v1"></script>
+      <script src="https://js.tosspayments.com/v1"></script>
       <script src="/javascripts/mypage.js"></script>
 </body>
 

@@ -31,104 +31,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ===== 🔔 알림 기능 =====
-  const dummyAlerts = [
-    "스마트 화분 시스템에 새 메시지가 도착했습니다.",
-    "관리자가 건의사항에 답변을 등록했습니다.",
-  ];
-
-  const alertList = document.getElementById("alertList");
-  dummyAlerts.forEach((alert) => {
-    const li = document.createElement("li");
-    li.textContent = alert;
-    alertList.appendChild(li);
-  });
-
   // ===== 💬 채팅 기능 =====
-  const dummyChats = [
-    {
-      room_id: "room1",
-      title: "스마트 화분 구매자",
-      messages: [
-        { from: "상대", text: "안녕하세요~ 관심있어요!", read: false },
-        {
-          from: "나",
-          text: "감사합니다. 어떤 점이 궁금하신가요?",
-          status: "read",
-        },
-      ],
-    },
-    {
-      room_id: "room2",
-      title: "AI 주방 도우미 제안",
-      messages: [{ from: "상대", text: "제안 감사합니다.", read: false }],
-    },
-  ];
 
-  const chatRoomList = document.getElementById("chatRoomList");
-  const chatRoomTitle = document.getElementById("chatRoomTitle");
-  const chatMessages = document.getElementById("chatMessages");
-  const chatInput = document.getElementById("chatInput");
-  const sendBtn = document.getElementById("sendBtn");
-
-  let currentRoom = null;
-
-  function updateNotifBadge() {
-    const alertTab = document.querySelector('[data-tab="alerts"]');
-    const hasUnread = dummyChats.some((chat) =>
-      chat.messages.some((msg) => msg.from === "상대" && !msg.read)
-    );
-    alertTab.innerHTML = hasUnread ? "🔔 알림 ●" : "🔔 알림";
-  }
-
-  dummyChats.forEach((chat) => {
-    const roomEl = document.createElement("div");
-    roomEl.className = "chat-room";
-    roomEl.innerHTML = `
-      <div class="chat-title">${chat.title}</div>
-      <div class="chat-preview">${chat.messages.slice(-1)[0].text}</div>
-    `;
-    roomEl.addEventListener("click", () => {
-      currentRoom = chat;
-      currentRoom.messages.forEach((msg) => {
-        if (msg.from === "상대") msg.read = true;
-      });
-      updateNotifBadge();
-      chatRoomTitle.textContent = chat.title;
-      renderMessages(currentRoom.messages);
-    });
-    chatRoomList.appendChild(roomEl);
-  });
-
-  function renderMessages(messages) {
-    chatMessages.innerHTML = "";
-    messages.forEach((msg) => {
-      const msgEl = document.createElement("div");
-      msgEl.className = "message " + (msg.from === "나" ? "to" : "from");
-      msgEl.textContent = msg.text;
-
-      if (msg.from === "나" && msg.status) {
-        const statusEl = document.createElement("span");
-        statusEl.className = "message-status";
-        statusEl.textContent = msg.status === "read" ? "✔️ 읽음" : "✔️ 전송됨";
-        msgEl.appendChild(statusEl);
-      }
-
-      chatMessages.appendChild(msgEl);
-    });
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-
-  sendBtn.addEventListener("click", () => {
-    const text = chatInput.value.trim();
-    if (text && currentRoom) {
-      currentRoom.messages.push({ from: "나", text, status: "sent" });
-      renderMessages(currentRoom.messages);
-      chatInput.value = "";
-    }
-  });
-
-  updateNotifBadge();
 
   // ===== 등록아이디어 탭 =====
   document.querySelectorAll(".mypost-tab-btn").forEach((btn) => {
@@ -143,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const target = this.getAttribute("data-tab");
       document.getElementById("post-type").innerText =
         target === "ideas-table" ? "아이디어" :
-        target === "answer-table" ? "답글" : "댓글";
+          target === "answer-table" ? "답글" : "댓글";
 
       document.getElementById(target).style.display = "table";
     });
@@ -187,5 +91,90 @@ async function toggleDeleteBookmark(event, userId, postId) {
     tr.remove();
   } catch (error) {
     alert('에러 발생: ' + error);
+  }
+}
+
+// 채팅 창
+function chatWindow(user_id, writer_id, post_id, type) {
+  // 1. 폼 요소 생성
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/chat';
+  form.target = 'chatWindow'; // 새 창 이름
+
+  // 2. 필요한 데이터 input 요소로 추가
+  const params = {
+    sender_id: user_id,
+    receiver_id: writer_id,
+    post_id: post_id,
+    type: type
+  };
+
+  for (const key in params) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = params[key];
+    form.appendChild(input);
+  }
+
+  // 3. 폼을 body에 추가
+  document.body.appendChild(form);
+
+  // 4. 새 창을 먼저 연 뒤 폼 제출
+  window.open('', 'chatWindow', 'width=600,height=800,resizable=yes,scrollbars=yes');
+  form.submit();
+
+  // 5. 폼 제거(클린업)
+  document.body.removeChild(form);
+}
+
+// ===== 🔔 알림 기능 =====
+// 알림 읽음 처리
+async function markAsRead(btn, notification_id, type) {
+  try {
+    const response = await fetch('/users/notification/read', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ notification_id: notification_id, type: type })
+    });
+
+    if (response.ok) {
+      alert('읽음 처리되었습니다.');
+
+      // 버튼이 속한 li 요소 찾기
+      const liElement = btn.closest('li');
+
+      // 해당 li 내부의 .chat-unread 요소 찾기
+      const chatUnreadEl = liElement.querySelector('.chat-unread');
+      const currentText = chatUnreadEl.textContent;
+      // "• 2" 형태에서 숫자만 추출
+      const match = currentText.match(/\d+/);
+      const num = parseInt(match[0], 10);
+      // 해당 누적 알림 개수 제거
+      chatUnreadEl.textContent = '';
+      document.querySelectorAll('.notification').forEach(el => {
+        // "• 2" 형태에서 숫자만 추출
+        const match = el.textContent.match(/\d+/);
+        if (match) {
+          const notiNum = parseInt(match[0], 10);
+          if (notiNum - num <= 0) {
+            el.textContent = ''; // 0 이하이면 빈 문자열
+          } else {
+            el.textContent = `• ${notiNum - num}`; // 1 이상이면 "• 숫자"로 표시
+          }
+        }
+      });
+
+      // 4. 버튼 비활성화
+      btn.disabled = true;
+    } else {
+      alert('읽음 처리에 실패했습니다.');
+    }
+  } catch (err) {
+    console.error('에러:', err);
+    alert('서버 오류가 발생했습니다.');
   }
 }

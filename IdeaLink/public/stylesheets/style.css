@@ -10,7 +10,7 @@ a{
 }
 html, body {
   scroll-behavior: smooth;
-  overflow: hidden;
+  /* overflow: hidden; */
   font-family: 'Noto Sans KR', sans-serif;
   background: #f8f9fa;
 }

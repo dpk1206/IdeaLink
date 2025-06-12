@@ -55,7 +55,6 @@ exports.insertPost = async function ({
 
 // post_id로 게시물 1개 조회
 exports.selectOnePost = async function (post_id) {
-  console.log("selectOnePost() 호출됨, post_id:", post_id);
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
