@@ -90,6 +90,23 @@ router.get("/like_status", requireLogin, postController.getLikeStatus);
 router.get("/recent_posts", postController.getRecentPosts);
 router.get("/popular_posts", postController.getPopularPosts);
 
+
+// 새로 추가
+router.post("/request_purchase", authMiddleware, postController.requestPurchase);
+
+router.post("/reserve/:post_id", authMiddleware, postController.reservePost);
+
+
 // 구매 라우터
-router.post("/purchase", authMiddleware, postController.purchaseIdea);
+router.post("/purchase/:post_id", authMiddleware, postController.purchaseIdea);
+// 판매자가 거래 수락할떄
+router.post('/confirm/:post_id', postController.confirmPurchaseBySeller);
+
+//답글용 라우터
+// 구매자가 답글에 구매 요청 (거래중 상태로 전환)
+router.post("/request_answer_purchase", authMiddleware, postController.requestAnswerPurchase);
+
+// 답글 작성자가 거래 수락 (거래완료 처리 + 포인트 이동)
+router.post("/confirm_answer_purchase", postController.confirmAnswerPurchase);
+
 module.exports = router;

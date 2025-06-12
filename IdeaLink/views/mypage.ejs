@@ -16,6 +16,7 @@
         <button class="tab-btn" data-tab="point-charge">💰 포인트</button>
         <button class="tab-btn" data-tab="bookmark">⭐ 북마크</button>
         <button class="tab-btn" data-tab="ideas">💡 등록 아이디어</button>
+        <button class="tab-btn" data-tab="requested">📦 구매 요청</button>
         <button class="tab-btn" data-tab="history">📑 거래 내역</button>
         <button class="tab-btn" data-tab="profile">👤 회원정보 수정</button>
       </aside>
@@ -103,7 +104,7 @@
                 <% pointLogs.forEach(log => { %>
                   <tr>
                     <td><%= new Date(log.created_at).toLocaleString('ko-KR', { hour12: false }) %></td>
-                    <td><%= log.type === 'charge' ? '충전' : log.type === 'use' ? '사용' : '환불' %></td>
+                    <td><%= log.type === 'charge' ? '충전' : log.type === 'use' ? '사용' : '-' %></td>
                     <td><%= log.amount.toLocaleString() %>P</td>
                     <td><%= log.description || '-' %></td>
                   </tr>
@@ -123,7 +124,7 @@
                 <th>번호</th>
                 <th>제목</th>
                 <th>작성자</th>
-                <th>아디이어 등록일</th>
+                <th>아이디어 등록일</th>
                 <th>조회수</th>
                 <th>추천수</th>
                 <th>상태</th>
@@ -131,47 +132,37 @@
               </tr>
             </thead>
             <tbody>
-              <% if (!bookmarks || bookmarks.length===0) { %>
-                <tr>
-                  <td colspan="8" style="text-align:center;">북마크가 없습니다</td>
+            <% if (!bookmarks || bookmarks.length === 0) { %>
+              <tr>
+                <td colspan="8" style="text-align:center;">북마크가 없습니다</td>
+              </tr>
+            <% } else { %>
+              <% bookmarks.forEach((bookmark, index) => { %>
+                <tr onclick="window.location.href='/post/idea_detail?post_id=<%= bookmark.post_id %>'" style="cursor:pointer;">
+                  <td><%= index + 1 %></td>
+                  <td><%= bookmark.title %></td>
+                  <td><%= bookmark.nick_name %></td>
+                  <td><%= new Date(bookmark.created_at).toISOString().split('T')[0] %></td>
+                  <td><%= bookmark.view_count %></td>
+                  <td><%= bookmark.like %></td>
+                  <td class="status-sale"><%= bookmark.status %></td>
+                  <td>
+                    <% if (bookmark.bookmark_created_at) { %>
+                      <%= new Date(bookmark.bookmark_created_at).toISOString().split('T')[0] %>
+                    <% } else { %>
+                      -
+                    <% } %>
+                    <button 
+                      class="delete-btn"
+                      onclick="toggleDeleteBookmark(event,'<%= user.user_id %>', '<%= bookmark.post_id %>')"
+                      style="border:none; background:none; cursor:pointer; margin-left:10px;">
+                      ❌
+                    </button>
+                  </td>
                 </tr>
-                <% } else { %>
-                  <% bookmarks.forEach((bookmark, index)=> { %>
-                    <tr onclick="window.location.href='/post/idea_detail?post_id=<%= bookmark.post_id %>'"
-                      style="cursor:pointer;">
-                      <td>
-                        <%= index + 1 %>
-                      </td>
-                      <td>
-                        <%= bookmark.title %>
-                      </td>
-                      <td>
-                        <%= bookmark.nick_name %>
-                      </td>
-                      <td>
-                        <%= new Date(bookmark.created_at).toISOString().split('T')[0] %>
-                      </td>
-                      <td>
-                        <%= bookmark.view_count %>
-                      </td>
-                      <td>
-                        <%= bookmark.like %>
-                      </td>
-                      <td class="status-sale">
-                        <%= bookmark.status %>
-                      </td>
-                      <td>
-                        <%= new Date(bookmark.bookmark_created_at).toISOString().split('T')[0] %>
-                          <button class="delete-btn"
-                            onclick="toggleDeleteBookmark(event,'<%= user.user_id %>', '<%= bookmark.post_id %>')"
-                            style="border:none; background:none; cursor:pointer; margin-left:10px;">
-                            ❌
-                          </button>
-                      </td>
-                    </tr>
-                    <% }) %>
-                      <% } %>
-            </tbody>
+              <% }) %>
+            <% } %>
+          </tbody>
           </table>
         </section>
 
@@ -197,38 +188,35 @@
               </tr>
             </thead>
             <tbody>
-              <% if (!myPosts || myPosts.length===0) { %>
-                <tr>
-                  <td colspan="7" style="text-align:center;">작성한 아이디어가 없습니다</td>
-                </tr>
-                <% } else { %>
-                  <% myPosts.forEach((post, index)=> { %>
-                    <tr onclick="window.location.href='/post/idea_detail?post_id=<%= post.post_id %>'"
-                      style="cursor:pointer;">
-                      <td>
-                        <%= index + 1 %>
-                      </td>
-                      <td>
-                        <%= post.title %>
-                      </td>
-                      <td>
-                        <%= post.price.toLocaleString() %>원
-                      </td>
-                      <td>
-                        <%= new Date(post.created_at).toISOString().split('T')[0] %>
-                      </td>
-                      <td>
-                        <%= post.view_count %>
-                      </td>
-                      <td>
-                        <%= post.like_count %>
-                      </td>
-                      <td class="status-sale">
+            <% if (!myPosts || myPosts.length === 0) { %>
+              <tr>
+                <td colspan="7" style="text-align:center;">작성한 아이디어가 없습니다</td>
+              </tr>
+            <% } else { %>
+              <% myPosts.forEach((post, index) => { %>
+                <tr onclick="window.location.href='/post/idea_detail?post_id=<%= post.post_id %>'" style="cursor:pointer;">
+                  <td><%= index + 1 %></td>
+                  <td><%= post.title %></td>
+                  <td><%= post.price.toLocaleString() %>원</td>
+                  <td><%= new Date(post.created_at).toISOString().split('T')[0] %></td>
+                  <td><%= post.view_count %></td>
+                  <td><%= post.like_count %></td>
+                  <td class="status-sale">
+                      <% const seller_id = seller_id_map[post.post_id]; %>
+
+                     <% if (post.status === '거래중' && seller_id == user.user_id) { %>
+
+                        <form method="POST" action="/post/confirm/<%= post.post_id %>" onsubmit="return confirm('정말 거래를 수락하시겠습니까?');">
+                          <input type="hidden" name="post_id" value="<%= post.post_id %>">
+                          <button type="submit" onclick="event.stopPropagation()">거래 수락</button>
+                        </form>
+                      <% } else { %>
                         <%= post.status %>
-                      </td>
-                    </tr>
-                    <% }) %>
                       <% } %>
+                    </td>
+                </tr>
+              <% }) %>
+            <% } %>
             </tbody>
           </table>
 
@@ -243,31 +231,44 @@
               </tr>
             </thead>
             <tbody>
-              <% if (!myAnswers || myAnswers.length===0) { %>
+              <% if (!myAnswers || myAnswers.length === 0) { %>
                 <tr>
                   <td colspan="4" style="text-align:center;">작성한 답글이 없습니다</td>
                 </tr>
-                <% } else { %>
-                  <% myAnswers.forEach((answer, index)=> { %>
-                    <tr onclick="window.location.href='/post/idea_detail?post_id=<%= answer.post_id %>'"
-                      style="cursor:pointer;">
-                      <td>
-                        <%= index + 1 %>
-                      </td>
-                      <td>
-                        <%= answer.title %>
-                      </td>
-                      <td>
-                        <%= new Date(answer.created_at).toISOString().split('T')[0] %>
-                      </td>
-                      <td class="status-sale">
-                        <%= answer.status ?? 0 %>
-                      </td>
-                    </tr>
-                    <% }) %>
-                      <% } %>
+              <% } else { %>
+                <% myAnswers.forEach((answer, index) => { %>
+                  <tr onclick="window.location.href='/post/idea_detail?post_id=<%= answer.post_id %>'" style="cursor:pointer;">
+                    <td><%= index + 1 %></td>
+                    <td><%= answer.title %></td>
+                    <td><%= new Date(answer.created_at).toISOString().split('T')[0] %></td>
+                    <td class="status-sale">
+                  <% const target = confirmTargetMap[answer.answer_id]; %>
+                  <% if (target) { %>
+                    <% if (target.isMine && target.status === '거래중') { %>
+                      <!-- 내가 선택되고 거래중이면 거래 수락 -->
+                      <form method="POST" action="/post/confirm_answer_purchase">
+                        <input type="hidden" name="post_id" value="<%= target.post_id %>">
+                        <input type="hidden" name="answer_id" value="<%= answer.answer_id %>">
+                        <button type="submit">거래 수락</button>
+                      </form>
+                    <% } else if (target.isMine && target.status === '거래완료') { %>
+                      거래완료
+                    <% } else if (!target.isMine && target.status === '거래중') { %>
+                      다른 답변과 거래 진행 중
+                    <% } else if (!target.isMine && target.status === '거래완료') { %>
+                      거래완료
+                    <% } %>
+                  <% } else { %>
+                    대기중
+                  <% } %>
+                </td>
+
+                  </tr>
+                <% }) %>
+              <% } %>
             </tbody>
           </table>
+
 
           <!-- 댓글 -->
           <table id="comment-table" class="mypage-table" style="display:none;">
@@ -303,6 +304,71 @@
           </table>
         </section>
 
+        <!-- 📦 구매 요청 (하위 분류 포함) -->
+        <section id="requested" class="mypage-section" style="display:none;">
+          <h2>📦 내가 구매 요청한 게시글</h2>
+
+          <!-- 일반 게시글 구매 요청 -->
+          <h3 style="margin-top: 20px;">🛒 일반 판매 게시글</h3>
+          <table class="mypage-table">
+            <thead>
+              <tr>
+                <th>제목</th>
+                <th>판매자</th>
+                <th>요청일</th>
+                <th>가격</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (!requestedDirectPosts || requestedDirectPosts.length === 0) { %>
+                <tr><td colspan="5" style="text-align:center;">요청한 일반 게시글이 없습니다</td></tr>
+              <% } else { %>
+                <% requestedDirectPosts.forEach(post => { %>
+                  <tr onclick="window.location.href='/post/idea_detail?post_id=<%= post.post_id %>'" style="cursor:pointer;">
+                    <td><%= post.title %></td>
+                    <td><%= post.nick_name %></td>
+                    <td><%= new Date(post.created_at).toISOString().split('T')[0] %></td>
+                    <td><%= post.price.toLocaleString() %>원</td>
+                    <td><%= post.status %></td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+
+          <!-- 답변 기반 구매 요청 -->
+          <h3 style="margin-top: 40px;">💬 답변을 통한 구매 요청</h3>
+          <table class="mypage-table">
+            <thead>
+              <tr>
+                <th>제목</th>
+                <th>판매자</th>
+                <th>요청일</th>
+                <th>가격</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (!requestedAnswerPosts || requestedAnswerPosts.length === 0) { %>
+                <tr><td colspan="5" style="text-align:center;">요청한 답변 기반 게시글이 없습니다</td></tr>
+              <% } else { %>
+                <% requestedAnswerPosts.forEach(post => { %>
+                  <tr onclick="window.location.href='/post/idea_detail?post_id=<%= post.post_id %>'" style="cursor:pointer;">
+                    <td><%= post.title %></td>
+                    <td><%= post.nick_name %></td>
+                    <td><%= new Date(post.created_at).toISOString().split('T')[0] %></td>
+                    <td><%= post.price.toLocaleString() %>원</td>
+                    <td><%= post.status %></td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </section>
+
+
+
         <section id="history" class="mypage-section" style="display:none;">
           <h2>📑 판매 / 구매 내역</h2>
           <table class="mypage-table">
@@ -316,20 +382,19 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>#A1023</td>
-                <td>판매</td>
-                <td>스마트 화분 시스템</td>
-                <td>₩50,000</td>
-                <td>2024-12-22</td>
-              </tr>
-              <tr>
-                <td>#B1094</td>
-                <td>구매</td>
-                <td>모바일 홈 IoT</td>
-                <td>₩75,000</td>
-                <td>2024-12-10</td>
-              </tr>
+              <% if (!tradeHistory || tradeHistory.length === 0) { %>
+                <tr><td colspan="5" style="text-align:center;">거래 내역이 없습니다.</td></tr>
+              <% } else { %>
+                <% tradeHistory.forEach((t) => { %>
+                  <tr>
+                    <td>#<%= t.post_id %></td>
+                    <td><%= t.type %></td>
+                    <td><%= t.title %></td>
+                    <td><%= t.price.toLocaleString() %>원</td>
+                    <td><%= new Date(t.date).toISOString().split("T")[0] %></td>
+                  </tr>
+                <% }) %>
+              <% } %>
             </tbody>
           </table>
         </section>

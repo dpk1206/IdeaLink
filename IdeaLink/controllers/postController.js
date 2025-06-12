@@ -94,37 +94,35 @@ exports.ideaDetail = async (req, res, next) => {
 
   try {
     // 1. 중복 조회 방지용 쿠키
-    const cookieName = `viewed_${post_id},${req.user.user_id}`;
+    const cookieName = `viewed_${post_id},${req.user?.user_id}`;
     if (!req.cookies[cookieName]) {
       await postModel.increaseViewCount(post_id);
       res.cookie(cookieName, true, { maxAge: 1000 * 60 * 60 });
     }
 
     // 2. 게시글 및 첨부파일 조회
-    const postInfo = await postModel.selectOnePost(post_id);
+    const post = await postModel.selectOnePost(post_id); // ✅ 객체 하나로 받음
     const files = await postFileModel.selectDetailFile(post_id, "post");
 
-    if (postInfo.length === 0) {
+    if (!post) {
       const err = new Error("해당 게시글을 찾을 수 없습니다.");
       err.status = 404;
       return next(err);
     }
-
-    const post = postInfo[0];
 
     // 3. 거래완료된 글 열람 권한 확인
     if (post.status === '거래완료') {
       const currentUserId = req.user?.user_id;
       const isSeller = currentUserId === post.user_id;
       const isBuyer = await userModel.hasUserPurchased(currentUserId, post_id);
+      const isAnswerOwner = currentUserId === post.selected_answer_user_id;
 
-      if (!isSeller && !isBuyer) {
+      if (!isSeller && !isBuyer && !isAnswerOwner) {
         return res.status(403).render("access_denied", {
           message: "이 게시물은 거래가 완료되어 열람할 수 없습니다.",
         });
       }
     }
-
     // 4. 조회 로그 기록
     const clientIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     await postlogModel.createLog({
@@ -139,8 +137,8 @@ exports.ideaDetail = async (req, res, next) => {
     if (answerInfo && answerInfo.length > 0) {
       await Promise.all(
         answerInfo.map(async (answer) => {
-          const files = await postFileModel.selectDetailFile(answer.answer_id, "answer");
-          if (files && files.length > 0) answer.files = files;
+          const answerFiles = await postFileModel.selectDetailFile(answer.answer_id, "answer");
+          if (answerFiles?.length > 0) answer.files = answerFiles;
         })
       );
     }
@@ -158,12 +156,13 @@ exports.ideaDetail = async (req, res, next) => {
       files: files.length > 0 ? files : null,
       answerInfo: answerInfo || null,
       bookmark: await bookmarkModel.isBookmarked(req.user?.user_id, post_id),
-      user // ✅ point 포함된 user 객체 전달
+      user
     });
   } catch (err) {
     next(err);
   }
 };
+
 
 
 // ✅ 파일 다운로드 처리 (워터마크된 파일 기준)
@@ -366,8 +365,62 @@ exports.getLikeStatus = async (req, res) => {
   }
 };
 
+//거래중 처리
+exports.reservePost = async (req, res) => {
+  const { post_id } = req.params;
+  const { answer_id } = req.body;
+
+  try {
+    console.log("🔥 reservePost 진입");
+
+    if (!req.user || !req.user.user_id) {
+      return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
+    }
+
+    const user_id = req.user.user_id;
+
+    const targetPost = await postModel.selectOnePost(post_id);
+    if (!targetPost) {
+      return res.status(404).json({ success: false, message: "게시글이 존재하지 않습니다." });
+    }
+
+    console.log("🎯 거래 타입:", `"${targetPost.type}"`);
+
+    // 본인 글은 거래 요청 불가
+    if (targetPost.user_id === user_id) {
+      return res.status(400).json({ success: false, message: "본인 게시글에 거래 요청할 수 없습니다." });
+    }
+
+    // 거래 가능한 상태인지 확인
+    const trimmedStatus = targetPost.status.trim();
+    if (trimmedStatus !== '판매' && trimmedStatus !== '구매') {
+      return res.status(400).json({ success: false, message: "이미 거래중이거나 완료된 게시물입니다." });
+    }
+
+    const type = targetPost.status.trim();
+
+    // ✅ 구매글일 경우
+    if (type === '구매') {
+      await postModel.setReservationInfo(post_id, user_id, answer_id); // buyer_id = user_id
+    }
+
+    // ✅ 판매글일 경우
+    else if (type === '판매') {
+      await postModel.updatePostStatus(post_id, '거래중');
+      await postModel.setBuyer(post_id, user_id);
+    }
+
+    return res.json({ success: true, message: "거래 요청 완료" });
+
+  } catch (err) {
+    console.error("거래 요청 오류:", err);
+    return res.status(500).json({ success: false, message: "서버 오류" });
+  }
+};
+
+// 아이디어 구매 처리
 exports.purchaseIdea = async (req, res) => {
-  const { post_id } = req.body;
+  const { post_id } = req.params;
   const user_id = req.user.user_id;
 
   try {
@@ -415,3 +468,153 @@ exports.purchaseIdea = async (req, res) => {
     return res.status(500).json({ error: "서버 오류 발생" });
   }
 };
+// 판매자가 구매 요청을 수락
+exports.confirmPurchaseBySeller = async (req, res) => {
+  const { post_id } = req.params;
+  const seller_id = req.user.user_id;
+  try {
+    const post = await postModel.getPostPrice(post_id);
+    console.log("구매 완료");
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: "게시글이 존재하지 않습니다." });
+    }
+
+    if (post.user_id !== seller_id) {
+      return res.status(403).json({ success: false, message: "판매자만 수락할 수 있습니다." });
+    }
+
+    if (post.status !== "거래중") {
+      return res.status(400).json({ success: false, message: "현재 거래중 상태가 아닙니다." });
+    }
+
+    const buyer_id = post.buyer_id;
+    if (!buyer_id) {
+      return res.status(400).json({ success: false, message: "구매 요청한 사용자가 없습니다." });
+    }
+
+    const buyer = await userModel.getUserPoint(buyer_id);
+    if (!buyer || buyer.point < post.price) {
+      return res.status(400).json({ success: false, message: "구매자의 포인트가 부족하거나 존재하지 않습니다." });
+    }
+
+    // 구매자 포인트 차감
+    await userModel.deductPointFromUser(buyer_id, post.price);
+    await userModel.insertPointLog(buyer_id, "use", post.price, `아이디어 구매 - post_id: ${post_id}`);
+
+    // 판매자 포인트 적립
+    await userModel.addPointToUser(seller_id, post.price);
+    await userModel.insertPointLog(seller_id, "charge", post.price, `아이디어 판매 - post_id: ${post_id}`);
+
+    // 거래 완료 처리
+    await postModel.updatePostStatus(post_id, "거래완료");
+
+    return res.redirect(`/users/mypage?user_id=${seller_id}`);
+  } catch (err) {
+    console.error("거래 수락 오류:", err);
+    return res.status(500).json({ success: false, message: "서버 오류" });
+  }
+};
+
+// 답글 거래 요청 처리
+exports.requestAnswerPurchase = async (req, res) => {
+  console.log("🔥 [requestAnswerPurchase 진입]");
+  console.log("🔥 req.body:", req.body);
+  console.log("🔥 req.user:", req.user);
+
+  const { post_id, answer_id } = req.body;
+  const buyer_id = req.user?.user_id;
+
+  try {
+    const post = await postModel.selectOnePost(post_id);
+
+    if (!post) return res.status(404).json({ success: false, message: "해당 게시글이 없습니다." });
+    if (post.status.trim() !== '구매') return res.status(400).json({ success: false, message: "이미 거래 중인 게시글입니다." });
+    if (post.user_id !== buyer_id) return res.status(403).json({ success: false, message: "본인이 작성한 구매글만 거래 요청할 수 있습니다." });
+
+    console.log("✅ 조건 통과. markAnswerPending 호출 직전");
+    await postModel.markAnswerPending(post_id, buyer_id, answer_id);
+    console.log("✅ markAnswerPending 성공");
+
+    res.json({ success: true, message: "거래 요청 성공" });
+  } catch (err) {
+    console.error("❌ 답글 거래 요청 오류:", err);
+    res.status(500).json({ success: false, message: "거래 요청 처리 중 오류 발생" });
+  }
+};
+
+
+
+// 답글 거래 수락 처리
+exports.confirmAnswerPurchase = async (req, res) => {
+  const { post_id, answer_id } = req.body;
+  const seller_id = req.user.user_id;
+
+  try {
+    const answer = await answerModel.getAnswerById(answer_id);
+    if (!answer || answer.user_id !== seller_id) {
+      return res.status(403).send("본인 답변만 수락할 수 있습니다.");
+    }
+
+    const post = await postModel.selectOnePost(post_id);
+    if (!post || post.status !== '거래중' || post.selected_answer_id != answer_id) {
+      return res.status(400).send("유효하지 않은 거래 상태입니다.");
+    }
+
+    const price = post.price;
+    const buyer_id = post.buyer_id;
+
+    // 포인트 이동
+    await userModel.deductPointFromUser(buyer_id, price);
+    await userModel.insertPointLog(buyer_id, '차감', price, `답글 구매 (답변ID: ${answer_id})`);
+
+    await userModel.addPointToUser(seller_id, price);
+    await userModel.insertPointLog(seller_id, '적립', price, `답글 판매 (답변ID: ${answer_id})`);
+
+    // 거래완료 처리
+    await postModel.markAnswerDealComplete(post_id);
+
+    res.redirect(`/post/idea_detail?post_id=${post_id}`);
+  } catch (err) {
+    console.error("답글 거래 수락 오류:", err);
+    res.status(500).send("서버 오류");
+  }
+};
+
+exports.requestPurchase = async (req, res) => {
+  const { post_id, answer_id } = req.body;
+  const user_id = req.user?.user_id;
+
+  if (!user_id || !post_id) {
+    return res.status(400).json({ success: false, message: "요청 정보가 부족합니다." });
+  }
+
+  try {
+    const post = await postModel.selectOnePost(post_id);
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: "게시글을 찾을 수 없습니다." });
+    }
+
+    if (post.user_id === user_id) {
+      return res.status(400).json({ success: false, message: "자기 자신에게 거래 요청할 수 없습니다." });
+    }
+
+    // 구매글이면 → 답변 거래 방식
+    if (post.transaction_type === "구매" && answer_id) {
+      await postModel.setReservationInfo(post_id, user_id, answer_id);
+    }
+
+    // 판매글이면 → 일반 거래 예약 방식
+    else if (post.transaction_type === "판매") {
+      await postModel.updatePostStatus(post_id, "거래중");
+      await postModel.setBuyer(post_id, user_id);
+    }
+
+    return res.json({ success: true, message: "거래 요청이 완료되었습니다." });
+  } catch (err) {
+    console.error("거래 요청 오류:", err);
+    return res.status(500).json({ success: false, message: "서버 오류" });
+  }
+};
+

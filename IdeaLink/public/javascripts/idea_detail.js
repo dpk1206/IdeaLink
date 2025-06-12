@@ -259,52 +259,67 @@ document.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const post_id = urlParams.get("post_id");
 
+
   // ✅ 공통 구매 진행 함수
   const handlePurchase = (postId, answerId = null, price = null) => {
-    promiseModal.style.display = "flex";
+  promiseModal.style.display = "flex";
 
-    // 기존 이벤트 제거 후 재등록
-    confirmPromise.replaceWith(confirmPromise.cloneNode(true));
-    const newConfirmPromise = document.getElementById("confirmPromise");
+  // 기존 이벤트 제거 후 재등록
+  confirmPromise.replaceWith(confirmPromise.cloneNode(true));
+  const newConfirmPromise = document.getElementById("confirmPromise");
 
-    newConfirmPromise.onclick = () => {
-      if (!promiseCheck.checked) {
-        alert("서약에 동의해야 진행 가능합니다.");
-        return;
-      }
-      promiseModal.style.display = "none";
-      paymentModal.style.display = "flex";
+  newConfirmPromise.onclick = () => {
+    if (!promiseCheck.checked) {
+      alert("서약에 동의해야 진행 가능합니다.");
+      return;
+    }
 
-      confirmPurchase.replaceWith(confirmPurchase.cloneNode(true));
-      const newConfirmPurchase = document.getElementById("confirmPurchase");
+    promiseModal.style.display = "none";
+    paymentModal.style.display = "flex";
 
-      newConfirmPurchase.onclick = async () => {
-        try {
-          const res = await fetch("/post/purchase", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              post_id: postId,
-              answer_id: answerId,
-              price: price
-            })
-          });
+    confirmPurchase.replaceWith(confirmPurchase.cloneNode(true));
+    const newConfirmPurchase = document.getElementById("confirmPurchase");
 
-          const result = await res.json();
-          if (res.ok) {
-            alert("✅ 구매가 완료되었습니다.");
-            paymentModal.style.display = "none";
-            location.reload();
-          } else {
-            alert(result.error || "❌ 포인트 부족 또는 오류 발생");
-          }
-        } catch (err) {
-          console.error("구매 실패:", err);
-          alert("❌ 구매 처리 중 오류 발생");
-        }
-      };
-    };
+    newConfirmPurchase.onclick = async () => {
+  try {
+    const body = answerId
+      ? { post_id: postId, answer_id: answerId }
+      : { post_id: postId }; 
+
+    const url = answerId
+      ? "/post/request_answer_purchase"
+      : `/post/reserve/${postId}`;
+
+    console.log("✅ fetch 요청 보냄:", url, body);
+    // ✅ 여기에 이거 추가!!
+    console.log("✅ fetch 보낼 URL:", url);
+    console.log("✅ fetch 보낼 데이터:", body);
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    const result = await res.json();
+    console.log("✅ 서버 응답 결과:", result);
+
+    if (res.ok) {
+      alert("⏳ 거래 요청이 접수되었습니다.");
+      paymentModal.style.display = "none";
+      location.reload();
+    } else {
+      alert(result.message || "❌ 거래 요청 실패");
+    }
+  } catch (err) {
+    console.error("❌ 거래 요청 처리 중 오류 발생:", err);
+    alert("❌ 거래 요청 처리 중 오류 발생");
+  }
+};
+
   };
+};
+
 
   // 📌 본문용 구매 버튼
   if (buyBtn) {
@@ -313,14 +328,52 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 📌 답글용 구매 버튼들
-  document.querySelectorAll('.buy_answer_btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.preventDefault();
-      const answerId = btn.dataset.answerId;
-      const postId = btn.dataset.postId;
-      const price = btn.dataset.price;
-      handlePurchase(postId, answerId, price);
-    });
+// 답글용 구매 버튼들
+document.querySelectorAll('.buy_answer_btn').forEach(btn => {
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    const answerId = btn.getAttribute('data-answer-id');
+    const postId = btn.getAttribute('data-post-id');
+    const price = btn.getAttribute("data-price");
+    const sellerName = btn.getAttribute('data-seller-name');
+    const answerTitle = btn.closest('.detail_card').querySelector('#answer_title').innerText.trim();
+
+    // 모달 채우기
+    document.getElementById("modal_title").innerText = answerTitle;
+    document.getElementById("modal_seller").innerText = sellerName;
+    document.getElementById("modal_price").innerText = `${Number(price).toLocaleString()}P`;
+
+    // 결제 모달 보여주기
+    paymentModal.style.display = "flex";
+
+    // 구매 요청 처리
+    confirmPurchase.replaceWith(confirmPurchase.cloneNode(true));
+    const newConfirmPurchase = document.getElementById("confirmPurchase");
+
+    newConfirmPurchase.onclick = async () => {
+      try {
+        const res = await fetch("/post/request_answer_purchase", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ post_id: postId, answer_id: answerId }),
+        });
+
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          alert("⏳ 거래 요청이 접수되었습니다.");
+          paymentModal.style.display = "none";
+          location.reload(); // 새로고침
+        } else {
+          alert(result.message || "❌ 거래 요청 실패");
+        }
+      } catch (err) {
+        console.error("❌ 거래 요청 중 오류:", err);
+        alert("❌ 거래 요청 처리 중 오류 발생");
+      }
+    };
   });
+});
+
 });

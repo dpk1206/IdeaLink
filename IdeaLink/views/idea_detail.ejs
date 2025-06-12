@@ -140,7 +140,15 @@
           <% if (postInfo.status === '판매' && user && user.user_id !== postInfo.user_id) { %>
             <button id="buyBtn">🛒 구매하기</button>
           <% } else if (postInfo.status === '거래완료') { %>
-            <p style="color: gray;">✅ 거래가 완료된 게시물입니다.</p>
+            <div class="selected-answer-notice" style="color: black;">
+              <strong>
+              ✅ 거래가 완료된 게시물입니다.
+            </div>
+          <% } else if (postInfo.status === '거래중') { %>
+            <div class="selected-answer-notice" style="background-color: #fff3cd; color: #856404; border-color: #ffc107;">
+              ⏳ 현재 거래중인 게시물입니다.
+            </div>
+            </strong>
           <% } %>
 
 
@@ -169,47 +177,48 @@
           </div>
         </div>
 
-<%
-  const safeUser = {
-    point: typeof user?.point === 'number' ? user.point : Number(user?.point || 0)
-  };
-  const safePost = {
-    title: postInfo?.title || '제목 없음',
-    price: Number(postInfo?.price || 0),
-    nick_name: postInfo?.nick_name || '알 수 없음'
-  };
-  const hasEnoughPoint = safeUser.point >= safePost.price;
-  const pointColor = hasEnoughPoint ? 'green' : 'red';
-%>
+        <%
+          const safeUser = {
+            point: typeof user?.point === 'number' ? user.point : Number(user?.point || 0)
+          };
+          const safePost = {
+            title: postInfo?.title || '제목 없음',
+            price: Number(postInfo?.price || 0),
+            nick_name: postInfo?.nick_name || '알 수 없음'
+          };
+          const hasEnoughPoint = safeUser.point >= safePost.price;
+          const pointColor = hasEnoughPoint ? 'green' : 'red';
+        %>
 
-<!-- 💳 결제 확인 모달 -->
-<div id="paymentModal" class="modal" style="display: none;">
-  <div class="modal-content" style="padding: 30px;">
-    <h2 style="margin-bottom: 20px;">💳 결제 정보 확인</h2>
-    <div style="line-height: 1.6;">
-      <p><strong>상품명:</strong> <%= safePost.title %></p>
-      <p><strong>판매자:</strong> <%= safePost.nick_name %></p>
-      <p><strong>결제 금액:</strong> <span style="color: green; font-weight: bold;"><%= safePost.price.toLocaleString() %>P</span></p>
-      <p><strong>보유 포인트:</strong> <span style="color: red;"><%= (typeof safeUser.point === 'number' ? safeUser.point.toLocaleString() : '0') %>P</span></p>
-    </div>
+        <!-- 💳 결제 확인 모달 -->
+        <div id="paymentModal" class="modal" style="display: none;">
+          <div class="modal-content" style="padding: 30px;">
+            <h2 style="margin-bottom: 20px;">💳 결제 정보 확인</h2>
+            <div style="line-height: 1.6;">
+              <p><strong>상품명:</strong> <span id="modal_title"><%= safePost.title %></span></p>
+<p><strong>판매자:</strong> <span id="modal_seller"><%= safePost.nick_name %></span></p>
+<p><strong>결제 금액:</strong> <span id="modal_price" style="color: green; font-weight: bold;"><%= safePost.price.toLocaleString() %>P</span></p>
+<p><strong>보유 포인트:</strong> <span id="modal_point" style="color: red;"><%= safeUser.point.toLocaleString() %>P</span></p>
 
-    <hr style="margin: 20px 0;">
+            </div>
 
-    <% if (hasEnoughPoint) { %>
-      <p style="margin-bottom: 10px;">정말 이 아이디어를 구매하시겠습니까?</p>
-      <div style="text-align: center; margin-top: 15px;">
-        <button id="confirmPurchase" style="padding: 10px 20px; background-color: green; color: white;">✅ 구매 확정</button>
-        <button onclick="document.getElementById('paymentModal').style.display='none'" style="padding: 10px 20px;">❌ 취소</button>
-      </div>
-    <% } else { %>
-      <p style="color: red;">⚠️ 보유 포인트가 부족합니다. 충전 후 다시 시도해주세요.</p>
-      <div style="text-align: center; margin-top: 15px;">
-        <button onclick="window.location.href='/mypage/charge_point'" style="padding: 10px 20px; background-color: #ffc107;">💰 포인트 충전하기</button>
-        <button onclick="document.getElementById('paymentModal').style.display='none'" style="padding: 10px 20px;">❌ 닫기</button>
-      </div>
-    <% } %>
-  </div>
-</div>
+            <hr style="margin: 20px 0;">
+
+            <% if (hasEnoughPoint) { %>
+              <p style="margin-bottom: 10px;">정말 이 아이디어를 구매하시겠습니까?</p>
+              <div style="text-align: center; margin-top: 15px;">
+                <button id="confirmPurchase" style="padding: 10px 20px; background-color: green; color: white;">✅ 구매 요청</button>
+                <button onclick="document.getElementById('paymentModal').style.display='none'" style="padding: 10px 20px;">❌ 취소</button>
+              </div>
+            <% } else { %>
+              <p style="color: red;">⚠️ 보유 포인트가 부족합니다. 충전 후 다시 시도해주세요.</p>
+              <div style="text-align: center; margin-top: 15px;">
+                <button onclick="window.location.href='/mypage/charge_point'" style="padding: 10px 20px; background-color: #ffc107;">💰 포인트 충전하기</button>
+                <button onclick="document.getElementById('paymentModal').style.display='none'" style="padding: 10px 20px;">❌ 닫기</button>
+              </div>
+            <% } %>
+          </div>
+        </div>
 
 
           
@@ -266,6 +275,23 @@
       <% if (answerInfo && answerInfo.length > 0) { %>
         <% answerInfo.forEach(function(answer) { %>
           <div class="detail_card">
+            <% 
+            const isSelected = String(postInfo.selected_answer_id) === String(answer.answer_id);
+            const isDone = postInfo.status === '거래완료';
+            const isProgress = postInfo.status === '거래중';
+          %>
+          <% if (isSelected && (isDone || isProgress)) { %>
+            <div class="selected-answer-notice" style="color: black;">
+              ✅ <strong>
+                <% if (isDone) { %>
+                  거래가 완료된 답변입니다.
+                <% } else { %>
+                  이 답변은 구매자가 거래 요청한 답변입니다.
+                <% } %>
+              </strong>
+            </div>
+          <% } %>
+
             <h1 id="answer_title">Ⓐ <%= answer.title %>
             <!-- FIXME 답글 채팅 버튼 -->
           <% if(answer.user_id != user.user_id) { %>
@@ -320,16 +346,20 @@
               <% if (
                 postInfo.status === '구매' &&
                 user &&
-                user.user_id === postInfo.user_id &&      // 구매글 작성자만
-                user.user_id !== answer.user_id           // 답글 작성자는 제외
+                user.user_id === postInfo.user_id &&      // 게시글 작성자(구매자)
+                user.user_id !== answer.user_id           // 답글 작성자는 아니어야 함
               ) { %>
-                <form method="POST" action="/post/purchase">
+                <form method="POST" action="/post/request_answer_purchase">
                   <input type="hidden" name="post_id" value="<%= postInfo.post_id %>">
                   <input type="hidden" name="answer_id" value="<%= answer.answer_id %>">
-                  <button class="buy_answer_btn"
-                    data-answer-id="<%= answer.answer_id %>"
-                    data-post-id="<%= postInfo.post_id %>"
-                    data-price="<%= postInfo.price %>">🛒 구매하기</button>
+                <button type="button" class="buy_answer_btn"
+                  data-answer-id="<%= answer.answer_id %>"
+                  data-post-id="<%= postInfo.post_id %>"
+                  data-price="<%= postInfo.price %>"
+                  data-seller-name="<%= answer.nick_name %>">
+                  🛒 구매 요청
+                </button>
+
                 </form>
               <% } %>
               </div>

@@ -157,7 +157,7 @@ exports.addPointToUser = async function (user_id, amount) {
   const sql = "UPDATE user SET point = point + ? WHERE user_id = ?";
 
   try {
-    console.log("DB 적립 쿼리 실행:", { user_id, amount });  // 🔥 확인용
+    console.log("DB 적립 쿼리 실행:", { user_id, amount }); 
     await conn.promise().query(sql, [amount, user_id]);
   } catch (err) {
     console.error("포인트 적립 오류:", err);
@@ -217,7 +217,7 @@ exports.getUserPoint = async function (user_id) {
     await conn.end();
   }
 };
-
+// 사용자 구매 여부 확인 함수
 exports.hasUserPurchased = async (user_id, post_id) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
@@ -236,4 +236,33 @@ exports.hasUserPurchased = async (user_id, post_id) => {
   } finally {
     await conn.end();
   }
+};
+
+// 사용자 ID로 사용자 정보 조회 함수
+exports.getUserById = async function (user_id) {
+  const conn = await dbconn.init();
+  await conn.connect();
+
+  const sql = `SELECT * FROM user WHERE user_id = ?`;
+  const [rows] = await conn.promise().query(sql, [user_id]);
+
+  await conn.end();
+  return rows[0]; // 한 명만 가져옴
+};
+
+exports.getBookmarksByUserId = async function (user_id) {
+  const conn = await dbconn.init();
+  await conn.connect();
+
+  const sql = `
+    SELECT b.*, p.title, p.price, p.view_count
+    FROM bookmark b
+    JOIN post p ON b.post_id = p.post_id
+    WHERE b.user_id = ?
+    ORDER BY b.created_at DESC
+  `;
+
+  const [rows] = await conn.promise().query(sql, [user_id]);
+  await conn.end();
+  return rows;
 };

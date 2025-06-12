@@ -59,11 +59,15 @@ exports.selectOnePost = async function (post_id) {
   await dbconn.connect(conn);
 
   const sql = `
-    SELECT 
+      SELECT 
       p.*,
       u.nick_name,
       cs.name AS sub_name,
-      cm.name AS main_name
+      cm.name AS main_name,
+      a.answer_id AS selected_answer_id,
+      a.title AS selected_answer_title,
+      a.content AS selected_answer_content,
+      a.user_id AS selected_answer_user_id
     FROM 
       post p
     INNER JOIN 
@@ -72,6 +76,8 @@ exports.selectOnePost = async function (post_id) {
       category_sub cs ON p.category_id = cs.sub_id
     INNER JOIN 
       category_main cm ON cs.main_id = cm.main_id
+    LEFT JOIN
+      answer a ON p.selected_answer_id = a.answer_id
     WHERE 
       p.post_id = ?
   `;
@@ -79,7 +85,7 @@ exports.selectOnePost = async function (post_id) {
   try {
     const [rows] = await conn.promise().query(sql, [post_id]);
     console.log("select 결과:", rows);
-    return rows;
+    return rows.length > 0 ? rows[0] : null;
   } catch (err) {
     console.error("게시글 조회 오류:", err);
     throw err;
@@ -87,6 +93,7 @@ exports.selectOnePost = async function (post_id) {
     await conn.end();
   }
 };
+
 
 // 게시글 가져오기
 exports.getPosts = async (limit, offset) => {
@@ -366,17 +373,17 @@ exports.getMyPosts = async (user_id) => {
 };
 
 
-// 아이디어 가격 조회
+// 아이디어 가격 조회 + 구매자 ID 포함
 exports.getPostPrice = async (post_id) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
   try {
     const [rows] = await conn.promise().query(
-      "SELECT price, user_id FROM post WHERE post_id = ?",
+      "SELECT price, user_id, status , buyer_id FROM post WHERE post_id = ?",
       [post_id]
     );
-    return rows[0]; // { price: ..., user_id: ... }
+    return rows[0]; // { price, user_id, buyer_id }
   } catch (err) {
     console.error("getPostPrice 오류:", err);
     throw err;
@@ -384,6 +391,7 @@ exports.getPostPrice = async (post_id) => {
     await conn.end();
   }
 };
+
 
 
 // 구매 로그 삽입
@@ -420,3 +428,197 @@ exports.updatePostStatus = async (post_id, status) => {
     await conn.end();
   }
 };
+
+// 거래 요청한 구매자 정보 저장
+exports.setBuyer = async (post_id, buyer_id) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  try {
+    await conn.promise().query(
+      "UPDATE post SET buyer_id = ? WHERE post_id = ?",
+      [buyer_id, post_id]
+    );
+  } catch (err) {
+    console.error("setBuyer 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+// 거래 내역 조회
+exports.getTradeHistory = async function (user_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `
+   SELECT p.post_id, p.title, p.price, p.created_at AS date,
+          CASE
+            WHEN p.user_id = ? THEN '판매'
+            WHEN p.buyer_id = ? THEN '구매'
+            ELSE '기타'
+          END AS type
+    FROM post p
+    WHERE p.status = '거래완료' AND (p.user_id = ? OR p.buyer_id = ?)
+    ORDER BY p.created_at DESC
+  `;
+
+  const [rows] = await conn.promise().query(sql, [user_id, user_id, user_id, user_id]);
+  await conn.end();
+  return rows;
+};
+
+// ✅ 마이페이지: 내가 작성한 글 목록
+exports.getMyPostsByUserId = async function (user_id) {
+  const conn = await dbconn.init();
+  await conn.connect();
+
+  const sql = `
+    SELECT 
+      p.post_id,
+      p.title,
+      p.price,
+      p.created_at,
+      p.view_count,
+      p.status,
+      p.selected_answer_id,  -- ✅ 반드시 필요
+      p.user_id,
+      (
+        SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.post_id
+      ) AS like_count  -- ✅ 그룹 없이 별도 카운트
+    FROM post p
+    WHERE p.user_id = ?
+    ORDER BY p.created_at DESC
+  `;
+
+  const [rows] = await conn.promise().query(sql, [user_id]);
+  await conn.end();
+  return rows;
+};
+
+
+
+// 마이페이지,일반판매게시글 구매 요청청
+exports.getRequestedDirectPosts = async (user_id) => {
+  const conn = await dbconn.init();
+  await conn.connect();
+
+  const sql = `
+   SELECT 
+  p.post_id, p.title, p.price, p.status, p.created_at, u.nick_name
+FROM post p
+JOIN user u ON p.user_id = u.user_id
+WHERE p.buyer_id = ? 
+  AND p.selected_answer_id IS NULL
+ORDER BY p.created_at DESC
+
+  `;
+  const [rows] = await conn.promise().query(sql, [user_id]);
+  await conn.end();
+  return rows;
+};
+// 마이페이지,답글 구매 요청
+exports.getRequestedAnswerPosts = async (user_id) => {
+  const conn = await dbconn.init();
+  await conn.connect();
+
+  const sql = `
+    SELECT 
+  p.post_id, p.title, p.price, p.status, p.created_at, u.nick_name
+FROM post p
+JOIN answer a ON p.selected_answer_id = a.answer_id
+JOIN user u ON a.user_id = u.user_id
+WHERE p.buyer_id = ?
+  AND p.selected_answer_id IS NOT NULL
+ORDER BY p.created_at DESC
+
+  `;
+  const [rows] = await conn.promise().query(sql, [user_id]);
+  await conn.end();
+  return rows;
+};
+
+// 답글 기반 게시글 거래 상태를 '거래중'으로 설정 + 구매자와 선택된 답변 ID 기록
+async function markAnswerPending(post_id, buyer_id, answer_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `
+    UPDATE post 
+    SET status = '거래중', buyer_id = ?, selected_answer_id = ?
+    WHERE post_id = ?
+  `;
+
+  try {
+    await conn.promise().query(sql, [buyer_id, answer_id, post_id]);
+  } catch (err) {
+    console.error("markAnswerPending 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+}
+exports.markAnswerPending = markAnswerPending;
+
+// 답글 기반 게시글 거래를 '거래완료'로 상태 변경
+async function markAnswerDealComplete(post_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `
+    UPDATE post
+    SET status = '거래완료'
+    WHERE post_id = ?
+  `;
+
+  try {
+    await conn.promise().query(sql, [post_id]);
+  } catch (err) {
+    console.error("markAnswerDealComplete 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+}
+exports.markAnswerDealComplete = markAnswerDealComplete;
+
+// post_id로 게시글 전체 정보 조회 (관리용 or 상태 확인용 등에서 사용 가능)
+exports.getPostById = async function(post_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `SELECT * FROM post WHERE post_id = ?`;
+
+  try {
+    const [rows] = await conn.promise().query(sql, [post_id]);
+    return rows[0];
+  } catch (err) {
+    console.error("getPostById 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+// 일반 판매글에 대해 구매요청
+async function markDirectPostPending(post_id, buyer_id) {
+  const conn = await dbconn.init();
+  await conn.connect();
+
+  const sql = `
+    UPDATE post 
+    SET status = '거래중', buyer_id = ?
+    WHERE post_id = ? AND selected_answer_id IS NULL
+  `;
+
+  try {
+    await conn.promise().query(sql, [buyer_id, post_id]);
+  } catch (err) {
+    console.error("markDirectPostPending 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+}
+exports.markDirectPostPending = markDirectPostPending;
+

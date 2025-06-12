@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // ===== 💬 채팅 기능 =====
 
 
-  // ===== 등록아이디어 탭 =====
+    // ===== 등록아이디어 탭 =====
   document.querySelectorAll(".mypost-tab-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
       document.querySelectorAll(".mypost-tab-btn").forEach((b) => b.classList.remove("active"));
@@ -55,17 +55,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ===== 💳 포인트 충전 기능 =====
   const tossPayments = TossPayments("test_ck_Z1aOwX7K8mOBXbPzKEKqVyQxzvNP");
-
   const payForm = document.getElementById("payForm");
   if (payForm) {
     payForm.onsubmit = function (e) {
       e.preventDefault();
-
       const title = document.getElementById("title").value;
       const sellerId = document.getElementById("sellerId").value;
       const amount = Number(document.getElementById("amount").value);
       const orderId = `order_${Date.now()}`;
-
       tossPayments.requestPayment("카드", {
         amount: amount,
         orderId: orderId,

@@ -9,7 +9,8 @@ const bookmarkController = require("../controllers/bookmarkController");
 const notificationModel = require("../models/notificationModel");
 
 // 마이페이지
-router.get('/mypage', requireLogin, mypageController.mypage);
+router.get('/mypage', requireLogin, mypageController.renderMypage);
+
 
 // ✅ 회원가입 라우터
 router.post("/register", async function (req, res, next) {

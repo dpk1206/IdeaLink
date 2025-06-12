@@ -72,12 +72,32 @@ exports.selectAnswer = async function (post_id) {
 exports.getMyAnswers = async (user_id) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
-  const sql = 
-  `SELECT post_id, title, created_at, status
-  FROM answer
-  WHERE user_id = ?
-  ORDER BY created_at DESC;`;
+
+  const sql = `
+    SELECT answer_id, post_id, title, created_at
+    FROM answer
+    WHERE user_id = ?
+    ORDER BY created_at DESC;
+  `;
+
   const [rows] = await conn.promise().query(sql, [user_id]);
   await conn.end();
   return rows;
+};
+
+exports.getAnswerById = async function (answer_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `SELECT * FROM answer WHERE answer_id = ?`;
+
+  try {
+    const [rows] = await conn.promise().query(sql, [answer_id]);
+    return rows[0]; // 단일 객체 반환
+  } catch (err) {
+    console.error("답글 단건 조회 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
 };
