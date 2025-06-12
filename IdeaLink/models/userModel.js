@@ -157,6 +157,7 @@ exports.addPointToUser = async function (user_id, amount) {
   const sql = "UPDATE user SET point = point + ? WHERE user_id = ?";
 
   try {
+    console.log("DB 적립 쿼리 실행:", { user_id, amount });  // 🔥 확인용
     await conn.promise().query(sql, [amount, user_id]);
   } catch (err) {
     console.error("포인트 적립 오류:", err);
@@ -165,6 +166,7 @@ exports.addPointToUser = async function (user_id, amount) {
     await conn.end();
   }
 };
+
 // 포인트 로그 조회 함수
 exports.getPointLogsByUserId = async function (user_id) {
   const conn = await dbconn.init();
@@ -177,6 +179,60 @@ exports.getPointLogsByUserId = async function (user_id) {
   } catch (err) {
     console.error("포인트 로그 조회 오류:", err);
     throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+// 포인트 차감 함수
+exports.deductPointFromUser = async function (user_id, amount) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  const sql = "UPDATE user SET point = point - ? WHERE user_id = ?";
+
+  try {
+    await conn.promise().query(sql, [amount, user_id]);
+  } catch (err) {
+    console.error("포인트 차감 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+// 사용자 포인트 조회 함수
+exports.getUserPoint = async function (user_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `SELECT point FROM user WHERE user_id = ?`;
+
+  try {
+    const [rows] = await conn.promise().query(sql, [user_id]);
+    return rows[0]; // { point: ... } 형태로 반환
+  } catch (err) {
+    console.error("포인트 조회 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+exports.hasUserPurchased = async (user_id, post_id) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  try {
+    const [rows] = await conn.promise().query(
+      `SELECT * FROM point_log 
+       WHERE user_id = ? 
+         AND type = 'use' 
+         AND description LIKE ?`,
+      [user_id, `%post_id: ${post_id}%`]
+    );
+    return rows.length > 0;
+  } catch (err) {
+    console.error("구매자 확인 오류:", err);
+    return false;
   } finally {
     await conn.end();
   }

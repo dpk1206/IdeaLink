@@ -82,45 +82,37 @@
             <button type="submit" style="padding: 5px 10px;">충전하기</button>
           </form>
 
-          <!-- 포인트 사용 내역 -->
-          <div style="margin-top: 30px;">
-            <h3>📜 포인트 사용 내역</h3>
-            <table class="mypage-table">
-              <thead>
+        <!-- 포인트 사용 내역 -->
+        <div style="margin-top: 30px;">
+          <h3>📜 포인트 사용 내역</h3>
+          <table class="mypage-table">
+            <thead>
+              <tr>
+                <th>날짜</th>
+                <th>유형</th>
+                <th>금액</th>
+                <th>설명</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (!pointLogs || pointLogs.length === 0) { %>
                 <tr>
-                  <th>날짜</th>
-                  <th>유형</th>
-                  <th>금액</th>
-                  <th>설명</th>
+                  <td colspan="4" style="text-align:center;">포인트 사용 내역이 없습니다</td>
                 </tr>
-              </thead>
-              <tbody>
-                <% if (!pointLogs || pointLogs.length===0) { %>
+              <% } else { %>
+                <% pointLogs.forEach(log => { %>
                   <tr>
-                    <td colspan="4" style="text-align:center;">포인트 사용 내역이 없습니다</td>
+                    <td><%= new Date(log.created_at).toLocaleString('ko-KR', { hour12: false }) %></td>
+                    <td><%= log.type === 'charge' ? '충전' : log.type === 'use' ? '사용' : '환불' %></td>
+                    <td><%= log.amount.toLocaleString() %>P</td>
+                    <td><%= log.description || '-' %></td>
                   </tr>
-                  <% } else { %>
-                    <% pointLogs.forEach(log=> { %>
-                      <tr>
-                        <td>
-                          <%= new Date(log.created_at).toISOString().split('T')[0] %>
-                        </td>
-                        <td>
-                          <%= log.type==='charge' ? '충전' : log.type==='use' ? '사용' : '환불' %>
-                        </td>
-                        <td>
-                          <%= log.amount.toLocaleString() %>P
-                        </td>
-                        <td>
-                          <%= log.description || '-' %>
-                        </td>
-                      </tr>
-                      <% }) %>
-                        <% } %>
-              </tbody>
-            </table>
-          </div>
-        </section>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
         <!-- 북마크 -->
         <section id="bookmark" class="mypage-section" style="display:none;">
