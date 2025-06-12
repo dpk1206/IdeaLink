@@ -180,12 +180,12 @@ exports.getChattingRooms = async (user_id) => {
                 rows.map(async (room) => {
                     try {
                         // 내 아이디가 아닌 상대방 아이디 구하기
-                        const partnerId = room.user_id1 === user_id ? room.user_id2 : room.user_id1;
+                        const partnerId = room.user_id1 == user_id ? room.user_id2 : room.user_id1;
 
                         // 파트너 닉네임 조회
                         let partner_nickname = '';
                         try {
-                            const partnerUser = await userModel.selectUserByUserID(partnerId);
+                            const partnerUser = await userModel.getUserById(partnerId);
                             partner_nickname = partnerUser?.nick_name || '알 수 없는 유저';
                         } catch (err) {
                             console.error(`채팅방 ${room.chatting_room_id} 상대 닉네임 조회 실패:`, err);
