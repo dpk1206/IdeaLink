@@ -103,9 +103,36 @@
               <% } else { %>
                 <% pointLogs.forEach(log => { %>
                   <tr>
+                    <!-- 날짜 -->
                     <td><%= new Date(log.created_at).toLocaleString('ko-KR', { hour12: false }) %></td>
-                    <td><%= log.type === 'charge' ? '충전' : log.type === 'use' ? '사용' : '-' %></td>
-                    <td><%= log.amount.toLocaleString() %>P</td>
+                    
+                    <!-- 유형 -->
+                    <td>
+                      <% if (log.type === 'charge' && log.description?.includes('판매')) { %>
+                        게시글 판매
+                      <% } else if (log.type === 'charge') { %>
+                        포인트 충전
+                      <% } else if (log.type === 'use') { %>
+                        게시글 구매
+                      <% } else if (log.type === 'refund') { %>
+                        환불
+                      <% } else if (log.type === 'answer_charge') { %>
+                        답글 판매
+                      <% } else if (log.type === 'answer_use') { %>
+                        답글 구매
+                      <% } else { %>
+                        -
+                      <% } %>
+                    </td>
+
+                    <!-- 금액 (부호 포함) -->
+                    <td>
+                      <% let sign = '+'; %>
+                      <% if (['use', 'answer_use'].includes(log.type)) { sign = '-'; } %>
+                      <%= sign + log.amount.toLocaleString() %>P
+                    </td>
+
+                    <!-- 설명 -->
                     <td><%= log.description || '-' %></td>
                   </tr>
                 <% }) %>
@@ -375,27 +402,39 @@
             <thead>
               <tr>
                 <th>거래번호</th>
-                <th>유형</th>
+                <th>유형 / 방식</th>
                 <th>아이디어 제목</th>
                 <th>금액</th>
                 <th>날짜</th>
               </tr>
             </thead>
-            <tbody>
-              <% if (!tradeHistory || tradeHistory.length === 0) { %>
-                <tr><td colspan="5" style="text-align:center;">거래 내역이 없습니다.</td></tr>
-              <% } else { %>
-                <% tradeHistory.forEach((t) => { %>
-                  <tr>
-                    <td>#<%= t.post_id %></td>
-                    <td><%= t.type %></td>
-                    <td><%= t.title %></td>
-                    <td><%= t.price.toLocaleString() %>원</td>
-                    <td><%= new Date(t.date).toISOString().split("T")[0] %></td>
-                  </tr>
-                <% }) %>
-              <% } %>
-            </tbody>
+   <tbody>
+  <% if (!tradeHistory || tradeHistory.length === 0) { %>
+    <tr><td colspan="5" style="text-align:center;">거래 내역이 없습니다.</td></tr>
+  <% } else { %>
+    <% tradeHistory.forEach((t) => { %>
+      <tr>
+        <td>#<%= t.post_id %></td>
+        <td>
+          <% if (t.type === '판매' && t.method === '답글거래') { %>
+            답글 / 판매
+          <% } else if (t.type === '판매') { %>
+            게시글 / 판매
+          <% } else if (t.type === '구매' && t.method === '답글거래') { %>
+            답글 / 구매
+          <% } else { %>
+            게시글 / 구매
+          <% } %>
+        </td>
+        <td><%= t.title %></td>
+        <td><%= t.price.toLocaleString() %>원</td>
+        <td><%= new Date(t.date).toISOString().split("T")[0] %></td>
+      </tr>
+    <% }) %>
+  <% } %>
+</tbody>
+
+
           </table>
         </section>
 

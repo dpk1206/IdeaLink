@@ -566,10 +566,21 @@ exports.confirmAnswerPurchase = async (req, res) => {
 
     // 포인트 이동
     await userModel.deductPointFromUser(buyer_id, price);
-    await userModel.insertPointLog(buyer_id, '차감', price, `답글 구매 (답변ID: ${answer_id})`);
+    await userModel.insertPointLog(
+      buyer_id,
+      'answer_use',
+      price,
+      `답글 구매 - post_id: ${answer.post_id}, 답변ID: ${answer_id}`
+    );
+
 
     await userModel.addPointToUser(seller_id, price);
-    await userModel.insertPointLog(seller_id, '적립', price, `답글 판매 (답변ID: ${answer_id})`);
+    await userModel.insertPointLog(
+      seller_id,
+      'answer_charge',
+      price,
+      `답글 판매 - post_id: ${answer.post_id}, 답변ID: ${answer_id}`
+    );
 
     // 거래완료 처리
     await postModel.markAnswerDealComplete(post_id);
@@ -580,6 +591,7 @@ exports.confirmAnswerPurchase = async (req, res) => {
     res.status(500).send("서버 오류");
   }
 };
+
 
 exports.requestPurchase = async (req, res) => {
   const { post_id, answer_id } = req.body;

@@ -10,6 +10,12 @@ const notificationModel = require("../models/notificationModel");
 exports.renderMypage = async (req, res) => {
   const user_id = req.query.user_id;
 
+   // 관리자라면 관리자 페이지로 강제 리디렉션
+  if (req.user?.user_type === 'admin') {
+    return res.redirect('/admin/dashboard');
+  }
+
+
   try {
     const tradeHistory = await postModel.getTradeHistory(user_id);
     const userInfo = await userModel.getUserById(user_id);
