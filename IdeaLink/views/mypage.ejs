@@ -26,20 +26,28 @@
         <section id="alerts" class="mypage-section">
           <div class="alert-chat-wrapper">
             <div class="alert-list" id="alertList">
-              <h2>🔔 알림</h2>
+              <h2 style="display: flex; justify-content: space-between; align-items: center;">🔔 알림
+                <div class="alert-buttons">
+                <button id="markAllReadBtn">전체 읽음</button>
+                <button id="markAllDeleteBtn">전체 삭제</button>
+                </div>
+              </h2>
               <% notifications.forEach(noti=> { %>
-                <li>
-                  <%= noti.content %>
+                <li class="alert-item <%= noti.unreadCount ? '' : 'read' %>">
+                  <div class="alert-text"><%= noti.content %>
                     <% if (noti.type==='chat' ) { %>
                       <span class="chat-unread"><%= noti.unreadCount ? ' • ' + noti.unreadCount : '' %></span>
                       <% } %>
-                        <button
+                      </div>
+                      <div class="chat-meta">
+                          🕒 <%= noti.created_at.toLocaleString() %>
+                        </div>
+                      <div class="alert-buttons">
+                        <button class="move-btn"
                           onclick="chatWindow('<%= user.user_id %>', '<%= noti.sender_id %>', '<%= noti.post_id %>', '<%= noti.post_type %>')">이동</button>
-                        <button onclick="markAsRead(this, '<%= noti.notification_id %>', '<%= noti.type %>')"
+                        <button class="read-btn" onclick="markAsRead(this, '<%= noti.notification_id %>', '<%= noti.type %>')"
                           <%=noti.is_read ? 'disabled' : '' %>>읽음</button>
-                        <button onclick="deleteNotification(this, '<%= noti.notification_id %>', '<%= noti.type %>')">삭제</button>
-                        <div class="chat-date">
-                          <%= noti.created_at.toLocaleString() %>
+                        <button class="delete-btn" onclick="deleteNotification(this, '<%= noti.notification_id %>', '<%= noti.type %>')">삭제</button>
                         </div>
                 </li>
                 <% }) %>
@@ -55,15 +63,12 @@
                         <%= room.unreadCount ? ' • ' + room.unreadCount : '' %>
                       </span>
                   </div>
-                  <div class="chat-nickname">
-                    <%= room.partner_nickname %> 님과의 대화
+                  <div class="chat-meta">
+                    👤 <%= room.partner_nickname %> 님과의 대화 | 🕒 <%= room.updated_at.toLocaleString() %>
                   </div>
-                  <div class="chat-date">
-                    <%= room.updated_at.toLocaleString() %>
-                  </div>
+                  <div class="chat-preview">가장 최근 상대방 채팅 나오게</div>
                 </div>
                 <% }) %>
-            </div>
           </div>
         </section>
 
@@ -462,7 +467,7 @@
          -->
         <section id="profile" class="mypage-section" style="display:none;">
           <h2>👤 회원정보 수정</h2>
-          <form id="personalForm" style="display: none;">
+          <form id="personalForm" class="form-narrow" style="display: none;">
             <label>닉네임
               <div class="input-check-group">
                 <input type="text" id="username" required value="<%= userInfo.nick_name %>" />
@@ -470,6 +475,7 @@
               </div>
             </label>
             <label>비밀번호<input type="password" required /></label>
+            <label>비밀번호 확인<input type="password" id="confirm_password" class="form-input" required /></label>
             <label>이름<input type="text" disabled value="<%= userInfo.name %>" /></label>
             <label>이메일<input type="email" disabled value="<%= userInfo.email %>" /></label>
             <label>핸드폰 번호<input type="tel" disabled value="<%= userInfo.phone %>" /></label>

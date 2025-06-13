@@ -13,6 +13,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  // TODO 회원정보 수정 유효성검사 가져오기 + 닉네임 중복체크?
+  // 닉네임, 비밀번호 수정 폼 분리해야 될듯?
   // 사용자 유형에 따라 폼 보이기
   const isCompany = false; // true면 기업회원
   const personalForm = document.getElementById("personalForm");
@@ -143,6 +145,7 @@ async function markAsRead(btn, notification_id, type) {
 
       // 버튼이 속한 li 요소 찾기
       const liElement = btn.closest('li');
+      liElement.classList.add('read'); // 읽음 처리된 li에 클래스 추가
 
       // 해당 li 내부의 .chat-unread 요소 찾기
       const chatUnreadEl = liElement.querySelector('.chat-unread');

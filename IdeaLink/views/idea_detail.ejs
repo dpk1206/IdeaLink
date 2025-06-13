@@ -22,6 +22,12 @@
     return `${year}-${month}-${day} ${hours}:${minutes}`;
   }
 %>
+<!-- 전체 컨테이너 -->
+<main class="detail_container">
+  <!-- 왼쪽 광고 -->
+  <aside class="ad_banner left_banner">
+    <div class="ad_box">광고 영역 (좌)</div>
+  </aside>
 
     <main class="detail_wrap">
       <div class="detail_card">
@@ -143,12 +149,14 @@
             <div class="selected-answer-notice" style="color: black;">
               <strong>
               ✅ 거래가 완료된 게시물입니다.
+              </strong>
             </div>
           <% } else if (postInfo.status === '거래중') { %>
             <div class="selected-answer-notice" style="background-color: #fff3cd; color: #856404; border-color: #ffc107;">
+              <strong>
               ⏳ 현재 거래중인 게시물입니다.
-            </div>
             </strong>
+            </div>
           <% } %>
 
 
@@ -369,6 +377,15 @@
       <!-- 답글 있으면 형성 end -->
 
     </main>
+    <!-- 메인 섹션 랩 end -->
+
+     <!-- 오른쪽 광고 -->
+    <aside class="ad_banner right_banner">
+      <div class="ad_box">광고 영역 (우)</div>
+    </aside>
+
+    </main>
+    <!-- 전체 컨테이너 end -->
     <%- include ('footer.html') %>
     <script>
       const currentUserId = "<%= user?.user_id || '' %>";

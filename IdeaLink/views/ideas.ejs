@@ -10,7 +10,9 @@
 
   <div class="layout-container">
   
-    <!-- 왼쪽 사이드바 -->
+    <!-- ✅ 왼쪽 세로 사이드바 그룹 -->
+  <div class="left_sidebars">
+    <!-- 검색 가이드 사이드바 -->
     <aside class="sidebar">
       <h3>🔍 검색 가이드</h3>
       <ul>
@@ -18,7 +20,16 @@
         <li>카테고리 중복 선택 불가능</li>
       </ul>
     </aside>
-  
+    <!-- 최근 등록, 인기 아이디어 사이드바 -->
+    <aside class="sidebar">
+      <h3>🆕 최근 등록</h3>
+      <ul id="recent-ideas"></ul>
+      <h3>🔥 인기 아이디어</h3>
+      <ol id="popular-ideas"></ol>
+    </aside>
+  </div>
+  <!-- 왼쪽 세로 사이드바 그룹 end -->
+
     <div class="container">
       <a href="/post/submit_idea" class="register-button">+ 아이디어 등록하기</a>
       <h1>📝 아이디어 목록</h1>
@@ -99,7 +110,7 @@
         <th>거래유형</th>
         <th>가격</th>
         <th>날짜</th>
-        <th>추천수(좋아요)</th>
+        <th>추천수</th>
         <th>조회수</th>
       </tr>
     </thead>
@@ -149,7 +160,7 @@
   const startPage = Math.floor((currentPage - 1) / pageGroupSize) * pageGroupSize + 1;
   const endPage = Math.min(startPage + pageGroupSize - 1, totalPages);
     %>
-    <!--페이징처리리-->
+    <!--페이징처리-->
     <div id="pagination" class="pagination">
       <% if (totalPages > 1) { %>
         <% if (startPage > 1) { %>
@@ -173,15 +184,12 @@
     </div>
     </div>
   
-    <!-- 오른쪽 사이드바 -->
-    <aside class="sidebar">
-      <h3>🆕 최근 등록</h3>
-      <ul id="recent-ideas"></ul>
-      <h3>🔥 인기 아이디어</h3>
-      <ol id="popular-ideas"></ol>
-    </aside>
-  
+    <!-- 오른쪽 광고 배너 -->
+    <aside class="sidebar ad_banner right">
+        <div class="ad_box">광고 영역</div>
+      </aside>
   </div>
+
 
   <%- include('footer.html') %>
   
