@@ -115,13 +115,17 @@ exports.insertPointLog = async function (user_id, type, amount, description) {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
+  // 감점 처리할 타입들
+  const deductionTypes = ['use', 'answer_use', 'hold_use', 'hold_release', 'hold_refund'];
+  const signedAmount = deductionTypes.includes(type) ? -Math.abs(amount) : Math.abs(amount);
+
   const sql = `
     INSERT INTO point_log (user_id, type, amount, description)
     VALUES (?, ?, ?, ?)
   `;
 
   try {
-    await conn.promise().query(sql, [user_id, type, amount, description]);
+    await conn.promise().query(sql, [user_id, type, signedAmount, description]);
   } catch (err) {
     console.error("포인트 로그 삽입 오류:", err);
     throw err;
@@ -129,6 +133,7 @@ exports.insertPointLog = async function (user_id, type, amount, description) {
     await conn.end();
   }
 };
+
 
 //  포인트 적립 함수
 exports.addPointToUser = async function (user_id, amount) {

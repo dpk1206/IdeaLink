@@ -206,6 +206,14 @@
               <p><strong>상품명:</strong> <span id="modal_title"><%= safePost.title %></span></p>
               <p><strong>판매자:</strong> <span id="modal_seller"><%= safePost.nick_name %></span></p>
               <p><strong>결제 금액:</strong> <span id="modal_price" style="color: green; font-weight: bold;"><%= safePost.price.toLocaleString() %>P</span></p>
+              <!-- 구매자 입력란 추가 -->
+              <p style="margin-top: 10px;">
+                <strong>제안할 금액:</strong>
+                <input id="input_price" type="number" 
+                      value="<%= safePost.price %>" min="1" step="1"
+                      style="width: 100px; padding: 4px;" />
+                <span style="color: gray;">P</span>
+              </p>
               <p><strong>보유 포인트:</strong> <span id="modal_point" style="color: red;"><%= safeUser.point.toLocaleString() %>P</span></p>
             </div>
 
@@ -257,6 +265,11 @@
         <div class="form_card">
           <label for="description">설명 본문</label>
           <textarea id="description" name="content" placeholder="답글 본문을 입력하세요" required></textarea>
+        </div>
+
+        <div class="form_card">
+          <label for="price">제안 금액 (P)</label>
+          <input type="number" id="price" name="price" placeholder="판매 제안 금액을 입력하세요" required>
         </div>
 
         <div class="form_card">
@@ -314,7 +327,10 @@
             </div>
 
             <section class="description">
-              <h3>답변 본문</h3>
+              <% if (answer.price) { %>
+              <p><strong>💰 제안 금액:</strong> <%= answer.price.toLocaleString() %>P</p>
+            <% } %>
+              <h3>답변 본문</h3>          
               <p id="answer_content"><%- answer.content.replace(/\r\n|\n|\r/g, '<br>') %></p>
             </section>
             
@@ -362,7 +378,7 @@
                 <button type="button" class="buy_answer_btn"
                   data-answer-id="<%= answer.answer_id %>"
                   data-post-id="<%= postInfo.post_id %>"
-                  data-price="<%= postInfo.price %>"
+                  data-price="<%= answer.price %>"
                   data-seller-name="<%= answer.nick_name %>">
                   🛒 구매 요청
                 </button>

@@ -6,37 +6,36 @@ exports.insertAnswer = async function ({
   answer_user_id,
   title,
   content,
+  price,
 }) {
-  const conn = await dbconn.init(); // dbconn에서 커넥션 초기화
+  const conn = await dbconn.init();
   await dbconn.connect(conn);
 
   const sql = `
-    INSERT INTO ANSWER (
-      post_id, user_id, title, content
+    INSERT INTO answer (
+      post_id, user_id, title, content, price
     )
-    VALUES (?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?)
   `;
 
   try {
-    // 디버깅: 실행할 쿼리와 파라미터 출력
     console.log("Executing query:", sql, [
       post_id,
       answer_user_id,
       title,
       content,
+      price,
     ]);
 
-    // 쿼리 실행
     const [result] = await conn
       .promise()
-      .query(sql, [post_id, answer_user_id, title, content]);
+      .query(sql, [post_id, answer_user_id, title, content, price]);
 
-    return result.insertId; // 새 게시글의 answer_id 반환
+    return result.insertId;
   } catch (err) {
-    console.error("게시글 등록 오류:", err); // 오류 출력
-    throw err; // 오류를 호출한 곳으로 던짐
+    console.error("답글 등록 오류:", err);
+    throw err;
   } finally {
-    // 커넥션 종료 (연결 후에는 꼭 종료해야 함)
     await conn.end();
   }
 };
@@ -74,11 +73,12 @@ exports.getMyAnswers = async (user_id) => {
   await dbconn.connect(conn);
 
   const sql = `
-    SELECT answer_id, post_id, title, created_at
+    SELECT answer_id, post_id, title, created_at, price
     FROM answer
     WHERE user_id = ?
     ORDER BY created_at DESC;
   `;
+
 
   const [rows] = await conn.promise().query(sql, [user_id]);
   await conn.end();

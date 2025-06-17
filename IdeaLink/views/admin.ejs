@@ -18,6 +18,7 @@
       <button onclick="showSection('adminLogs')">🧾 관리자 로그</button>
       <button onclick="showSection('userLogs')">🧑‍💻 유저 활동</button>
       <button onclick="showSection('userOnline')">🟢 접속 유저</button>
+      <button onclick="showSection('pointLogs')">💰 포인트 내역</button>
     </aside>
 
     <!-- 콘텐츠 -->
@@ -115,6 +116,35 @@
           <!-- JS로 채워짐 -->
         </ul>
       </section>
+
+      <!-- ✅ 포인트 로그 조회 섹션 추가 -->
+<section id="pointLogs" class="admin-section" style="display:none;">
+  <h2>💰 포인트 사용 내역</h2>
+  <div class="filter-area">
+    <input type="text" id="searchPointUser" placeholder="사용자 ID" />
+    <input type="date" id="searchPointDate" />
+    <select id="filterPointType">
+      <option value="">전체</option>
+      <option value="charge">충전</option>
+      <option value="use">사용</option>
+      <option value="refund">환불</option>
+      <option value="answer_charge">답글 판매</option>
+      <option value="answer_use">답글 구매</option>
+      <option value="hold_use">에스크로 출금 (구매자)</option>
+      <option value="hold_charge">에스크로 입금 (관리자)</option>
+      <option value="hold_release">에스크로 출금 (관리자)</option>
+      <option value="hold_refund">에스크로 환불</option>
+    </select>
+    <button onclick="applyPointLogFilter()">검색</button>
+  </div>
+  <table class="styled-table">
+    <thead><tr><th>시간</th><th>유저</th><th>유형</th><th>금액</th><th>설명</th></tr></thead>
+    <tbody id="pointLogList">
+      <!-- JS로 채워짐 -->
+    </tbody>
+  </table>
+</section>
+
     </main>
   </div>
     <%- include ('footer.html') %>

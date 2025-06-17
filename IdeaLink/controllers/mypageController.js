@@ -7,7 +7,7 @@ const chatModel = require("../models/chatModel");
 const notificationModel = require("../models/notificationModel");
 
 // 마이페이지 렌더링 거래 내역 포함.
-exports.renderMypage = async (req, res) => {
+exports.renderMypage = async (req, res, next) => {
   const user_id = req.query.user_id;
 
    // 관리자라면 관리자 페이지로 강제 리디렉션
@@ -62,10 +62,15 @@ exports.renderMypage = async (req, res) => {
         String(post.selected_answer_id) === String(answer.answer_id);
 
       if (post.status === "거래중" || post.status === "거래완료") {
+           // ✅ 요청 금액 불러오기
+        const purchase = await postModel.getPurchaseRequestByAnswerId(answer.answer_id);
+
         confirmTargetMap[answer.answer_id] = {
           post_id: post.post_id,
           status: post.status,
           isMine: isMine,
+          answer_price: answer.price || 0,  
+          proposed_price: purchase?.proposed_price || 0
         };
       }
     }

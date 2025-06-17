@@ -484,21 +484,34 @@ exports.getMyPostsByUserId = async function (user_id) {
   await conn.connect();
 
   const sql = `
-    SELECT 
-      p.post_id,
-      p.title,
-      p.price,
-      p.created_at,
-      p.view_count,
-      p.status,
-      p.selected_answer_id,  -- ✅ 반드시 필요
-      p.user_id,
-      (
-        SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.post_id
-      ) AS like_count  -- ✅ 그룹 없이 별도 카운트
-    FROM post p
-    WHERE p.user_id = ?
-    ORDER BY p.created_at DESC
+  SELECT 
+    p.post_id,
+    p.title,
+    p.price,
+    p.created_at,
+    p.view_count,
+    p.status,
+    p.selected_answer_id,
+    p.user_id,
+    pr.proposed_price AS request_price,
+    pr.status AS request_status,
+    u2.nick_name AS buyer_nick,
+    (
+      SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.post_id
+    ) AS like_count
+  FROM post p
+  LEFT JOIN (
+    SELECT pr1.*
+    FROM purchase_request pr1
+    INNER JOIN (
+      SELECT post_id, MAX(created_at) AS latest_created
+      FROM purchase_request
+      GROUP BY post_id
+    ) pr2 ON pr1.post_id = pr2.post_id AND pr1.created_at = pr2.latest_created
+  ) pr ON p.post_id = pr.post_id
+  LEFT JOIN user u2 ON pr.buyer_id = u2.user_id
+  WHERE p.user_id = ?
+  ORDER BY p.created_at DESC
   `;
 
   const [rows] = await conn.promise().query(sql, [user_id]);
@@ -508,45 +521,64 @@ exports.getMyPostsByUserId = async function (user_id) {
 
 
 
-// 마이페이지,일반판매게시글 구매 요청청
-exports.getRequestedDirectPosts = async (user_id) => {
-  const conn = await dbconn.init();
-  await conn.connect();
 
-  const sql = `
-   SELECT 
-  p.post_id, p.title, p.price, p.status, p.created_at, u.nick_name
-FROM post p
-JOIN user u ON p.user_id = u.user_id
-WHERE p.buyer_id = ? 
-  AND p.selected_answer_id IS NULL
-ORDER BY p.created_at DESC
-
-  `;
-  const [rows] = await conn.promise().query(sql, [user_id]);
-  await conn.end();
-  return rows;
-};
-// 마이페이지,답글 구매 요청
+// 마이페이지 - 답글 기반 구매 요청 목록
 exports.getRequestedAnswerPosts = async (user_id) => {
   const conn = await dbconn.init();
   await conn.connect();
 
   const sql = `
     SELECT 
-  p.post_id, p.title, p.price, p.status, p.created_at, u.nick_name
-FROM post p
-JOIN answer a ON p.selected_answer_id = a.answer_id
-JOIN user u ON a.user_id = u.user_id
-WHERE p.buyer_id = ?
-  AND p.selected_answer_id IS NOT NULL
-ORDER BY p.created_at DESC
-
+      pr.post_id,
+      p.title AS post_title,
+      a.title AS answer_title,
+      u.nick_name,
+      pr.proposed_price,
+      pr.status AS request_status,
+      pr.created_at
+    FROM purchase_request pr
+    JOIN post p ON pr.post_id = p.post_id
+    JOIN answer a ON pr.answer_id = a.answer_id
+    JOIN user u ON pr.seller_id = u.user_id
+    WHERE pr.buyer_id = ? AND pr.answer_id IS NOT NULL
+    ORDER BY pr.created_at DESC
   `;
+
   const [rows] = await conn.promise().query(sql, [user_id]);
   await conn.end();
   return rows;
 };
+
+
+// 마이페이지 - 일반 판매 게시글 구매 요청 목록
+exports.getRequestedDirectPosts = async (user_id) => {
+  const conn = await dbconn.init();
+  await conn.connect();
+
+  const sql = `
+    SELECT 
+      p.post_id,
+      p.title,
+      p.price,
+      p.created_at,
+      pr.proposed_price,
+      pr.status AS request_status,
+      u.nick_name
+    FROM purchase_request pr
+    JOIN post p ON pr.post_id = p.post_id
+    JOIN user u ON pr.seller_id = u.user_id
+    WHERE pr.buyer_id = ?
+      AND pr.answer_id IS NULL
+    ORDER BY pr.created_at DESC
+  `;
+
+  const [rows] = await conn.promise().query(sql, [user_id]);
+  await conn.end();
+  return rows;
+};
+
+
+
 
 // 답글 기반 게시글 거래 상태를 '거래중'으로 설정 + 구매자와 선택된 답변 ID 기록
 async function markAnswerPending(post_id, buyer_id, answer_id) {
@@ -631,4 +663,149 @@ async function markDirectPostPending(post_id, buyer_id) {
   }
 }
 exports.markDirectPostPending = markDirectPostPending;
+
+// 구매 요청을 purchase_request 테이블에 삽입
+exports.insertPurchaseRequest = async ({ post_id, answer_id = null, buyer_id, seller_id, proposed_price }) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  try {
+    await conn.promise().query(`
+      INSERT INTO purchase_request (post_id, answer_id, buyer_id, seller_id, proposed_price)
+      VALUES (?, ?, ?, ?, ?)
+    `, [post_id, answer_id, buyer_id, seller_id, proposed_price]);
+  } catch (err) {
+    console.error("❌ purchase_request INSERT 실패:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+
+// post_id 기준으로 가장 최근 '대기중' 구매 요청 1건 조회
+exports.getActivePurchaseRequest = async (post_id) => {
+  const conn = await dbconn.init();
+  await conn.connect();
+
+  const sql = `
+    SELECT * FROM purchase_request
+    WHERE post_id = ?
+      AND status = '대기중'
+    ORDER BY created_at DESC
+    LIMIT 1
+  `;
+
+  try {
+    const [rows] = await conn.promise().query(sql, [post_id]);
+    return rows[0];
+  } catch (err) {
+    console.error("getActivePurchaseRequest 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+// purchase_request여기에서 구매 요청을 수락 상태로 변경
+exports.markRequestAccepted = async (post_id) => {
+  const conn = await dbconn.init();
+  await conn.connect();
+
+  const sql = `
+    UPDATE purchase_request
+    SET status = '수락됨'
+    WHERE post_id = ? AND status = '대기중'
+  `;
+
+  try {
+    await conn.promise().query(sql, [post_id]);
+  } catch (err) {
+    console.error("markRequestAccepted 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+// post_id 기준으로 가장 최근 대기중 요청을 거절 상태로 변경
+exports.rejectPurchaseRequest = async (post_id) => {
+  const conn = await dbconn.init();
+  await conn.connect();
+
+  const sql = `
+    UPDATE purchase_request
+    SET status = '거절됨'
+    WHERE post_id = ?
+      AND status = '대기중'
+  `;
+
+  try {
+    await conn.promise().query(sql, [post_id]);
+  } catch (err) {
+    console.error("rejectPurchaseRequest 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+// 답글 구매 요청에 대한 가격 조회
+exports.getPurchaseRequestByAnswerId = async (answer_id) => {
+  const conn = await dbconn.init();       // 커넥션 객체 생성
+  await dbconn.connect(conn);             // 연결
+
+  const sql = `
+    SELECT * FROM purchase_request 
+    WHERE answer_id = ? 
+    ORDER BY created_at DESC 
+    LIMIT 1
+  `;
+
+  try {
+    const [rows] = await conn.promise().query(sql, [answer_id]);
+    return rows[0];
+  } catch (err) {
+    console.error("💥 getPurchaseRequestByAnswerId 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();  // 연결 해제
+  }
+};
+
+// 답변 거래 거절 처리 (구매 요청 취소)
+exports.cancelAnswerPurchase = async (post_id, answer_id) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  try {
+    // 구매 요청 삭제
+    const deleteSql = `DELETE FROM purchase_request WHERE post_id = ? AND answer_id = ?`;
+    await conn.promise().query(deleteSql, [post_id, answer_id]);
+
+    // 게시글 상태를 '구매'로 되돌림
+    const updateSql = `UPDATE post SET status = '구매', buyer_id = NULL WHERE post_id = ?`;
+    await conn.promise().query(updateSql, [post_id]);
+
+    await conn.end();
+    return true;
+  } catch (err) {
+    console.error("cancelAnswerPurchase 오류:", err);
+    await conn.end();
+    return false;
+  }
+};
+// 답글 구매 요청 수락 처리 (거래 완료)
+exports.markPurchaseRequestAccepted = async (answer_id) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+  try {
+    const sql = `UPDATE purchase_request SET status = '수락됨' WHERE answer_id = ?`;
+    await conn.promise().query(sql, [answer_id]);
+    await conn.end();
+  } catch (err) {
+    console.error("거래 요청 상태 업데이트 오류:", err);
+    await conn.end();
+    throw err;
+  }
+};
+
 
