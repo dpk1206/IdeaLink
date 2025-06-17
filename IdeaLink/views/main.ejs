@@ -5,129 +5,151 @@
   <meta charset="UTF-8" />
   <title>아이디어 거래 플랫폼</title>
   <!-- css link -->
-  <link rel="stylesheet" href="/stylesheets/style.css">
-  <link rel="stylesheet" type="text/css" href="/stylesheets/jqcloud.min.css" />
+  <link rel="stylesheet" href="/stylesheets/main.css">
+  <link rel="stylesheet" href="/stylesheets/word.css">
 </head>
 
 <body>
   <!-- 헤더 ejs -->
   <%- include ('header.ejs') %>
 
-  <!-- 메인 섹션 -->
-  <div class="section" id="main">
-    <h2>이번 주 아이디어 키워드</h2>
-    <div id="wordcloud_div"></div>
-    <h1 class="fade-in">💡 IdeaLink</h1>
-    <p class="fade-in">아이디어의 가치를 연결하다</p>
-    <button onclick="scrollToSection('ideas')" class="fade-in">아이디어 보러가기</button>
-  </div>
+    <!-- ✅ 메인 페이지 내용 -->
+    <div class="wrapper">
 
-  <!-- 아이디어 게시판 -->
-  <div class="section" id="ideas">
-    <h2 class="fade-in">📝 아이디어 게시판</h2>
-    <p class="fade-in">다양한 아이디어를 등록하고 탐색해보세요</p>
-
-    <!-- 카테고리 캐러셀 -->
-    <div class="category-carousel fade-in">
-      <button class="arrow left" onclick="scrollCategories(-1)">&#10094;</button>
-
-      <div class="category-track" id="categoryTrack">
-        <div class="category-card category-link" data-category="IT/전자">📱 IT/전자</div>
-        <div class="category-card category-link" data-category="생활/주방">🏠 생활/주방</div>
-        <div class="category-card category-link" data-category="바이오">🧬 바이오</div>
-        <div class="category-card category-link" data-category="콘텐츠">🎨 콘텐츠</div>
-        <div class="category-card category-link" data-category="기계/건설">🛠 기계/건설</div>
-        <div class="category-card category-link" data-category="의료/방역">💊 의료/방역</div>
-        <div class="category-card category-link" data-category="모빌리티">🚗 모빌리티</div>
-        <div class="category-card category-link" data-category="에너지">💡 에너지</div>
-        <div class="category-card category-link" data-category="물류/유통">📦 물류/유통</div>
-        <div class="category-card category-link" data-category="금융/법률">🧾 금융/법률</div>
-      </div>
-
-      <button class="arrow right" onclick="scrollCategories(1)">&#10095;</button>
-    </div>
-
-    <!-- 워드클라우드 포함 -->
-    <!-- 🔥 오늘의 인기 게시글 캐러셀 -->
-    <!-- 🔥 오늘의 인기 게시글 캐러셀 섹션 -->
-    <div class="popular-carousel-section">
-      <h2>🔥 오늘의 인기 게시글</h2>
-      <div class="carousel-wrapper">
-
-        <!-- 왼쪽 화살표 (상단과 통일된 클래스) -->
-        <div class="arrow category-left">&#10094;</div>
-
-        <!-- 캐러셀 카드 묶음 -->
-        <div class="carousel-track">
-          <a href="/post/idea_detail?id=1">
-            <div class="carousel-card">
-              <h4>제로웨이스트 꿀팁</h4>
-              <p>실천 가능한 친환경 아이디어</p>
-              <span class="views">조회수 412</span>
-            </div>
-          </a>
-          <a href="/post/idea_detail?id=1">
-            <div class="carousel-card">
-              <h4>미래 도시 설계</h4>
-              <p>AI로 스마트시티를 구축하다</p>
-              <span class="views">조회수 388</span>
-            </div>
-          </a>
-          <a href="/post/idea_detail?id=1">
-            <div class="carousel-card">
-              <h4>대학생 창업 아이디어</h4>
-              <p>작은 비용으로 시작하는 비즈</p>
-              <span class="views">조회수 356</span>
-            </div>
-          </a>
-          <a href="/post/idea_detail?id=1">
-            <div class="carousel-card">
-              <h4>NFT 활용 전략</h4>
-              <p>디지털 자산의 가능성</p>
-              <span class="views">조회수 322</span>
-            </div>
-          </a>
+      <!-- SECTION 1: 실시간 인기 키워드 -->
+      <section class="section keywords-section">
+        <div class="container">
+          <h2 class="section-title">🔥 실시간 인기 키워드</h2>
+          <div id="wordcloud" class="wordcloud"></div>
+          <div class="scroll-down-indicator"
+            onclick="document.querySelector('.popular-section').scrollIntoView({behavior: 'smooth'})">
+            ⬇
+          </div>
         </div>
+      </section>
 
-        <!-- 오른쪽 화살표 (상단과 통일된 클래스) -->
-        <div class="arrow category-right">&#10095;</div>
-      </div>
-    </div>
-  </div>
+      <!-- SECTION 2: 오늘의 인기 아이디어 -->
+      <section class="section popular-section">
+        <div class="container grid-2col">
+          <div class="text-block">
+            <h2 class="section-title">🌟 오늘의 인기 아이디어</h2>
+            <p>지금 가장 주목받는 아이디어를 확인하세요.<br>전문가 피드백과 함께 빠르게 성장 중입니다.</p>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon">🧠</div>
+                <div class="stat-text">등록된 아이디어</div>
+                <div class="stat-number">12건</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">👁️</div>
+                <div class="stat-text">오늘 조회수</div>
+                <div class="stat-number">983회</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">💬</div>
+                <div class="stat-text">받은 피드백</div>
+                <div class="stat-number">31건</div>
+              </div>
+            </div>
+            <a href="#" class="btn">전체 아이디어 보기 →</a>
+          </div>
+          <div class="card-grid">
+            <div class="idea-card">
+              <img src="https://placehold.co/600x400" alt="아이디어 이미지">
+              <h3>도시 농업 플랫폼</h3>
+              <p>도심 속 친환경 농업 시스템</p>
+            </div>
+            <div class="idea-card">
+              <img src="https://placehold.co/600x400" alt="아이디어 이미지">
+              <h3>AI 영어 피드백 앱</h3>
+              <p>실시간 피드백으로 말하기 향상</p>
+            </div>
+            <div class="idea-card">
+              <img src="https://placehold.co/600x400" alt="아이디어 이미지">
+              <h3>리워드 수거 서비스</h3>
+              <p>폐플라스틱 보상 기반 시스템</p>
+            </div>
+            <div class="idea-card">
+              <img src="https://placehold.co/600x400" alt="아이디어 이미지">
+              <h3>모바일 헌혈 매칭</h3>
+              <p>기증자와 요청자 매칭 플랫폼</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-  <!-- 공지사항 + FAQ -->
-  <div class="section notice-faq-section" id="notice">
-    <div class="dual-box fade-in">
-      <div class="box">
-        <a href="/notice"><h2>📢 공지사항</h2></a>
-        <ul class="notice-list">
-          <li>[03.29] 아이디어 등록 가이드가 업데이트 되었습니다.</li>
-          <li>[03.15] 베타 서비스가 시작되었습니다.</li>
-        </ul>
-      </div>
-      <div class="box">
-        <a href="/faq"><h2>💬 건의 & FAQ</h2></a>
-        <ul class="notice-list">
-          <li>자주 묻는 질문을 정리하고 있어요.</li>
-        </ul>
-      </div>
-    </div>
-  </div>
+      <!-- SECTION 3: 공지사항 / FAQ -->
+      <section class="section notice-faq-section">
+        <div class="container">
+          <h2 class="section-title">🗂️ 공지사항 / FAQ</h2>
+          <div class="grid-2col">
 
-  <!-- js link -->
-  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3/build/jwt-decode.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="/javascripts/jqcloud.min.js"></script>
-  <script src="/javascripts/script.js"></script>
-  <script>
-    document.querySelectorAll('.category-link').forEach(card => {
-      card.addEventListener('click', () => {
-        const category = card.dataset.category;
-        console.log(category);
-        location.href = `/post/ideas?category=${encodeURIComponent(category)}`;
-      });
-    });
-  </script>
+            <!-- 공지사항 -->
+            <div class="notice-column">
+              <div class="notice-card">
+                <h3>아이디어 등록 가이드</h3>
+                <p>등록 시 유의사항과 예시를 확인하세요.</p>
+                <span class="date">2025.04.20</span>
+              </div>
+              <div class="notice-card">
+                <h3>전문가 피드백 신청 안내</h3>
+                <p>전문가에게 포인트를 걸고 피드백을 받아보세요.</p>
+                <span class="date">2025.04.18</span>
+              </div>
+              <div class="notice-card">
+                <h3>보안 정책 변경 안내</h3>
+                <p>새로운 데이터 보호 정책이 적용됩니다.</p>
+                <span class="date">2025.04.15</span>
+              </div>
+            </div>
+
+            <!-- FAQ 아코디언 -->
+            <div class="faq-column">
+              <div class="accordion-item">
+                <button class="accordion-title">전문가는 어떤 기준으로 평가하나요?</button>
+                <div class="accordion-content">전문가는 명확성, 참신성, 실현 가능성 등을 기준으로 평가합니다.</div>
+              </div>
+              <div class="accordion-item">
+                <button class="accordion-title">내 포인트는 어디서 확인하나요?</button>
+                <div class="accordion-content">마이페이지 > 포인트 내역 메뉴에서 확인할 수 있습니다.</div>
+              </div>
+              <div class="accordion-item">
+                <button class="accordion-title">어떤 아이디어를 마켓에 판매할 수 있나요?</button>
+                <div class="accordion-content">
+                  누구나 일상에서 떠올릴 수 있는 간단한 아이디어부터, 실제로 시제품이나 서비스로 연결될 수 있는 구체적인 아이디어까지 자유롭게 판매할 수 있습니다.
+                </div>
+              </div>
+              <div class="accordion-item">
+                <button class="accordion-title">내 아이디어가 도용되면 어떡하죠?</button>
+                <div class="accordion-content">
+                  IdeaLink는 회원 가입 시 저작권 보호 동의를 받고, 문서 업로드 시 자동 워터마크를 삽입해 도용을 방지합니다.
+                </div>
+              </div>
+              <div class="accordion-item">
+                <button class="accordion-title">아이디어에 대한 저작권이나 특허가 없는데 등록해도 되나요?</button>
+                <div class="accordion-content">
+                  네, 가능합니다. 특허가 없어도 등록할 수 있으며, 저작권 보호 동의와 등록 기록을 통해 기본적인 보호가 제공됩니다.
+                </div>
+              </div>
+              <div class="accordion-item">
+                <button class="accordion-title">아이디어를 구매하면 어떤 권리를 갖게 되나요?</button>
+                <div class="accordion-content">
+                  구매한 아이디어는 독점적으로 사용하실 수 있으며, 동일한 아이디어가 다른 사람에게 다시 판매되지는 않습니다.
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+      <!-- 헤더 ejs -->
+      <%- include ('footer.html') %>
+    </div> <!-- wrapper 끝 -->
+
+    <!-- js link -->
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.js"></script>
+    <script src="/javascripts/main.js"></script>
+    <!-- <script src="/javascripts/word.js"></script> -->
 </body>
 
 </html>

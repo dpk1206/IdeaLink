@@ -66,7 +66,7 @@
                   <div class="chat-meta">
                     👤 <%= room.partner_nickname %> 님과의 대화 | 🕒 <%= room.updated_at.toLocaleString() %>
                   </div>
-                  <div class="chat-preview">가장 최근 상대방 채팅 나오게</div>
+                  <div class="chat-preview"><%= room.recentMessage %></div>
                 </div>
                 <% }) %>
           </div>

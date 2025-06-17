@@ -201,6 +201,15 @@ exports.getChattingRooms = async (user_id) => {
                             title = '제목 조회 실패';
                         }
 
+                        // 방 제목 조회
+                        let recentMessage = '';
+                        try {
+                            recentMessage = await this.getRecentMessage(room.chatting_room_id);
+                        } catch (err) {
+                            console.error(`채팅방 ${room.chatting_room_id} 제목 조회 실패:`, err);
+                            recentMessage = '제목 조회 실패';
+                        }
+
                         // 안읽은 메시지 개수 조회
                         let unreadCount = 0;
                         try {
@@ -215,7 +224,8 @@ exports.getChattingRooms = async (user_id) => {
                             title: title || '알 수 없는 제목',
                             partnerId,
                             partner_nickname,
-                            unreadCount
+                            unreadCount,
+                            recentMessage
                         };
                     } catch (err) {
                         console.error(`채팅방 ${room.chatting_room_id} 정보 조회 실패:`, err);
@@ -223,7 +233,8 @@ exports.getChattingRooms = async (user_id) => {
                             ...room,
                             title: '제목 조회 실패',
                             partner_nickname: '닉네임 조회 실패',
-                            unreadCount: 0
+                            unreadCount: 0,
+                            recentMessage: '최근 메시지 조회 실패'
                         };
                     }
                 })
@@ -258,6 +269,27 @@ exports.getUnreadMessageCount = async (user_id, chatting_room_id) => {
     } catch (err) {
         console.error('안읽은 메시지 개수 조회 실패:', err);
         return 0;
+    } finally {
+        if (conn) conn.end();
+    }
+};
+
+// 해당 채팅방의 가장 최근 메시지 조회
+exports.getRecentMessage = async (chatting_room_id) => {
+    const conn = await dbconn.init();
+    try {
+        await dbconn.connect(conn);
+        const sql = `
+        SELECT content
+        FROM message
+        WHERE chatting_room_id = ? 
+        ORDER BY created_at DESC
+        LIMIT 1`;
+        const [rows] = await conn.promise().query(sql, [chatting_room_id]);
+        return rows[0].content ? rows[0].content : null;
+    } catch (err) {
+        console.error('가장 최근 메시지 조회 실패:', err);
+        return null;
     } finally {
         if (conn) conn.end();
     }
