@@ -1,4 +1,4 @@
-const postlogModel = require("../models/postlogModel");
+const postModel = require("../models/postModel");
 const commentModel = require("../models/commentModel");
 
 // 댓글 추가
@@ -11,6 +11,15 @@ exports.addComment = async (req, res) => {
 
   try {
     await commentModel.addComment(post_id, user_id, content);
+    const postInfo = await postModel.selectOnePost(post_id) // 원글 작성자의 user_id
+    const sendNotification = req.app.get('sendNotification'); // 알림 전송 함수 가져옴
+    await sendNotification(
+      postInfo.user_id,
+      user_id,
+      "comment",
+      post_id,
+      content
+    );
     res.json({ message: "댓글 등록 완료" });
   } catch (err) {
     console.error("댓글 등록 오류:", err);

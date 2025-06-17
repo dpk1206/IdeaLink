@@ -48,7 +48,7 @@ module.exports = (io) => {
             );
 
             // 알림 이벤트 전송
-            unreadCount = await notificationModel.getUnreadNotificationCount(receiver_id);
+            const unreadCount = await notificationModel.getUnreadNotificationCount(receiver_id);
             notificationNamespace.to(notificationUsers[receiver_id]).emit('notification', {
                 type: 'chat',
                 chatting_room_id,

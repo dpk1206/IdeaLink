@@ -8,7 +8,7 @@ const cors = require('cors'); // 외부 url요청
 const socketIO = require('socket.io'); // socketIO
 const authMiddleware = require('./middleware/authMiddleware');
 const chatSocketController = require('./sockets/chatSocket');
-const notiSocketController = require('./sockets/noticationSocket');
+const notiSocketController = require('./sockets/notificationSocket');
 const adminRouter = require('./routes/admin');
 
 // DB 연결(모든 요청에 DB연결? 필요시 주석 해제 하삼)
@@ -26,8 +26,9 @@ const paymentRouter = require("./routes/payment"); // 결제 라우터
 // 서버 설정
 var app = express();
 app.io = socketIO(); // Socket.IO 서버 인스턴스 생성
+const notiSocket = notiSocketController(app.io); // 알림 소켓
+app.set('sendNotification', notiSocket.sendNotification); // 알림 소켓의 sendNotification 함수 설정
 chatSocketController(app.io); // 채팅 소켓
-notiSocketController(app.io); // 알림 소켓
 
 app.use(cookieParser());
 app.use(authMiddleware); // 쿠키에 담긴 토큰 매 요청마다 검증
