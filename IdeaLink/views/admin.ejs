@@ -12,6 +12,7 @@
     <div class="admin-container">
     <!-- 사이드 메뉴 -->
     <aside class="admin-sidebar">
+      <button onclick="showSection('posts')">📦 전체 아이디어</button>
       <button onclick="showSection('suggestions')">💬 건의사항</button>
       <button onclick="showSection('reports')">🚨 신고글</button>
       <button onclick="showSection('notices')">📢 공지사항</button>
@@ -23,6 +24,36 @@
 
     <!-- 콘텐츠 -->
     <main class="admin-content">
+      <!-- 전체 게시글 (판매/구매글) 섹션 -->
+      <section id="posts" class="admin-section" style="display:none;">
+        <h2>📦 전체 아이디어 / 판매 / 구매글</h2>
+
+        <% posts.forEach(post => { %>
+          <div class="post-box" style="border: 1px solid #ccc; padding: 15px; margin: 15px 0;">
+            <h3>[<%= post.type %>] <%= post.title %></h3>
+            <p>작성자: <%= post.nick_name %> | 등록일: <%= new Date(post.created_at).toLocaleDateString() %></p>
+            <p>상태: <%= post.status %></p>
+            <p><strong>내용:</strong> <%= post.content %></p>
+
+            <% if (post.answers.length === 0) { %>
+              <p style="color: gray;">답글 없음</p>
+            <% } else { %>
+              <div class="answer-list" style="margin-top: 10px; padding-left: 15px;">
+                <strong>💬 답글 목록:</strong>
+                <% post.answers.forEach(ans => { %>
+                  <div style="border-top: 1px dashed #aaa; padding: 10px 0;">
+                    <p><strong><%= ans.nick_name %></strong> (P: <%= ans.price.toLocaleString() %>)</p>
+                    <p><%= ans.content %></p>
+                    <p><small><%= new Date(ans.created_at).toLocaleString() %></small></p>
+                  </div>
+                <% }) %>
+              </div>
+            <% } %>
+          </div>
+        <% }) %>
+      </section>
+
+
       <!-- 건의사항 -->
       <section id="suggestions" class="admin-section">
         <h2>💬 건의사항 관리</h2>
@@ -118,32 +149,32 @@
       </section>
 
       <!-- ✅ 포인트 로그 조회 섹션 추가 -->
-<section id="pointLogs" class="admin-section" style="display:none;">
-  <h2>💰 포인트 사용 내역</h2>
-  <div class="filter-area">
-    <input type="text" id="searchPointUser" placeholder="사용자 ID" />
-    <input type="date" id="searchPointDate" />
-    <select id="filterPointType">
-      <option value="">전체</option>
-      <option value="charge">충전</option>
-      <option value="use">사용</option>
-      <option value="refund">환불</option>
-      <option value="answer_charge">답글 판매</option>
-      <option value="answer_use">답글 구매</option>
-      <option value="hold_use">에스크로 출금 (구매자)</option>
-      <option value="hold_charge">에스크로 입금 (관리자)</option>
-      <option value="hold_release">에스크로 출금 (관리자)</option>
-      <option value="hold_refund">에스크로 환불</option>
-    </select>
-    <button onclick="applyPointLogFilter()">검색</button>
-  </div>
-  <table class="styled-table">
-    <thead><tr><th>시간</th><th>유저</th><th>유형</th><th>금액</th><th>설명</th></tr></thead>
-    <tbody id="pointLogList">
-      <!-- JS로 채워짐 -->
-    </tbody>
-  </table>
-</section>
+    <section id="pointLogs" class="admin-section" style="display:none;">
+      <h2>💰 포인트 사용 내역</h2>
+      <div class="filter-area">
+        <input type="text" id="searchPointUser" placeholder="사용자 ID" />
+        <input type="date" id="searchPointDate" />
+        <select id="filterPointType">
+          <option value="">전체</option>
+          <option value="charge">충전</option>
+          <option value="use">사용</option>
+          <option value="refund">환불</option>
+          <option value="answer_charge">답글 판매</option>
+          <option value="answer_use">답글 구매</option>
+          <option value="hold_use">에스크로 출금 (구매자)</option>
+          <option value="hold_charge">에스크로 입금 (관리자)</option>
+          <option value="hold_release">에스크로 출금 (관리자)</option>
+          <option value="hold_refund">에스크로 환불</option>
+        </select>
+        <button onclick="applyPointLogFilter()">검색</button>
+      </div>
+      <table class="styled-table">
+        <thead><tr><th>시간</th><th>유저</th><th>유형</th><th>금액</th><th>설명</th></tr></thead>
+        <tbody id="pointLogList">
+          <!-- JS로 채워짐 -->
+        </tbody>
+      </table>
+    </section>
 
     </main>
   </div>

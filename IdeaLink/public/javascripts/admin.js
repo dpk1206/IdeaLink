@@ -145,3 +145,65 @@ window.onload = () => {
   showSection('suggestions');
   loadOnlineUsers(); // ✅ 추가됨
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+  applyPointLogFilter();
+});
+// 포인트 로그 필터링 및 출력
+async function applyPointLogFilter() {
+  const userInput = document.getElementById('searchPointUser').value.trim();
+  const dateInput = document.getElementById('searchPointDate').value;
+  const typeInput = document.getElementById('filterPointType').value;
+
+  const res = await fetch('/admin/point-logs');
+  const data = await res.json();
+
+  if (!data.success) {
+    alert('포인트 로그 조회 실패');
+    return;
+  }
+
+  const logs = data.logs;
+  const filtered = logs.filter(log => {
+    const matchUser = !userInput || log.nick_name.includes(userInput);
+    const matchDate = !dateInput || log.created_at.startsWith(dateInput);
+    const matchType = !typeInput || log.type === typeInput;
+    return matchUser && matchDate && matchType;
+  });
+
+  const tbody = document.getElementById('pointLogList');
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">검색 결과가 없습니다</td></tr>';
+    return;
+  }
+
+  filtered.forEach(log => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(log.created_at).toLocaleString('ko-KR', { hour12: false })}</td>
+      <td>${log.nick_name}</td>
+      <td>${translatePointType(log.type)}</td>
+      <td>${log.amount.toLocaleString()}P</td>
+      <td>${log.description || '-'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// 포인트 유형 한글 번역 함수
+function translatePointType(type) {
+  switch (type) {
+    case 'charge': return '충전';
+    case 'use': return '사용';
+    case 'refund': return '환불';
+    case 'answer_charge': return '답글 판매';
+    case 'answer_use': return '답글 구매';
+    case 'hold_use': return '에스크로 출금 (구매자)';
+    case 'hold_charge': return '에스크로 입금 (관리자)';
+    case 'hold_release': return '에스크로 출금 (관리자)';
+    case 'hold_refund': return '에스크로 환불';
+    default: return type;
+  }
+}

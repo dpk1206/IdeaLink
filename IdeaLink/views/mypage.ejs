@@ -477,43 +477,66 @@
 
 
 
-        <section id="history" class="mypage-section" style="display:none;">
-          <h2>📑 판매 / 구매 내역</h2>
-          <table class="mypage-table">
-            <thead>
-              <tr>
-                <th>거래번호</th>
-                <th>유형 / 방식</th>
-                <th>아이디어 제목</th>
-                <th>금액</th>
-                <th>날짜</th>
-              </tr>
-            </thead>
-            <tbody>
-            <% if (!tradeHistory || tradeHistory.length === 0) { %>
-              <tr><td colspan="5" style="text-align:center;">거래 내역이 없습니다.</td></tr>
-            <% } else { %>
-              <% tradeHistory.forEach((t) => { %>
-                <tr>
-                  <td>#<%= t.post_id %></td>
-                  <td>
-                    <% if (t.type === '판매' && t.method === '답글거래') { %>
-                      답글 / 판매
-                    <% } else if (t.type === '판매') { %>
-                      게시글 / 판매
-                    <% } else if (t.type === '구매' && t.method === '답글거래') { %>
-                      답글 / 구매
-                    <% } else { %>
-                      게시글 / 구매
-                    <% } %>
-                  </td>
-                  <td><%= t.title %></td>
-                  <td><%= t.price.toLocaleString() %>원</td>
-                  <td><%= new Date(t.date).toISOString().split("T")[0] %></td>
-                </tr>
-              <% }) %>
-            <% } %>
-          </tbody>
+      <section id="history" class="mypage-section" style="display:none;">
+  <h2>📤 판매 내역</h2>
+  <table class="mypage-table">
+    <thead>
+      <tr>
+        <th>거래번호</th>
+        <th>방식</th>
+        <th>아이디어 제목</th>
+        <th>금액</th>
+        <th>날짜</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% const sellList = tradeHistory.filter(t => t.type === '판매'); %>
+      <% if (sellList.length === 0) { %>
+        <tr><td colspan="5" style="text-align:center;">판매 내역이 없습니다.</td></tr>
+      <% } else { %>
+        <% sellList.forEach(t => { %>
+          <tr>
+            <td>#<%= t.post_id %></td>
+            <td><%= t.method === '답글거래' ? '답글' : '게시글' %></td>
+            <td><%= t.title %></td>
+            <td><%= t.request_price.toLocaleString() %>원</td>
+            <td><%= new Date(t.date).toISOString().split("T")[0] %></td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+
+  <h2 style="margin-top: 30px;">📥 구매 내역</h2>
+  <table class="mypage-table">
+    <thead>
+      <tr>
+        <th>거래번호</th>
+        <th>방식</th>
+        <th>아이디어 제목</th>
+        <th>금액</th>
+        <th>날짜</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% const buyList = tradeHistory.filter(t => t.type === '구매'); %>
+      <% if (buyList.length === 0) { %>
+        <tr><td colspan="5" style="text-align:center;">구매 내역이 없습니다.</td></tr>
+      <% } else { %>
+        <% buyList.forEach(t => { %>
+          <tr>
+            <td>#<%= t.post_id %></td>
+            <td><%= t.method === '답글거래' ? '답글' : '게시글' %></td>
+            <td><%= t.title %></td>
+            <td><%= t.request_price.toLocaleString() %>원</td> <!-- ✅ 요청금액 사용 -->
+            <td><%= new Date(t.date).toISOString().split("T")[0] %></td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</section>
+
 
 
           </table>

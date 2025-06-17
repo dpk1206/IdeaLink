@@ -452,30 +452,33 @@ exports.getTradeHistory = async function (user_id) {
   await dbconn.connect(conn);
 
   const sql = `
-    SELECT 
-      p.post_id,
-      p.title,
-      p.price,
-      p.created_at AS date,
-      CASE
-        WHEN p.user_id = ? THEN '판매'
-        WHEN p.buyer_id = ? THEN '구매'
-        ELSE '기타'
-      END AS type,
-      CASE
-        WHEN p.selected_answer_id IS NULL THEN '직거래'
-        ELSE '답글거래'
-      END AS method
-    FROM post p
-    WHERE p.status = '거래완료'
-      AND (p.user_id = ? OR p.buyer_id = ?)
-    ORDER BY p.created_at DESC
+SELECT 
+  p.post_id,
+  p.title,
+  COALESCE(pr.proposed_price, p.price) AS request_price,  -- 요청 가격 없으면 게시글 가격 사용
+  p.created_at AS date,
+  CASE
+    WHEN p.user_id = ? THEN '판매'
+    WHEN p.buyer_id = ? THEN '구매'
+    ELSE '기타'
+  END AS type,
+  CASE
+    WHEN p.selected_answer_id IS NULL THEN '직거래'
+    ELSE '답글거래'
+  END AS method
+FROM post p
+LEFT JOIN purchase_request pr
+  ON p.post_id = pr.post_id AND pr.status = '수락됨'
+WHERE p.status = '거래완료'
+  AND (p.user_id = ? OR p.buyer_id = ?)
+ORDER BY p.created_at DESC
   `;
 
   const [rows] = await conn.promise().query(sql, [user_id, user_id, user_id, user_id]);
   await conn.end();
   return rows;
 };
+
 
 
 // ✅ 마이페이지: 내가 작성한 글 목록
