@@ -8,6 +8,17 @@
 </head>
 
 <body>
+    <%
+        function formatFileSize(bytes) {
+            if (bytes >= 1024 * 1024) {
+                return (bytes / (1024 * 1024)).toFixed(1) + "MB";
+            } else if (bytes >= 1024) {
+                return (bytes / 1024).toFixed(1) + "KB";
+            } else {
+                return bytes + "B";
+            }
+        }
+    %>
     <div class="chat-container">
             <div class="chat-header" id="chatRoomTitle"><%= title %></div>
             <% const userId=user.user_id %>
@@ -29,6 +40,18 @@
                     <div 
                     class="message <%= msg.sender_id === userId ? 'mine' : 'other' %>" 
                     data-message-id="<%= msg.message_id %>">
+                    <% if (msg.file_type == '.pdf') { %>
+                        <div class="file-box">
+                            <div class="file-name">▶ <%= msg.original_name %>
+                            </div>
+                            <div class="file-size">용량: <%= formatFileSize(msg.file_size) %></div>
+                            <div class="file-actions">
+                                <a href="/post/download/<%= msg.watermark_id %>" download>다운로드⬇️</a>
+                            </div>
+                        </div>
+                        <% } else if (msg.file_type === '.jpg' || msg.file_type === '.png' || msg.file_type === '.gif') { %>
+                            <img onclick = "openImageModal(this, '<%= msg.watermark_id %>')" src="/wm_uploads/wm_<%= msg.saved_name %>" alt="첨부 이미지" class="message-image" />
+                    <% } %>
                     <%= msg.content %>
                     <% if (msg.is_read == 1) { %>
                         <span class="message-status" data-is-read="1">✔️읽음</span>
@@ -40,13 +63,27 @@
                     </div>
                 <% }) %>
                 </div>
-
+        
         <div class="chat-input-area">
             <form id="chat-form">
+                <label class="file-btn">
+                    [+]
+                    <input type="file" id="fileInput"/>
+                </label>
+                <div id="filePreview" class="file-preview"></div>
                 <input type="text" id="message-input" placeholder="메시지를 입력하세요..." autocomplete="off" />
                 <button type="submit" class="send-btn" id="sendBtn">전송</button>
             </form>
         </div>
+        
+        
+    </div>
+
+    <!-- 이미지 확대 모달 -->
+    <div id="imageModal" class="image-modal">
+        <span id="modalClose">&times;</span>
+        <img id="modalImage" class="modal-content" />
+        <a id="downloadBtn" class="download-btn" download>⬇️</a>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>

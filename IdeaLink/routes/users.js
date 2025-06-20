@@ -105,5 +105,37 @@ router.delete("/notification/delete", async (req, res, next) => {
   }
 });
 
+// 알림 모두 읽음
+router.post("/notification/readAll", async (req, res, next) => {
+  try {
+    const result = await notificationModel.markAllAsRead(req.user.user_id);
+    if (result) {
+      res.status(200).json({
+        success: true,
+        message: "모든 알림 읽음 처리 완료"
+      });
+    }
+  } catch (err) {
+    console.error("모든 알림 읽음 오류:", err);
+    next(err); // 에러시 에러핸들러 일괄처리
+  }
+});
+
+// 알림 모두 삭제
+router.delete("/notification/deleteAll", async (req, res, next) => {
+  try {
+    const result = await notificationModel.deleteAllNotifications(req.user.user_id);
+    if (result) {
+      res.status(200).json({
+        success: true,
+        message: "모든 알림 삭제 완료"
+      });
+    }
+  } catch (err) {
+    console.error("모든 알림 삭제 오류:", err);
+    next(err); // 에러시 에러핸들러 일괄처리
+  }
+});
+
 
 module.exports = router;

@@ -237,6 +237,17 @@ exports.createAnswer = async (req, res, next) => {
       post_log_ip: clientIp,
     });
 
+    // 알림 생성 및 전송
+    const sendNotification = req.app.get('sendNotification'); // 알림 전송 함수 가져옴
+    const postInfo = await postModel.selectOnePost(post_id);
+    await sendNotification(
+      postInfo.user_id,
+      req.user.user_id,
+      "answer",
+      post_id,
+      title
+    );
+    
     // 4. 리다이렉트
     res.redirect(`/post/idea_detail?post_id=${post_id}`);
   } catch (err) {

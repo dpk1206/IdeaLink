@@ -26,17 +26,20 @@ exports.saveMessage = async (senderId, receiverId, content, chatting_room_id) =>
     }
 };
 
-// 채팅 조회
+// 해당 채팅방 메시지 조회
 exports.getMessages = async (chatting_room_id) => {
     let conn;
     try {
         conn = await dbconn.init();
         await dbconn.connect(conn);
         const sql = `
-        SELECT * 
-        FROM message 
-        WHERE chatting_room_id = ?
-        ORDER BY created_at
+        SELECT m.*, pf.*, wf.watermarked_path, wf.watermark_id
+        FROM message m
+        LEFT JOIN message_file mf ON m.message_id = mf.message_id
+        LEFT JOIN post_file pf ON mf.file_id = pf.file_id
+        LEFT JOIN watermark_file wf ON pf.file_id = wf.original_file_id
+        WHERE m.chatting_room_id = ?
+        ORDER BY m.created_at;
         `;
         const [rows] = await conn.promise().query(sql, [chatting_room_id]);
         return rows;
@@ -298,3 +301,18 @@ exports.getRecentMessage = async (chatting_room_id) => {
     }
 };
 
+// message_file 테이블에 메시지-파일 연결 정보 저장
+exports.insertMessageFile = async (messageId, fileId) => {
+    const conn = await dbconn.init();
+    await dbconn.connect(conn);
+    try {
+        const sql = `INSERT INTO message_file (message_id, file_id) VALUES (?, ?)`;
+        const [result] = await conn.promise().query(sql, [messageId, fileId]);
+        return result;
+    } catch (err) {
+        console.error('메시지-파일 연결 정보 저장 실패:', err);
+        return null;
+    } finally {
+        if (conn) conn.end();
+    }
+};

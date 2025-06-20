@@ -4,7 +4,7 @@ const notificationModel = require('../models/notificationModel');
 // 알림용 네임스페이스와 채팅용 네임스페이스 분리
 const { notificationUsers, chatUsers } = require('./userSocketMapping');
 
-module.exports = (io) => {
+module.exports = (io, sendNotification) => {
 
     const chatNamespace = io.of('/chat'); // 채팅용 네임스페이스 (/chat)
     const notificationNamespace = io.of('/notification'); // 알림용 네임스페이스 (/notification)
@@ -37,24 +37,14 @@ module.exports = (io) => {
                 created_at: new Date()
             });
 
-            // 없으면 새 알림 생성
-            const notificationContent = `새 메시지가 도착했습니다 : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
-            await notificationModel.createNotification(
+            // 알림 생성 및 전송
+            await sendNotification(
                 receiver_id,
                 sender_id,
-                'chat',
+                "chat",
                 chatting_room_id,
-                notificationContent
+                content
             );
-
-            // 알림 이벤트 전송
-            const unreadCount = await notificationModel.getUnreadNotificationCount(receiver_id);
-            notificationNamespace.to(notificationUsers[receiver_id]).emit('notification', {
-                type: 'chat',
-                chatting_room_id,
-                content: notificationContent,
-                count: unreadCount
-            });
         });
 
         // 메시지 읽음 처리

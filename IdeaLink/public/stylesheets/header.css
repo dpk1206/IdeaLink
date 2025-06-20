@@ -101,6 +101,13 @@
   text-decoration: none;
 }
 
+.notification {
+  color: red;
+  font-size: smaller;
+  position: relative;
+  top: -5px;
+}
+
 /* ===== 반응형 처리 ===== */
 @media screen and (max-width: 768px) {
   .nav-menu-desktop {

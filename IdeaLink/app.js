@@ -29,7 +29,7 @@ var app = express();
 app.io = socketIO(); // Socket.IO 서버 인스턴스 생성
 const notiSocket = notiSocketController(app.io); // 알림 소켓
 app.set('sendNotification', notiSocket.sendNotification); // 알림 소켓의 sendNotification 함수 설정
-chatSocketController(app.io); // 채팅 소켓
+chatSocketController(app.io, notiSocket.sendNotification); // 채팅 소켓
 
 app.use(cookieParser());
 app.use(authMiddleware); // 쿠키에 담긴 토큰 매 요청마다 검증

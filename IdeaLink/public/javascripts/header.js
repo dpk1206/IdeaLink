@@ -14,7 +14,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const badgeElements = document.querySelectorAll('.notification');
       badgeElements.forEach(el => {
         // 안읽은 알림이 0이면 빈 문자열, 1 이상이면 숫자 표시
-        el.textContent = data.count > 0 ? "•" + data.count : '';
+        el.textContent = data.unreadCount > 0 ? "•" + data.unreadCount : '';
       });
       // 2. 타이틀 플래시 효과
       let titleCounter = 0;

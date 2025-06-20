@@ -7,11 +7,13 @@ let notificationNamespace; // 네임스페이스 저장용 변수
 async function sendNotification(receiver_id, sender_id, type, target_id, content) {
     let notificationContent = '';
     if (type === 'comment') {
-        notificationContent = `새 댓글이 달렸습니다. : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
+        notificationContent = `새 댓글이 달렸습니다 : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
     } else if (type === 'like') {
-        notificationContent = `추천수가 늘었습니다. : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
+        notificationContent = `추천수가 늘었습니다 : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
     } else if (type === 'answer') {
-        notificationContent = `새 답글이 달렸습니다. : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
+        notificationContent = `새 답글이 달렸습니다 : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
+    } else if (type === 'chat') {
+        notificationContent = `새 메시지가 도착했습니다 : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
     }
 
     await notificationModel.createNotification(

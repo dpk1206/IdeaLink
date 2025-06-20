@@ -1,42 +1,48 @@
-// word.js
-
 async function loadWordCloud() {
     try {
-        const response = await fetch('http://127.0.0.1:5500/keywords.json');
-        if (!response.ok) throw new Error("JSON 파일 로드 오류");
+        // 1. API에서 데이터 받아오기
+        const response = await fetch('http://127.0.0.1:5000/keywords');
+        if (!response.ok) throw new Error("키워드 API 로드 오류");
 
+        // 2. JSON 파싱
         const data = await response.json();
-        console.log("✅ JSON 파일 데이터:", data);
+        console.log("✅ API 데이터:", data);
+
+        // 3. [{word, score}] → [[word, score]] 변환
+        const wordList = data.map(item => [item.word, item.score]);
 
         const wordcloudElement = document.getElementById('wordcloud');
-        wordcloudElement.innerHTML = ""; // ✅ 기존 워드클라우드 초기화
+        wordcloudElement.innerHTML = "";
 
-        // ✅ 반응형 크기 계산
         const width = window.innerWidth;
-        const fontSize = width > 768 ? 15 : 10; // 반응형 글자 크기 (데스크탑 / 모바일)
+        const fontSize = width > 768 ? 22 : 14;
 
-        // ✅ 워드클라우드 직접 생성
+        const palette = [
+            '#f8f1ff', '#d0e6ff', '#ffddee', '#e0f7e9',
+            '#fff9d6', '#f6dcff', '#fce4ec', '#e3f2fd'
+        ];
+
         WordCloud(wordcloudElement, {
-            list: data,                    // 모든 키워드 포함
-            gridSize: Math.max(8, Math.floor(width / 80)), // 반응형 그리드 크기
+            list: wordList,
+            gridSize: Math.max(12, Math.floor(width / 50)),
             weightFactor: function (size) {
-                return Math.log(size + 1) * fontSize; // 글자 크기 동적 조정
+                const base = Math.pow(Math.log(size + 1), 1.1);
+                return base * fontSize + Math.random() * 1;
             },
             fontFamily: 'Noto Sans KR, Arial, sans-serif',
-            color: function() {
-                return (Math.random() > 0.5) ? '#ffffff' : '#dfe6e9';
-            },
-            rotateRatio: 0,                // 오직 가로/세로 (대각선 없음)
-            minSize: 12,                   // 최소 글자 크기 (모바일에서도 최소 12px)
-            maxSize: 80,                   // 최대 글자 크기
+            color: () => palette[Math.floor(Math.random() * palette.length)],
+            rotateRatio: 0.25,
+            rotationSteps: 2,
+            minSize: 14,
+            maxSize: 90,
             backgroundColor: 'transparent',
-            drawOutOfBound: true,          // 글자가 잘리더라도 강제 표시
-            shuffle: false,                // 순서대로 정렬
-            shape: 'square',               // 네모 모양으로 깔끔하게 정렬
-            clearCanvas: true,             // 초기화
-            click: function(item) {
-                console.log("✅ 클릭된 키워드:", item[0]);
+            drawOutOfBound: false,
+            shuffle: true,
+            shape: 'circle',
+            clearCanvas: true,
+            click: function (item) {
                 alert(`클릭한 키워드: ${item[0]}`);
+                location.href = `http://localhost:3000/post/ideas?keyword=${encodeURIComponent(item[0])}&search_type=title&page=1`;
             }
         });
 
@@ -46,8 +52,5 @@ async function loadWordCloud() {
     }
 }
 
-// 페이지 로드 시 워드클라우드 로드
 document.addEventListener("DOMContentLoaded", loadWordCloud);
-
-// ✅ 반응형 지원 - 화면 크기 변경 시 워드클라우드 다시 로드
 window.addEventListener("resize", loadWordCloud);

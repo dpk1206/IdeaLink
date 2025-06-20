@@ -8,9 +8,9 @@
 </head>
 
 <body>
+  
   <%- include ('header.ejs') %>
-
-    <div class="mypage-container">
+  <div class="mypage-container" style="margin-top: 65px;">
       <aside class="mypage-sidebar">
         <button class="tab-btn active" data-tab="alerts">🔔 알림 / 💬 1:1 채팅</button>
         <button class="tab-btn" data-tab="point-charge">💰 포인트</button>
@@ -28,23 +28,28 @@
             <div class="alert-list" id="alertList">
               <h2 style="display: flex; justify-content: space-between; align-items: center;">🔔 알림
                 <div class="alert-buttons">
-                <button id="markAllReadBtn">전체 읽음</button>
-                <button id="markAllDeleteBtn">전체 삭제</button>
+                <button id="markAllReadBtn" onclick="markAllAsRead()">전체 읽음</button>
+                <button id="markAllDeleteBtn" onclick="deleteAllNotifications()">전체 삭제</button>
                 </div>
               </h2>
               <% notifications.forEach(noti=> { %>
-                <li class="alert-item <%= noti.unreadCount ? '' : 'read' %>">
+                <li class="alert-item <%= noti.is_read ? 'read' : '' %>">
                   <div class="alert-text"><%= noti.content %>
                     <% if (noti.type==='chat' ) { %>
                       <span class="chat-unread"><%= noti.unreadCount ? ' • ' + noti.unreadCount : '' %></span>
-                      <% } %>
+                      <% } else{ %>
+                        <span class="chat-unread"></span>
+                        <% } %>
                       </div>
                       <div class="chat-meta">
                           🕒 <%= noti.created_at.toLocaleString() %>
                         </div>
                       <div class="alert-buttons">
-                        <button class="move-btn"
-                          onclick="chatWindow('<%= user.user_id %>', '<%= noti.sender_id %>', '<%= noti.post_id %>', '<%= noti.post_type %>')">이동</button>
+                        <% if (noti.type==='chat' ) { %>
+                        <button class="move-btn" onclick="chatWindow('<%= user.user_id %>', '<%= noti.sender_id %>', '<%= noti.post_id %>', '<%= noti.post_type %>')">이동</button>
+                          <% } else{ %>
+                            <button class="move-btn" onclick="location.href='/post/idea_detail?post_id=<%= noti.target_id %>'">이동</button>
+                              <% } %>
                         <button class="read-btn" onclick="markAsRead(this, '<%= noti.notification_id %>', '<%= noti.type %>')"
                           <%=noti.is_read ? 'disabled' : '' %>>읽음</button>
                         <button class="delete-btn" onclick="deleteNotification(this, '<%= noti.notification_id %>', '<%= noti.type %>')">삭제</button>
@@ -623,6 +628,7 @@
 
       <script src="https://js.tosspayments.com/v1"></script>
       <script src="/javascripts/mypage.js"></script>
+      <script src="/javascripts/mypageNotiChat.js"></script>
 </body>
 
 </html>
