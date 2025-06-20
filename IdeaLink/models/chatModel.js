@@ -286,7 +286,10 @@ exports.getRecentMessage = async (chatting_room_id) => {
         ORDER BY created_at DESC
         LIMIT 1`;
         const [rows] = await conn.promise().query(sql, [chatting_room_id]);
-        return rows[0].content ? rows[0].content : null;
+
+        if (!rows || rows.length === 0) return null;
+
+        return rows[0].content;
     } catch (err) {
         console.error('가장 최근 메시지 조회 실패:', err);
         return null;
@@ -294,3 +297,4 @@ exports.getRecentMessage = async (chatting_room_id) => {
         if (conn) conn.end();
     }
 };
+

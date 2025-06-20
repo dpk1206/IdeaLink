@@ -135,6 +135,7 @@ exports.insertPointLog = async function (user_id, type, amount, description) {
 };
 
 
+
 //  포인트 적립 함수
 exports.addPointToUser = async function (user_id, amount) {
   const conn = await dbconn.init();
@@ -208,11 +209,9 @@ exports.hasUserPurchased = async (user_id, post_id) => {
   await dbconn.connect(conn);
   try {
     const [rows] = await conn.promise().query(
-      `SELECT * FROM point_log 
-       WHERE user_id = ? 
-         AND type = 'use' 
-         AND description LIKE ?`,
-      [user_id, `%post_id: ${post_id}%`]
+      `SELECT * FROM post
+       WHERE post_id = ? AND buyer_id = ? AND status = '거래완료'`,
+      [post_id, user_id]
     );
     return rows.length > 0;
   } catch (err) {
@@ -222,6 +221,7 @@ exports.hasUserPurchased = async (user_id, post_id) => {
     await conn.end();
   }
 };
+
 
 // 사용자 ID로 사용자 정보 조회 함수
 exports.getUserById = async function (user_id) {

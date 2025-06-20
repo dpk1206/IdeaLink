@@ -101,3 +101,31 @@ exports.getAnswerById = async function (answer_id) {
     await conn.end();
   }
 };
+
+exports.getAnswersByPostId = async function (post_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `SELECT * FROM answer WHERE post_id = ? ORDER BY created_at ASC`;
+
+  try {
+    const [rows] = await conn.promise().query(sql, [post_id]);
+    return rows; // 전체 답변 리스트 반환
+  } catch (err) {
+    console.error("답글 목록 조회 오류:", err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+
+// 답글 상태 변경
+exports.updateAnswerModerationStatus = async (answer_id, status) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `UPDATE answer SET moderation_status = ? WHERE answer_id = ?`;
+  await conn.promise().query(sql, [status, answer_id]);
+
+  await conn.end();
+};

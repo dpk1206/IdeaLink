@@ -75,6 +75,12 @@ exports.renderMypage = async (req, res, next) => {
       }
     }
 
+    // 각 게시글에 moderation 로그 붙이기 (최근 1건만)
+    for (const post of myPosts) {
+      const logs = await postModel.getModerationLogsByTarget('post', post.post_id);
+      post.moderation_logs = logs.length > 0 ? [logs[0]] : [];
+    }
+
     res.render("mypage", {
       user: req.user,
       user_id,

@@ -24,13 +24,21 @@
 %>
 <!-- 전체 컨테이너 -->
 <main class="detail_container">
+  
   <!-- 왼쪽 광고 -->
   <aside class="ad_banner left_banner">
     <div class="ad_box">광고 영역 (좌)</div>
   </aside>
 
-    <main class="detail_wrap">
-      <div class="detail_card">
+  <main class="detail_wrap">
+    <% const isDisabled = postInfo.status === '비활성화'; %>
+
+    <% if (isDisabled) { %>
+      <div class="blur-message">🚫 현재 이 게시물은 비활성화되어 있어 열람이 제한됩니다.</div>
+    <% } %>
+
+  <div class="<%= isDisabled ? 'blur-overlay' : '' %>">
+    <div class="detail_card">
         <h1 id="idea_title">
           <button 
             id="bookmarkBtn"
@@ -144,20 +152,17 @@
 
           <!-- 구매 버튼 -->
           <% if (postInfo.status === '판매' && user && user.user_id !== postInfo.user_id) { %>
-            <button id="buyBtn">🛒 구매하기</button>
+            <button id="buyBtn" class="buy-btn">🛒 구매하기</button>
           <% } else if (postInfo.status === '거래완료') { %>
-            <div class="selected-answer-notice" style="color: black;">
-              <strong>
-              ✅ 거래가 완료된 게시물입니다.
-              </strong>
+            <div class="selected-answer-notice complete">
+              <strong>✅ 거래가 완료된 게시물입니다.</strong>
             </div>
           <% } else if (postInfo.status === '거래중') { %>
-            <div class="selected-answer-notice" style="background-color: #fff3cd; color: #856404; border-color: #ffc107;">
-              <strong>
-              ⏳ 현재 거래중인 게시물입니다.
-            </strong>
+            <div class="selected-answer-notice pending">
+              <strong>⏳ 현재 거래중인 게시물입니다.</strong>
             </div>
           <% } %>
+
 
 
 
@@ -239,9 +244,8 @@
           
         <div class="actions">
           <button id="like_btn">👍 좋아요 (<span id="like_count">0</span>)</button>
-          <button class="answer_action">💬 댓글</button>
           <button class="answer_btn">🗣️ 답글 작성</button>
-          <button id="report_btn">🚩 신고</button>
+          <button class="report-btn" data-type="post" data-id="<%= postInfo.post_id %>">🚩 신고</button>
         </div>
         <div class="comment_section">
           <h2>💬 댓글</h2>
@@ -267,10 +271,12 @@
           <textarea id="description" name="content" placeholder="답글 본문을 입력하세요" required></textarea>
         </div>
 
-        <div class="form_card">
-          <label for="price">제안 금액 (P)</label>
-          <input type="number" id="price" name="price" placeholder="판매 제안 금액을 입력하세요" required>
-        </div>
+        <% if (postInfo.status === '구매') { %>
+          <div class="form_card">
+            <label for="price">제안 금액(P)</label>
+            <input type="number" id="price" name="price" placeholder="판매 제안 금액을 입력하세요" required>
+          </div>
+        <% } %>
 
         <div class="form_card">
           <label>파일 유형 (중복 선택 가능)</label>
@@ -299,18 +305,22 @@
             const isSelected = String(postInfo.selected_answer_id) === String(answer.answer_id);
             const isDone = postInfo.status === '거래완료';
             const isProgress = postInfo.status === '거래중';
-          %>
-          <% if (isSelected && (isDone || isProgress)) { %>
+            %>
+          <% if (isSelected) { %>
+            <div class="selected-answer-notice">✅ 채택된 답변입니다</div>
+          <% } %>
+
+          <% if (isSelected && isDone) { %>
             <div class="selected-answer-notice" style="color: black;">
-              ✅ <strong>
-                <% if (isDone) { %>
-                  거래가 완료된 답변입니다.
-                <% } else { %>
-                  이 답변은 구매자가 거래 요청한 답변입니다.
-                <% } %>
-              </strong>
+              ✅ 거래가 완료된 답변입니다.
+            </div>
+          <% } else if (isSelected && isProgress) { %>
+            <div class="selected-answer-notice" style="color: black;">
+              ✅ 이 답변은 구매자가 거래 요청한 답변입니다.
             </div>
           <% } %>
+
+
 
             <h1 id="answer_title">Ⓐ <%= answer.title %>
             <!-- FIXME 답글 채팅 버튼 -->
@@ -360,12 +370,8 @@
               </section>
               <% } %>
               <!-- 답글 첨부파일 end -->
-              <div class="actions">
-                <button class="answer_action">💬 댓글</button>
-                <button id="report_btn">🚩 신고</button>
-                <button class="answer_action">👍 채택</button>
 
-                <!-- 답글 구매 버튼 조건 -->
+                              <!-- 답글 구매 버튼 조건 -->
               <% if (
                 postInfo.status === '구매' &&
                 user &&
@@ -385,12 +391,36 @@
 
                 </form>
               <% } %>
+
+              <div class="actions">
+                <button class="report-btn" data-type="answer" data-id="<%= answer.answer_id %>">🚩 신고</button>
+                <% if (user && user.user_type === 'admin' && !postInfo.selected_answer_id) { %>
+                  <button class="answer_action" onclick="selectAnswer('<%= answer.answer_id %>')">👍 채택</button>
+                <% } %>
+              </div>
+
               </div>
 
           </div>
         <% }); %>
       <% } %>
       <!-- 답글 있으면 형성 end -->
+    
+      <!-- 🚩 신고 모달 -->
+      <div id="reportModal" class="modal" style="display:none;">
+        <div class="modal-content">
+          <h3>🚩 신고하기</h3>
+          <p style="margin-top:10px;">신고 사유를 입력하세요:</p>
+          <textarea id="reportReason" rows="4" style="width:100%;"></textarea>
+          <input type="hidden" id="reportPostId" />
+          <input type="hidden" id="reportAnswerId" />
+          <div style="margin-top: 15px; text-align: right;">
+            <button id="cancelReportBtn">취소</button>
+            <button id="submitReportBtn">신고 제출</button>
+          </div>
+        </div>
+      </div>
+
 
     </main>
     <!-- 메인 섹션 랩 end -->

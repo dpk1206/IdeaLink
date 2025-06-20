@@ -10,6 +10,7 @@ const authMiddleware = require('./middleware/authMiddleware');
 const chatSocketController = require('./sockets/chatSocket');
 const notiSocketController = require('./sockets/notificationSocket');
 const adminRouter = require('./routes/admin');
+const reportRouter = require('./routes/report');
 
 // DB 연결(모든 요청에 DB연결? 필요시 주석 해제 하삼)
 // const db_config = require('./config/dbconn');
@@ -51,7 +52,7 @@ app.use('/users', usersRouter); // /users/~~ 요청은 users.js 라우터파일 
 app.use('/post', postRouter); 
 app.use("/payment", paymentRouter); // 결제 관련 라우터 연결
 app.use("/chat", chatRouter); // 결제 관련 라우터 연결
-
+app.use('/report', reportRouter); // 신고 관련 라우터 연결
 // 관리자 페이지 라우터 연결
 app.use('/admin', adminRouter);
 

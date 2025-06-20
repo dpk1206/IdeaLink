@@ -7,6 +7,7 @@ const postController = require("../controllers/postController");
 const commentController = require("../controllers/commentController");
 const requireLogin = require("../middleware/requireLogin");
 const authMiddleware = require("../middleware/authMiddleware");
+const adminController = require("../controllers/adminController");
 
 // Multer 셋팅
 const storage = multer.diskStorage({
@@ -86,6 +87,8 @@ router.delete("/delete_comment", requireLogin, commentController.removeComment);
 router.post("/like", requireLogin, postController.likePost);
 // 추천 여부 확인
 router.get("/like_status", requireLogin, postController.getLikeStatus);
+
+
 //인기,최신 게시글
 router.get("/recent_posts", postController.getRecentPosts);
 router.get("/popular_posts", postController.getPopularPosts);

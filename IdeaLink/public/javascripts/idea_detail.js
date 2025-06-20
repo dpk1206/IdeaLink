@@ -161,12 +161,36 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("추천 처리 중 오류가 발생했습니다.");
     }
   });
-
-  // 신고 버튼
-  document.getElementById("report_btn").addEventListener("click", () => {
+// 신고 버튼 클릭
+document.querySelectorAll(".report-btn").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const type = btn.dataset.type;  // 'post' 또는 'answer'
+    const id = btn.dataset.id;
     const reason = prompt("신고 사유를 입력하세요:");
-    if (reason) alert("신고가 접수되었습니다.");
+
+    if (!reason) return;
+
+    const body = {
+      reason,
+      post_id: type === "post" ? id : null,
+      answer_id: type === "answer" ? id : null,
+    };
+
+    try {
+      const res = await fetch("/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      alert(data.message || "신고가 접수되었습니다.");
+    } catch (err) {
+      alert("신고 처리 중 오류가 발생했습니다.");
+    }
   });
+});
+
 
   // 답변 작성 토글
   document.querySelectorAll(".answer_btn").forEach(btn => {
@@ -246,6 +270,41 @@ function chatBtn(user_id, writer_id, post_id, type) {
   // 5. 폼 제거(클린업)
   document.body.removeChild(form);
 }
+
+// 관리자 답글 채택 + 포인트 지급
+async function selectAnswer(answerId) {
+  const confirmResult = confirm("이 답글을 채택하고 포인트를 지급하시겠습니까?");
+  if (!confirmResult) return;
+
+  const point = prompt("지급할 포인트를 입력하세요", "100");
+  if (!point || isNaN(point) || Number(point) <= 0) {
+    alert("올바른 포인트를 입력하세요.");
+    return;
+  }
+
+  const postId = new URLSearchParams(window.location.search).get("post_id");
+
+  const res = await fetch(`/admin/select_answer`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      post_id: postId,
+      answer_id: answerId,
+      reward_point: Number(point)
+    })
+  });
+
+  const result = await res.json();
+  if (result.success) {
+    alert("채택 및 포인트 지급이 완료되었습니다.");
+    location.reload();
+  } else {
+    alert(result.message || "채택에 실패했습니다.");
+  }
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const buyBtn = document.getElementById("buyBtn");
@@ -328,7 +387,7 @@ document.addEventListener("DOMContentLoaded", () => {
       handlePurchase(post_id, null, defaultPrice ? parseInt(defaultPrice) : null);
     });
   }
-  
+
   // 📌 답글용 구매 버튼들
 document.querySelectorAll('.buy_answer_btn').forEach(btn => {
   btn.addEventListener('click', async (e) => {

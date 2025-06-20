@@ -407,6 +407,45 @@ button[type='submit']:hover {
   width: 90%;
   text-align: center;
 }
+.buy_answer_btn {
+  background: #e3f2fd;         /* 연한 하늘색 배경 */
+  color: #0d47a1;              /* 진한 블루 텍스트 */
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.buy_answer_btn:hover {
+  background: #bbdefb;         /* 호버 시 약간 진한 하늘색 */
+}
+
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.buy-btn {
+  background-color: #e3f2fd;   /* 연한 하늘색 */
+  color: #0d47a1;              /* 진한 파랑 글씨 */
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.buy-btn:hover {
+  background-color: #bbdefb;   /* 호버 시 살짝 진한 하늘색 */
+}
 
 .selected-answer-notice {
   background-color: #e0f7e9;
@@ -417,6 +456,49 @@ button[type='submit']:hover {
   margin-bottom: 12px;
   border-radius: 4px;
 }
+
+
+.selected-answer-notice.complete {
+  background-color: #e3f2fd;  /* 연한 하늘색 */
+  color: #0d47a1;             /* 진한 파랑 */
+  border-color: #0d47a1;
+}
+
+.selected-answer-notice.pending {
+  background-color: #fff8e1;  /* 기존 유지 – 경고 느낌 */
+  color: #a67c00;
+  border-color: #ffc107;
+}
+
+.blur-overlay {
+  position: relative;
+  opacity: 0.4;
+  pointer-events: none;
+  user-select: none;
+  transform: scale(1);  /* 깨지지 않게 보정 */
+  filter: blur(4px) grayscale(30%) brightness(90%);
+}
+
+.blur-message {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  background: rgba(255,255,255,0.95);
+  padding: 30px 40px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+
+
+
 
 /* 전체 레이아웃 컨테이너 */
 .detail_container {
@@ -452,3 +534,4 @@ button[type='submit']:hover {
   color: #2d3436;
   text-align: center;
 }
+

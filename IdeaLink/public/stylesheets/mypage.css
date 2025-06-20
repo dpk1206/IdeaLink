@@ -10,6 +10,7 @@ body {
 
 .mypage-container {
   flex: 1; /* 전체 영역을 채우도록 */
+  margin-top: 65px;
 }
 
 body {
@@ -316,6 +317,24 @@ form button {
   background: skyblue;
   border-bottom: 2px solid #007bff;
   color: #007bff;
+}
+
+.hidden-post-row {
+  background-color: #f8d7da; /* 연한 빨강/핑크 배경 */
+  color: #721c24; /* 진한 빨강 글씨 */
+  font-weight: bold;
+}
+.duplicate-post-row {
+  background-color: #fff7cc; /* 연노랑 */
+  color: #333;
+}
+.hidden-badge {
+  background-color: #721c24;
+  color: white;
+  font-size: 0.8em;
+  padding: 2px 6px;
+  margin-left: 8px;
+  border-radius: 4px;
 }
 
 /* 회원정보 수정 */

@@ -54,12 +54,12 @@ exports.insertPost = async function ({
 };
 
 // post_id로 게시물 1개 조회
-exports.selectOnePost = async function (post_id) {
+exports.selectOnePost = async function (post_id, user_type, user_id) {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
-  const sql = `
-      SELECT 
+  let sql = `
+    SELECT 
       p.*,
       u.nick_name,
       cs.name AS sub_name,
@@ -81,10 +81,16 @@ exports.selectOnePost = async function (post_id) {
     WHERE 
       p.post_id = ?
   `;
+  const values = [post_id];
+
+  // 관리자 외 유저는 숨김글 접근 제한 (본인 글만 예외)
+  if (user_type !== 'admin') {
+    sql += " AND (p.status != '숨김' OR p.user_id = ?)";
+    values.push(user_id);
+  }
 
   try {
-    const [rows] = await conn.promise().query(sql, [post_id]);
-    console.log("select 결과:", rows);
+    const [rows] = await conn.promise().query(sql, values);
     return rows.length > 0 ? rows[0] : null;
   } catch (err) {
     console.error("게시글 조회 오류:", err);
@@ -95,59 +101,57 @@ exports.selectOnePost = async function (post_id) {
 };
 
 
+
 // 게시글 가져오기
-exports.getPosts = async (limit, offset) => {
+exports.getPosts = async (limit, offset, user_type) => {
   console.log("getPosts 호출");
   const conn = await dbconn.init();
+  await dbconn.connect(conn);
 
-  try {
-    await dbconn.connect(conn); // DB 연결
-    const sql =
-      "SELECT post_id, title, user_id, status, price, created_at FROM post ORDER BY created_at DESC LIMIT ? OFFSET ?";
-    return await new Promise((resolve, reject) => {
-      conn.query(sql, [limit, offset], (err, results) => {
-        if (err) {
-          console.error("Error occurred while fetching posts:", err); // 오류 로그 출력
-          return reject(err); // 오류를 reject로 전달
-        }
-        console.log("Fetched posts:", results); // 쿼리 결과 확인
-        resolve(results); // 결과 반환
-      });
-    });
-  } catch (err) {
-    console.error("Database connection error:", err);
-    throw err; // DB 연결 에러 발생 시 throw
-  } finally {
-    // DB 연결 종료
-    conn.end();
+  let sql = `
+    SELECT post_id, title, user_id, status, price, created_at
+    FROM post
+    WHERE 1=1
+  `;
+
+  const values = [];
+
+  if (user_type !== 'admin') {
+    sql += " AND status != '숨김'";
   }
+
+  sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+  values.push(limit, offset);
+
+  return await new Promise((resolve, reject) => {
+    conn.query(sql, values, (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
 };
+
 
 // 게시글 개수 가져오기
-exports.getPostCount = async () => {
+exports.getPostCount = async (user_type) => {
   const conn = await dbconn.init();
+  await dbconn.connect(conn);
 
-  try {
-    await dbconn.connect(conn); // DB 연결
-    const sql = "SELECT COUNT(*) AS total FROM post";
-    return await new Promise((resolve, reject) => {
-      conn.query(sql, (err, results) => {
-        if (err) {
-          console.error("Error occurred while fetching post count:", err); // 오류 로그 출력
-          return reject(err); // 오류를 reject로 전달
-        }
-        console.log("Total posts count:", results[0].total); // 총 게시글 개수 확인
-        resolve(results[0].total); // 총 개수 반환
-      });
-    });
-  } catch (err) {
-    console.error("Database connection error:", err);
-    throw err; // DB 연결 에러 발생 시 throw
-  } finally {
-    // DB 연결 종료
-    conn.end();
+  let sql = "SELECT COUNT(*) AS total FROM post WHERE 1=1";
+  const values = [];
+
+  if (user_type !== 'admin') {
+    sql += " AND status != '숨김'";
   }
+
+  return await new Promise((resolve, reject) => {
+    conn.query(sql, values, (err, results) => {
+      if (err) return reject(err);
+      resolve(results[0].total);
+    });
+  });
 };
+
 
 // ✅ 조건에 맞는 게시글 목록 가져오기
 exports.getFilteredPosts = async ({
@@ -160,25 +164,33 @@ exports.getFilteredPosts = async ({
   sort_type,
   limit,
   offset,
+  user_type,
+  user_id, // ← 일반 유저일 경우 본인 글 예외 허용
 }) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
   let sql = `
-  SELECT DISTINCT 
-    p.*, 
-    cs.name AS sub_name, 
-    cm.name AS main_name, 
-    u.nick_name,
-    (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.post_id) AS like_count
-  FROM post p
-  JOIN category_sub cs ON p.category_id = cs.sub_id
-  JOIN category_main cm ON cs.main_id = cm.main_id
-  LEFT JOIN post_file pf ON p.post_id = pf.post_id
-  JOIN user u ON p.user_id = u.user_id
-  WHERE 1=1
-`;
+    SELECT DISTINCT 
+      p.*, 
+      cs.name AS sub_name, 
+      cm.name AS main_name, 
+      u.nick_name,
+      (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.post_id) AS like_count
+    FROM post p
+    JOIN category_sub cs ON p.category_id = cs.sub_id
+    JOIN category_main cm ON cs.main_id = cm.main_id
+    LEFT JOIN post_file pf ON p.post_id = pf.post_id
+    JOIN user u ON p.user_id = u.user_id
+    WHERE 1=1
+  `;
   const values = [];
+
+  // 👉 숨김 상태 필터링 (관리자는 제외)
+  if (user_type !== 'admin') {
+    sql += " AND (p.status != '숨김' OR p.user_id = ?)";
+    values.push(user_id);
+  }
 
   if (sub_id) {
     sql += " AND cs.sub_id = ?";
@@ -207,12 +219,9 @@ exports.getFilteredPosts = async ({
     values.push(`%${keyword}%`);
   }
 
-  // 정렬 기준 분기 처리
-  if (sort_type === "popular") {
-    sql += " ORDER BY p.view_count DESC";
-  } else {
-    sql += " ORDER BY p.created_at DESC"; // 기본값: 최신순
-  }
+  sql += sort_type === "popular" 
+    ? " ORDER BY p.view_count DESC"
+    : " ORDER BY p.created_at DESC";
 
   sql += " LIMIT ? OFFSET ?";
   values.push(limit, offset);
@@ -230,6 +239,8 @@ exports.getFilteredPostCount = async ({
   status,
   keyword,
   search_type,
+  user_type,
+  user_id,
 }) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
@@ -244,6 +255,11 @@ exports.getFilteredPostCount = async ({
     WHERE 1=1
   `;
   const values = [];
+
+  if (user_type !== 'admin') {
+    sql += " AND (p.status != '숨김' OR p.user_id = ?)";
+    values.push(user_id);
+  }
 
   if (sub_id) {
     sql += " AND cs.sub_id = ?";
@@ -276,6 +292,7 @@ exports.getFilteredPostCount = async ({
   await conn.end();
   return rows[0]?.total ?? 0;
 };
+
 
 // 대분류 카테고리 매핑 가져오기
 exports.getMainCategoryMap = async () => {
@@ -411,14 +428,15 @@ exports.insertPurchaseLog = async (user_id, post_id, price) => {
     await conn.end();
   }
 };
-//상태변경함수
+
+// 상태변경함수 + updated_at 동시 갱신
 exports.updatePostStatus = async (post_id, status) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
   try {
     await conn.promise().query(
-      "UPDATE post SET status = ? WHERE post_id = ?",
+      "UPDATE post SET status = ?, updated_at = NOW() WHERE post_id = ?",
       [status, post_id]
     );
   } catch (err) {
@@ -428,6 +446,7 @@ exports.updatePostStatus = async (post_id, status) => {
     await conn.end();
   }
 };
+
 
 // 거래 요청한 구매자 정보 저장
 exports.setBuyer = async (post_id, buyer_id) => {
@@ -605,14 +624,15 @@ async function markAnswerPending(post_id, buyer_id, answer_id) {
 }
 exports.markAnswerPending = markAnswerPending;
 
-// 답글 기반 게시글 거래를 '거래완료'로 상태 변경
+// 답글 기반 게시글 거래를 '거래완료'로 상태 변경하면서 updated_at도 갱신
 async function markAnswerDealComplete(post_id) {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
   const sql = `
     UPDATE post
-    SET status = '거래완료'
+    SET status = '거래완료',
+        updated_at = NOW()
     WHERE post_id = ?
   `;
 
@@ -626,6 +646,7 @@ async function markAnswerDealComplete(post_id) {
   }
 }
 exports.markAnswerDealComplete = markAnswerDealComplete;
+
 
 // post_id로 게시글 전체 정보 조회 (관리용 or 상태 확인용 등에서 사용 가능)
 exports.getPostById = async function(post_id) {
@@ -811,4 +832,77 @@ exports.markPurchaseRequestAccepted = async (answer_id) => {
   }
 };
 
+// 답글 채택 (관리자 보상용)
+exports.markAnswerAsSelected = async (post_id, answer_id) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  try {
+    // selected_answer_id만 등록 (게시글 상태 변경 ❌)
+    const updatePost = `
+      UPDATE post
+      SET selected_answer_id = ?
+      WHERE post_id = ?
+    `;
+    await conn.promise().query(updatePost, [answer_id, post_id]);
+
+    // 다른 답변 미채택으로 초기화
+    const resetOthers = `
+      UPDATE answer
+      SET status = '미채택'
+      WHERE post_id = ? AND answer_id != ?
+    `;
+    await conn.promise().query(resetOthers, [post_id, answer_id]);
+
+    // 선택된 답변 채택 처리
+    const markSelected = `
+      UPDATE answer
+      SET status = '채택됨'
+      WHERE answer_id = ?
+    `;
+    await conn.promise().query(markSelected, [answer_id]);
+
+    await conn.end();
+    return true;
+  } catch (err) {
+    console.error("markAnswerAsSelected error:", err);
+    await conn.end();
+    return false;
+  }
+};
+
+// 관리자가 상태변경에 따른 사유 moderation_logs 테이블에 로그 삽입
+exports.insertModerationLog = async function({ target_type, target_id, status, reason, admin_id }) {
+  const conn = await dbconn.init();
+  await conn.connect();
+
+  const sql = `
+    INSERT INTO moderation_logs (target_type, target_id, status, reason, admin_id)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  try {
+    const [result] = await conn.promise().query(sql, [target_type, target_id, status, reason, admin_id]);
+    return result.insertId;
+  } catch (err) {
+    console.error('Moderation 로그 삽입 오류:', err);
+    throw err;
+  } finally {
+    await conn.end();
+  }
+};
+// 상태에 따른 사유 보기
+exports.getModerationLogsByTarget = async (target_type, target_id) => {
+  const conn = await dbconn.init();
+  await conn.connect();
+  const sql = `
+    SELECT reason, status, created_at
+    FROM moderation_logs
+    WHERE target_type = ? AND target_id = ?
+    ORDER BY created_at DESC
+  `;
+  const [rows] = await conn.promise().query(sql, [target_type, target_id]);
+  await conn.end();
+  return rows;
+};
 

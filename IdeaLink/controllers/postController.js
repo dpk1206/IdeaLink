@@ -102,7 +102,7 @@ exports.ideaDetail = async (req, res, next) => {
     }
 
     // 2. 게시글 및 첨부파일 조회
-    const post = await postModel.selectOnePost(post_id); // ✅ 객체 하나로 받음
+     const post = await postModel.selectOnePost(post_id, req.user?.user_type, req.user?.user_id);
     const files = await postFileModel.selectDetailFile(post_id, "post");
 
     if (!post) {
@@ -111,19 +111,21 @@ exports.ideaDetail = async (req, res, next) => {
       return next(err);
     }
 
-    // 3. 거래완료된 글 열람 권한 확인
-    if (post.status === '거래완료') {
-      const currentUserId = req.user?.user_id;
-      const isSeller = currentUserId === post.user_id;
-      const isBuyer = await userModel.hasUserPurchased(currentUserId, post_id);
-      const isAnswerOwner = currentUserId === post.selected_answer_user_id;
+ // 3. 거래완료된 글 열람 권한 확인
+  if (post.status === '거래완료') {
+    const currentUserId = req.user?.user_id;
+    const isAdmin = req.user?.user_type === 'admin'; // ✅ 관리자 여부 확인
+    const isSeller = currentUserId === post.user_id;
+    const isBuyer = await userModel.hasUserPurchased(currentUserId, post_id);
+    const isAnswerOwner = currentUserId === post.selected_answer_user_id;
 
-      if (!isSeller && !isBuyer && !isAnswerOwner) {
-        return res.status(403).render("access_denied", {
-          message: "이 게시물은 거래가 완료되어 열람할 수 없습니다.",
-        });
-      }
+    if (!isAdmin && !isSeller && !isBuyer && !isAnswerOwner) {
+      return res.status(403).render("access_denied", {
+        message: "이 게시물은 거래가 완료되어 열람할 수 없습니다.",
+      });
     }
+  }
+
     // 4. 조회 로그 기록
     const clientIp = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     await postlogModel.createLog({
@@ -151,6 +153,8 @@ exports.ideaDetail = async (req, res, next) => {
       user = { ...user, ...pointRow };
     }
 
+    post.answers = answerInfo || [];
+    
     // 7. 최종 렌더링
     res.render("idea_detail", {
       postInfo: post,
@@ -732,4 +736,25 @@ exports.rejectAnswerPurchase = async (req, res) => {
     return res.status(500).json({ success: false, message: "서버 오류" });
   }
 };
+// 관리자 - 게시글 상태 변경 및 사유 기록
+exports.changeStatus = async (req, res, next) => {
+   console.log('📥 상태 변경 요청 body:', req.body); // 👈 이거 추가
+  const { target_type, target_id, status, reason } = req.body;
+  const admin_id = req.user.user_id;
 
+  try {
+    if (target_type === 'post') {
+      await postModel.updatePostStatus(target_id, status);
+    } else if (target_type === 'answer') {
+      await postModel.updateAnswerModerationStatus(target_id, status);
+    } else {
+      return res.status(400).json({ success: false, message: '잘못된 대상 유형' });
+    }
+
+    await postModel.insertModerationLog({ target_type, target_id, status, reason, admin_id });
+
+    res.json({ success: true, message: '상태 변경 및 로그 저장 완료' });
+  } catch (err) {
+    next(err);
+  }
+};

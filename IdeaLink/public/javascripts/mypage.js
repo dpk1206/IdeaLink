@@ -55,6 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+
   // ===== 💳 포인트 충전 기능 =====
   const tossPayments = TossPayments("test_ck_Z1aOwX7K8mOBXbPzKEKqVyQxzvNP");
   const payForm = document.getElementById("payForm");
@@ -222,5 +223,17 @@ async function deleteNotification(btn, notification_id, type) {
     }
   } catch (error) {
     alert('에러 발생: ' + error);
+  }
+}
+
+function showReasonModal(reason, status) {
+  const modal = document.getElementById("reasonModal");
+  const reasonText = document.getElementById("reasonText");
+  const reasonStatus = document.getElementById("reasonStatus");
+
+  if (modal && reasonText && reasonStatus) {
+    reasonText.textContent = reason || "사유 없음";
+    reasonStatus.textContent = status || "-";
+    modal.style.display = "flex";
   }
 }

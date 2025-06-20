@@ -1,6 +1,10 @@
 var express = require('express');
 var router = express.Router();
 const postRouter = require('./post');  // postRouter.js 파일 불러오기
+const adminController = require('../controllers/adminController'); // 컨트롤러 import 상단에 추가
+
+// 공지사항 JSON API
+router.get('/api/notice', adminController.getNotices);  // ✅ 이 줄 추가
 
 // 메인페이지
 router.get('/', function(req, res, next) {
@@ -31,7 +35,7 @@ router.get('/faq', function(req, res, next) {
 router.get('/notice', function(req, res, next) {
   res.render('notice');
 });
-
+router.get('/api/notice', adminController.getNotices);
 // 어드민 - 일단 그냥 연결 추후 접근제한 필요(users로 따로 뺄까?)
 router.get('/admin', function(req, res, next) {
   res.render('admin');
