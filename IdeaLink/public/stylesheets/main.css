@@ -74,6 +74,10 @@ body{
 }
 
 /* 4-B. SECTION 2 · 오늘의 인기 아이디어 ------------------------------- */
+.popular-section{
+ height: 100vh;
+}
+
 .grid-2col{
   display:flex;
   flex-wrap:wrap;

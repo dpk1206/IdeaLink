@@ -9,8 +9,10 @@ body {
 }
 
 .mypage-container {
-  flex: 1; /* 전체 영역을 채우도록 */
-  margin-top: 65px;
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 60px); /* 상단 padding-top 고려 */
+  overflow: hidden;
 }
 
 body {
@@ -59,9 +61,10 @@ body {
 }
 
 .mypage-content-area {
+  background: #f9f9f9;
   flex-grow: 1;
   padding: 30px;
-  background: #f9f9f9;
+  overflow-y: hidden;
 }
 
 .mypage-section {
@@ -208,11 +211,19 @@ form button {
   padding: 10px 0;
 }
 
+.alert-list,
+.chat-room-list {
+  height: 100%;
+  overflow-y: auto;
+}
+
 .alert-list {
   list-style: none;
   margin: 0;
   padding: 0;
   width: 50%;
+    max-height: 700px;
+  overflow-y: auto;
 }
 
 .alert-list li {
@@ -362,36 +373,85 @@ form button {
   flex: 1;
 }
 
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .table-card {
+    max-width: 700px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .table-card {
+    max-width: 800px;
+  }
+}
+
 @media (max-width: 768px) {
-  .mypage-container {
-    flex-direction: column;
+  .footer {
+    display: none;
+  }
+
+  .mobile-bottom-nav {
+    height: 60px;
+    padding: 6px 0;
+    display: flex;
+    justify-content: space-around;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #34495e;
+    z-index: 999;
+  }
+
+  .mobile-bottom-nav button {
+    flex: 1;
+    border: none;
+    background: none;
+    color: white;
+    font-size: 20px;
+    padding: 10px 0;
   }
 
   .mypage-sidebar {
-    flex-direction: row;
-    overflow-x: auto;
-    width: 100%;
+    display: none !important;
   }
 
-  .mypage-sidebar button {
-    flex: 1;
-    font-size: 13px;
-    text-align: center;
+  .mypage-content-area {
+    padding-bottom: 80px; /* 푸터 제거하더라도 안전하게 여백 확보 */
+  }
+}
+
+/* === 카드형 리스트 스타일 (모바일용) === */
+@media (max-width: 768px) {
+  .mypage-table {
+    display: none;
   }
 
-  .chat-container {
-    flex-direction: column;
-    height: auto;
+.table-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  margin-bottom: 16px;
+  padding: 16px;
+  font-size: 14px;
+}
+
+.table-card .label {
+  font-weight: bold;
+  color: #2c3e50;
+  margin-right: 6px;
+}
+
+  .table-card .status-done {
+    color: #27ae60;
+    font-weight: bold;
   }
 
-  .chat-room-list {
-    border-bottom: 1px solid #ccc;
-    border-right: none;
-    max-height: 200px;
-    width: 100%;
-  }
-
-  .chat-box {
-    flex: none;
+  .table-card .status-sale {
+    color: #2980b9;
+    font-weight: bold;
   }
 }

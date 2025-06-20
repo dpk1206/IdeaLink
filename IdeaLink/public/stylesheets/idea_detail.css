@@ -535,3 +535,8 @@ button[type='submit']:hover {
   text-align: center;
 }
 
+@media (max-width: 768px) {
+  .ad_banner {
+    display: none;
+  }
+}

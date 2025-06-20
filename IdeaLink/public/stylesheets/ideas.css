@@ -378,6 +378,15 @@ footer {
   padding: 16px;
 }
 
+@media (max-width: 1400px) {
+  .ad_banner{
+    display: none;
+  }
+  .sidebar{
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 0 12px;
