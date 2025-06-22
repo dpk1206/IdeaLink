@@ -69,6 +69,8 @@ body {
 
 .mypage-section {
   margin-bottom: 60px;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .mypage-table {
@@ -162,7 +164,6 @@ form button {
 .chat-room-list {
   background: #f9f9f9;
   border-left: 1px solid #ccc;
-  max-height: 400px;
   overflow-y: auto;
   padding-left: 20px;
   width: 50%;
@@ -222,7 +223,6 @@ form button {
   margin: 0;
   padding: 0;
   width: 50%;
-    max-height: 700px;
   overflow-y: auto;
 }
 

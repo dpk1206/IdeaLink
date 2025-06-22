@@ -1,13 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     const chatBox = document.getElementById('chatMessages');
     const unreadMark = document.querySelector('.unread-mark');
-    requestAnimationFrame(() => {
-        if (unreadMark) {
-            chatBox.scrollTop = unreadMark.offsetTop - 50;
-        } else {
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-    });
+    setTimeout(() => {
+        requestAnimationFrame(() => {
+            if (unreadMark) {
+                chatBox.scrollTop = unreadMark.offsetTop - 50;
+            } else {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        });
+    }, 200);
 });
 
 // 채팅용 소켓 연결
@@ -95,8 +97,8 @@ chatSocket.on('message', function (msg) {
 
     // 메시지 및 파일 HTML 조합
     div.innerHTML = `
-        ${msg.content || ''}
         ${fileHtml}
+        ${msg.content || ''}
         ${statusHtml}
         <br><small>${new Date(msg.created_at || Date.now()).toLocaleString()}</small>
     `;
@@ -112,7 +114,9 @@ chatSocket.on('message', function (msg) {
     }
 
     // 메시지 수신 시 항상 맨 아래로
-    chatBox.scrollTop = chatBox.scrollHeight;
+    setTimeout(() => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }, 100);
 });
 
 
@@ -148,8 +152,6 @@ form.addEventListener('submit', function (e) {
                 input.value = '';
                 fileInput.value = '';
                 filePreview.innerHTML = '';
-                // 채팅창 스크롤 맨 아래로
-                chatBox.scrollTop = chatBox.scrollHeight;
             }
         });
     } else {
@@ -162,7 +164,6 @@ form.addEventListener('submit', function (e) {
         });
         input.value = '';
         filePreview.innerHTML = '';
-        chatBox.scrollTop = chatBox.scrollHeight;
     }
 });
 
