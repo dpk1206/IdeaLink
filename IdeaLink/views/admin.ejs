@@ -74,15 +74,16 @@
           <div class="answer-list" style="margin-top: 10px; padding-left: 15px;">
             <strong>💬 답글 목록:</strong>
             <% post.answers.forEach(ans => { 
-                const isSelected = post.selected_answer_id === ans.answer_id;
+              const isSelected = post.selected_answer_id === ans.answer_id;
+              const isAdopted = ans.status === '채택됨';
             %>
-              <div class="answer-box <%= isSelected ? 'selected-answer' : '' %>" style="border: 1px solid #eee; padding: 8px; margin-bottom: 5px;">
+              <div class="answer-box <%= isAdopted ? 'selected-answer' : '' %>" style="border: 1px solid #eee; padding: 8px; margin-bottom: 5px;">
                 <p>
                   <strong><%= ans.nick_name %></strong>
                   <% if (post.status === '구매') { %>
                     (<%= 'P: ' + (ans.price ? ans.price.toLocaleString() : '-') %>)
                   <% } %>
-                  <% if (isSelected) { %>
+                  <% if (isAdopted) { %>
                     <span class="selected-badge">✅ 채택됨</span>
                   <% } %>
                 </p>
@@ -91,7 +92,7 @@
 
                 <!-- ✅ 답글 상태 변경 select -->
                 <label>답글 상태 변경:</label>
-               <select onchange="event.stopPropagation(); openStatusModal('<%= ans.answer_id %>', this.value, 'answer', this)">
+               <select onchange="event.stopPropagation(); handleStatusChange(event, '<%= ans.answer_id %>', this.value, 'answer', this)">
 
                   <% ['정상','숨김','중복','삭제','검토중','신고누적','비활성화'].forEach(st => { %>
                     <option value="<%= st %>" <%= ans.moderation_status === st ? 'selected' : '' %>><%= st %></option>
@@ -107,43 +108,59 @@
     <% }) %>
           </section>
 
-      <!-- 건의사항 -->
-      <section id="suggestions" class="admin-section">
-        <h2>💬 건의사항 관리</h2>
-        <div class="filter-area">
-          <input type="text" id="searchUser" placeholder="사용자 ID" />
-          <input type="date" id="searchDate" />
-          <select id="filterCategory">
-            <option value="">전체</option>
-            <option value="오류">오류</option>
-            <option value="제안">제안</option>
-            <option value="기타">기타</option>
-          </select>
-          <button onclick="applySuggestionFilter()">검색</button>
-        </div>
-        <table class="styled-table">
-          <thead><tr><th>사용자</th><th>내용</th><th>날짜</th><th>상태</th><th>답변</th></tr></thead>
-          <tbody>
-            <tr class="suggestion-row" data-userid="user123" data-date="2025-04-01" data-category="제안">
-              <td>user123</td>
-              <td>로그인 문제</td>
-              <td>2025-04-01</td>
-              <td class="status-cell status-wait">답변 대기</td>
-              <td>
-                <button onclick="openAnswerForm(this)">답변</button>
-                <div class="answer-box" style="display:none;">
-                  <textarea></textarea>
-                  <button onclick="submitAnswer(this)">저장</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+     <!-- 건의사항 -->
+<section id="suggestions" class="admin-section">
+  <h2>💬 건의사항 관리</h2>
+
+  <div class="filter-area">
+    <input type="text" id="searchUser" placeholder="사용자 ID" />
+    <input type="date" id="searchDate" />
+    <select id="filterCategory">
+      <option value="">전체</option>
+      <option value="오류">오류</option>
+      <option value="제안">제안</option>
+      <option value="기타">기타</option>
+    </select>
+    <button onclick="applySuggestionFilter()">검색</button>
+  </div>
+
+  <table class="styled-table">
+    <thead>
+      <tr><th>사용자</th><th>내용</th><th>날짜</th><th>상태</th><th>답변</th></tr>
+    </thead>
+    <tbody>
+      <% suggestions.forEach((sug, idx) => { %>
+        <tr class="suggestion-row" 
+            data-userid="<%= sug.nick_name %>" 
+            data-date="<%= sug.created_at.toISOString().split('T')[0] %>" 
+            data-category="<%= sug.category || '기타' %>">
+          <td><%= sug.nick_name %></td>
+          <td><%= sug.content %></td>
+          <td><%= sug.created_at.toISOString().split('T')[0] %></td>
+          <td class="status-cell <%= sug.reply_content ? 'status-complete' : 'status-wait' %>">
+            <%= sug.reply_content ? '답변 완료' : '답변 대기' %>
+          </td>
+          <td>
+            <% if (sug.reply_content) { %>
+              <div class="reply-box"><%= sug.reply_content %></div>
+            <% } else { %>
+              <button onclick="openAnswerForm(this, '<%= sug.suggestion_id %>')">답변</button>
+              <div class="answer-box" style="display:none;">
+                <textarea></textarea>
+                <button onclick="submitAnswer(this)">저장</button>
+              </div>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>
+
 
 <!-- 신고글 -->
 <section id="reports" class="admin-section" style="display:none;">
-  <h2>🚨 신고된 게시글 및 댓글</h2>
+  <h2>🚨 신고된 게시글/답글/댓글</h2>
   <table class="styled-table">
     <thead>
       <tr>
@@ -162,12 +179,22 @@
       <% reports.forEach(r => { %>
         <tr data-reportid="<%= r.report_id %>">
           <td><%= r.report_id %></td>
-          <td><%= r.post_id ? "게시글" : "댓글" %></td>
-          <td>
+          <td><%= r.post_id ? "게시글" : "답글" %></td>
+          <td>       
             <% if (r.post_id) { %>
-              <strong>[게시글]</strong> <%= r.post_title || "삭제된 글" %>
+              <strong>[게시글]</strong>
+              <a href="/post/idea_detail?post_id=<%= r.post_id %>" target="_blank">
+                <%= r.post_title || "삭제된 글" %>
+              </a>
+
+            <% } else if (typeof r.answer_post_id !== 'undefined' && r.answer_post_id !== null) { %>
+              <strong>[답글]</strong>
+              <a href="/post/idea_detail?post_id=<%= r.answer_post_id %>" target="_blank">
+                <%= r.answer_title || "삭제된 답글" %>
+              </a>
+
             <% } else { %>
-              <strong>[댓글]</strong> <%= r.answer_content || "삭제된 댓글" %>
+              <span>알 수 없음</span>
             <% } %>
           </td>
           <td><%= r.reporter_name %></td>
@@ -178,15 +205,6 @@
        <td>
   <% if (r.status === '대기') { %>
     <button onclick="openReplyModal('<%= r.report_id %>')">답변</button>
-
-    <% if (r.post_id) { %>
-      <button onclick="hidePost('<%= r.post_id %>')">게시글 숨기기</button>
-    <% } %>
-
-    <% if (r.answer_id) { %>
-      <button onclick="hideAnswer('<%= r.answer_id %>')">댓글 숨기기</button>
-    <% } %>
-
   <% } else { %>
     <span>✅ 완료</span>
   <% } %>
@@ -197,6 +215,7 @@
     </tbody>
   </table>
 </section>
+
 <!-- 답변 모달 -->
 <div id="replyModal" class="modal" style="display:none;">
   <div class="modal-content">

@@ -27,18 +27,25 @@ exports.insertReport = async ({ post_id, answer_id, reporter_id, reason }) => {
 };
 
 
-// 유저가 신고한 내역 조회 (마이페이지용)
+// 유저가 신고한 내역 조회 (관리자 마이페이지용)
 exports.getReportsByUser = async (reporter_id) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
-  const sql = `
-    SELECT r.*, p.title AS post_title, a.content AS answer_content
-    FROM report r
-    LEFT JOIN post p ON r.post_id = p.post_id
-    LEFT JOIN answer a ON r.answer_id = a.answer_id
-    WHERE r.reporter_id = ?
-    ORDER BY r.created_at DESC
+ const sql = `
+  SELECT 
+    r.*, 
+    p.title AS post_title,
+    a.title AS answer_title,        
+    a.content AS answer_content,
+    a.post_id AS answer_post_id,  
+    u.nick_name AS reporter_name
+  FROM report r
+  LEFT JOIN post p ON r.post_id = p.post_id
+  LEFT JOIN answer a ON r.answer_id = a.answer_id
+  LEFT JOIN user u ON r.reporter_id = u.user_id
+  WHERE r.reporter_id = ?
+  ORDER BY r.created_at DESC
   `;
   const [rows] = await conn.promise().query(sql, [reporter_id]);
   await conn.end();
@@ -51,13 +58,20 @@ exports.getAllReports = async () => {
   await dbconn.connect(conn);
 
   const sql = `
-    SELECT r.*, u.nick_name AS reporter_name, p.title AS post_title, a.content AS answer_content
-    FROM report r
-    JOIN user u ON r.reporter_id = u.user_id
-    LEFT JOIN post p ON r.post_id = p.post_id
-    LEFT JOIN answer a ON r.answer_id = a.answer_id
-    ORDER BY r.created_at DESC
-  `;
+  SELECT 
+    r.*, 
+    u.nick_name AS reporter_name,
+    p.title AS post_title,
+    a.title AS answer_title,   
+    a.content AS answer_content,
+    a.post_id AS answer_post_id 
+  FROM report r
+  JOIN user u ON r.reporter_id = u.user_id
+  LEFT JOIN post p ON r.post_id = p.post_id
+  LEFT JOIN answer a ON r.answer_id = a.answer_id
+  ORDER BY r.created_at DESC
+`;
+
   const [rows] = await conn.promise().query(sql);
   await conn.end();
   return rows;
@@ -77,4 +91,23 @@ exports.replyToReport = async (report_id, reply) => {
   await conn.end();
 };
 
+// 유저가 신고한 내역 조회 (유저 마이페이지용)
+exports.getMyReports = async function (user_id) {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `
+    SELECT r.*, 
+           p.title AS post_title,
+           a.title AS answer_title
+    FROM report r
+    LEFT JOIN post p ON r.post_id = p.post_id
+    LEFT JOIN answer a ON r.answer_id = a.answer_id
+    WHERE r.reporter_id = ?
+    ORDER BY r.created_at DESC
+  `;
+
+  const [rows] = await conn.promise().query(sql, [user_id]);
+  return rows;
+};
 

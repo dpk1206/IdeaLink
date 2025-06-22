@@ -5,6 +5,8 @@ const commentModel = require("../models/commentModel");
 const bookmarkModel = require("../models/bookmarkModel");
 const chatModel = require("../models/chatModel");
 const notificationModel = require("../models/notificationModel");
+const reportModel = require("../models/reportModel");
+const suggestionModel = require("../models/suggestionModel");
 
 // 마이페이지 렌더링 거래 내역 포함.
 exports.renderMypage = async (req, res, next) => {
@@ -20,10 +22,12 @@ exports.renderMypage = async (req, res, next) => {
     const tradeHistory = await postModel.getTradeHistory(user_id);
     const userInfo = await userModel.getUserById(user_id);
     const pointLogs = await userModel.getPointLogsByUserId(user_id);
+    const myReports = await reportModel.getMyReports(user_id);
     const bookmarks = await bookmarkModel.getUserBookmarks(user_id);
     const myPosts = await postModel.getMyPostsByUserId(user_id);
     const myAnswers = await answerModel.getMyAnswers(user_id);
     const myComments = await commentModel.getMyComments(user_id);
+    const mySuggestions = await suggestionModel.getSuggestionsByUserId(user_id);
     const requestedDirectPosts = await postModel.getRequestedDirectPosts(
       user_id
     );
@@ -55,25 +59,23 @@ exports.renderMypage = async (req, res, next) => {
     const confirmTargetMap = {}; // answer_id → { post_id, isMine, status }
 
     for (const answer of myAnswers) {
-      const post = await postModel.getPostById(answer.post_id);
-      if (!post) continue;
+  const post = await postModel.getPostById(answer.post_id);
+  if (!post) continue;
 
-      const isMine =
-        String(post.selected_answer_id) === String(answer.answer_id);
+  const isMine = String(post.selected_answer_id) === String(answer.answer_id);
+  const purchase = await postModel.getPurchaseRequestByAnswerId(answer.answer_id);
 
-      if (post.status === "거래중" || post.status === "거래완료") {
-           // ✅ 요청 금액 불러오기
-        const purchase = await postModel.getPurchaseRequestByAnswerId(answer.answer_id);
+  // ✅ 조건 없이 다 넣자
+  confirmTargetMap[answer.answer_id] = {
+    post_id: post.post_id,
+    status: post.status,
+    isMine,
+    answer_price: answer.price ?? purchase?.answer_price ?? 0,
+    proposed_price: purchase?.proposed_price ?? 0,
+    buyer_nick: purchase?.buyer_nick ?? '-'
+  };
+}
 
-        confirmTargetMap[answer.answer_id] = {
-          post_id: post.post_id,
-          status: post.status,
-          isMine: isMine,
-          answer_price: answer.price || 0,  
-          proposed_price: purchase?.proposed_price || 0
-        };
-      }
-    }
 
     // 각 게시글에 moderation 로그 붙이기 (최근 1건만)
     for (const post of myPosts) {
@@ -97,9 +99,29 @@ exports.renderMypage = async (req, res, next) => {
       confirmTargetMap,
       notifications,
       chattings,
+      myReports,
+      mySuggestions
     });
   } catch (err) {
     console.error("마이페이지 렌더링 오류:", err);
     next(err);
+  }
+};
+
+// 🔹 마이페이지 건의사항 제출
+exports.submitSuggestion = async (req, res) => {
+  const user_id = req.user?.user_id;
+  const { content, post_id, answer_id } = req.body;
+
+  if (!user_id || !content) {
+    return res.json({ success: false, message: "내용 또는 사용자 정보 누락" });
+  }
+
+  try {
+    await suggestionModel.insertSuggestion(user_id, content, post_id, answer_id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("건의사항 저장 실패:", err);
+    res.json({ success: false, message: "서버 오류" });
   }
 };

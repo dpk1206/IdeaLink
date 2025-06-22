@@ -305,20 +305,23 @@
             const isSelected = String(postInfo.selected_answer_id) === String(answer.answer_id);
             const isDone = postInfo.status === '거래완료';
             const isProgress = postInfo.status === '거래중';
+            const isAdopted = answer.status === '채택됨';
             %>
-          <% if (isSelected) { %>
-            <div class="selected-answer-notice">✅ 채택된 답변입니다</div>
-          <% } %>
 
-          <% if (isSelected && isDone) { %>
-            <div class="selected-answer-notice" style="color: black;">
-              ✅ 거래가 완료된 답변입니다.
-            </div>
-          <% } else if (isSelected && isProgress) { %>
-            <div class="selected-answer-notice" style="color: black;">
-              ✅ 이 답변은 구매자가 거래 요청한 답변입니다.
-            </div>
-          <% } %>
+            <% if (isAdopted) { %>
+              <div class="selected-answer-notice">✅ 채택된 답변입니다</div>
+            <% } %>
+
+            <% if (isSelected && isDone) { %>
+              <div class="selected-answer-notice" style="color: black;">
+                ✅ 거래가 완료된 답변입니다.
+              </div>
+            <% } else if (isSelected && isProgress) { %>
+              <div class="selected-answer-notice" style="color: black;">
+                ✅ 이 답변은 구매자가 거래 요청한 답변입니다.
+              </div>
+            <% } %>
+
 
 
 

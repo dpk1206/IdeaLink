@@ -474,11 +474,15 @@ exports.getTradeHistory = async function (user_id) {
 SELECT 
   p.post_id,
   p.title,
-  COALESCE(pr.proposed_price, p.price) AS request_price,  -- 요청 가격 없으면 게시글 가격 사용
+  COALESCE(pr.proposed_price, p.price) AS request_price,
   p.created_at AS date,
   CASE
+    -- 너가 구매자면 구매
+    WHEN pr.buyer_id = ? THEN '구매'
+    -- 너가 판매자면 판매 (답글 기반 거래)
+    WHEN pr.seller_id = ? THEN '판매'
+    -- 일반 게시글 거래에서 너가 글쓴이면 판매자
     WHEN p.user_id = ? THEN '판매'
-    WHEN p.buyer_id = ? THEN '구매'
     ELSE '기타'
   END AS type,
   CASE
@@ -489,14 +493,21 @@ FROM post p
 LEFT JOIN purchase_request pr
   ON p.post_id = pr.post_id AND pr.status = '수락됨'
 WHERE p.status = '거래완료'
-  AND (p.user_id = ? OR p.buyer_id = ?)
+  AND (
+    pr.buyer_id = ? OR pr.seller_id = ? OR p.user_id = ?
+  )
 ORDER BY p.created_at DESC
   `;
 
-  const [rows] = await conn.promise().query(sql, [user_id, user_id, user_id, user_id]);
+  const [rows] = await conn.promise().query(sql, [
+    user_id, user_id, user_id,  // CASE
+    user_id, user_id, user_id   // WHERE
+  ]);
+
   await conn.end();
   return rows;
 };
+
 
 
 
@@ -774,26 +785,22 @@ exports.rejectPurchaseRequest = async (post_id) => {
 };
 // 답글 구매 요청에 대한 가격 조회
 exports.getPurchaseRequestByAnswerId = async (answer_id) => {
-  const conn = await dbconn.init();       // 커넥션 객체 생성
-  await dbconn.connect(conn);             // 연결
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
 
   const sql = `
-    SELECT * FROM purchase_request 
-    WHERE answer_id = ? 
-    ORDER BY created_at DESC 
+    SELECT pr.*, u.nick_name AS buyer_nick
+    FROM purchase_request pr
+    LEFT JOIN user u ON pr.buyer_id = u.user_id
+    WHERE pr.answer_id = ?
     LIMIT 1
   `;
 
-  try {
-    const [rows] = await conn.promise().query(sql, [answer_id]);
-    return rows[0];
-  } catch (err) {
-    console.error("💥 getPurchaseRequestByAnswerId 오류:", err);
-    throw err;
-  } finally {
-    await conn.end();  // 연결 해제
-  }
+  const [rows] = await conn.promise().query(sql, [answer_id]);
+  await conn.end();
+  return rows[0]; // 하나만 가져오니까
 };
+
 
 // 답변 거래 거절 처리 (구매 요청 취소)
 exports.cancelAnswerPurchase = async (post_id, answer_id) => {

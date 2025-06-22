@@ -191,6 +191,29 @@ exports.getCategoryTradeStats = async () => {
   await conn.end();
   return rows;
 };
+//건의 사항
+exports.getAllSuggestions = async () => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
 
+  const sql = `
+    SELECT s.*, u.nick_name
+    FROM suggestion s
+    LEFT JOIN user u ON s.user_id = u.user_id
+    ORDER BY s.created_at DESC
+  `;
+  const [rows] = await conn.promise().query(sql);
+  return rows;
+};
+// 건의 사항 답변
+exports.insertSuggestionReply = async (suggestion_id, reply) => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
 
-
+  const sql = `
+  UPDATE suggestion
+  SET reply_content = ?, reply_at = NOW()
+  WHERE suggestion_id = ?
+`;
+  await conn.promise().query(sql, [reply, suggestion_id]);
+};

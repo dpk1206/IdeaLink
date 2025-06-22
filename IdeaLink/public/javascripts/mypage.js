@@ -94,15 +94,56 @@ async function toggleDeleteBookmark(event, userId, postId) {
   }
 }
 
+let CURRENT_POST_ID = null;
+let CURRENT_ANSWER_ID = null;
 
-function showReasonModal(reason, status) {
+function showReasonModal(reason, status, postId = null, answerId = null) {
   const modal = document.getElementById("reasonModal");
   const reasonText = document.getElementById("reasonText");
   const reasonStatus = document.getElementById("reasonStatus");
+  const suggestionInput = document.getElementById("suggestionInput");
 
-  if (modal && reasonText && reasonStatus) {
-    reasonText.textContent = reason || "사유 없음";
-    reasonStatus.textContent = status || "-";
-    modal.style.display = "flex";
-  }
+  reasonText.textContent = reason || "사유 없음";
+  reasonStatus.textContent = status || "-";
+  if (suggestionInput) suggestionInput.value = "";
+
+  // ✅ 전역 변수에 저장
+  CURRENT_POST_ID = postId;
+  CURRENT_ANSWER_ID = answerId;
+
+  modal.style.display = "flex";
 }
+
+function submitSuggestion() {
+  const content = document.getElementById("suggestionInput").value;
+  const post_id = CURRENT_POST_ID || null;
+  const answer_id = CURRENT_ANSWER_ID || null;
+
+  if (!content.trim()) {
+    alert("건의 내용을 입력하세요.");
+    return;
+  }
+
+  fetch("/users/suggestion/submit", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ content, post_id, answer_id })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("건의사항이 전송되었습니다.");
+        document.getElementById("reasonModal").style.display = "none";
+      } else {
+        alert("전송 실패: " + data.message);
+      }
+    })
+    .catch(err => {
+      console.error("건의 전송 오류:", err);
+      alert("오류 발생");
+    });
+}
+
+
