@@ -18,6 +18,8 @@
         <button class="tab-btn" data-tab="ideas">💡 등록 아이디어</button>
         <button class="tab-btn" data-tab="requested">📦 구매 요청</button>
         <button class="tab-btn" data-tab="history">📑 거래 내역</button>
+        <button class="tab-btn" data-tab="suggestions">📩 건의 내역</button>
+        <button class="tab-btn" data-tab="reports">🚨 신고 내역</button>
         <button class="tab-btn" data-tab="profile">👤 회원정보 수정</button>
       </aside>
 
@@ -256,7 +258,10 @@
                 <% if (post.moderation_logs?.length > 0 && (post.status === '숨김' || post.status === '중복'
                 || post.status === '비활성화')) { %>
                 <button 
-                  onclick="event.stopPropagation(); showReasonModal('<%= post.moderation_logs[0].reason %>', '<%= post.status %>')">
+                  onclick="event.stopPropagation(); showReasonModal(this.dataset.reason, this.dataset.status, this.dataset.postId, null)" 
+                  data-reason="<%= post.moderation_logs[0].reason %>" 
+                  data-status="<%= post.status %>" 
+                  data-post-id="<%= post.post_id %>">
                   사유보기
                 </button>
                 <% } %>
@@ -289,85 +294,96 @@
             </tbody>
           </table>
 
-          <!-- 답글 -->
-          <table id="answer-table" class="mypage-table" style="display:none;">
-            <thead>
-              <tr>
-                <th>번호</th>
-                <th>제목</th>
-                <th>등록일</th>
-                <th>가격</th>
-                <th>요청 금액</th>
-                <th>상태</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% if (!myAnswers || myAnswers.length === 0) { %>
-                <tr>
-                  <td colspan="4" style="text-align:center;">작성한 답글이 없습니다</td>
-                </tr>
+<!-- ✅ 답글 테이블 -->
+<table id="answer-table" class="mypage-table" style="display:none;">
+  <thead>
+    <tr>
+      <th>번호</th>
+      <th>제목</th>
+      <th>가격</th>
+      <th>요청 금액</th>
+      <th>구매자</th>
+      <th>등록일</th>
+      <th>상태</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (!myAnswers || myAnswers.length === 0) { %>
+      <tr>
+        <td colspan="7" style="text-align:center;">작성한 답글이 없습니다</td>
+      </tr>
+    <% } else { %>
+      <% for (let i = 0; i < myAnswers.length; i++) {
+          const answer = myAnswers[i];
+          const target = confirmTargetMap[answer.answer_id];
+      %>
+        <tr onclick="window.location.href='/post/idea_detail?post_id=<%= answer.post_id %>'" style="cursor:pointer;">
+          <td><%= i + 1 %></td>
+          <td><%= answer.title %></td>
+
+          <!-- 💰 가격 -->
+          <td>
+            <%= target?.answer_price ? target.answer_price.toLocaleString() + 'P' : '-' %>
+          </td>
+
+          <!-- 🙋 요청 금액 -->
+          <td>
+            <%= target?.proposed_price ? target.proposed_price.toLocaleString() + 'P' : '-' %>
+          </td>
+
+          <!-- 👤 구매자 닉네임 -->
+          <td>
+            <%= target?.buyer_nick || '-' %>
+          </td>
+
+          <!-- 📅 등록일 -->
+          <td><%= new Date(answer.created_at).toISOString().split('T')[0] %></td>
+
+          <!-- 📌 상태 -->
+          <td class="<%= ['status-sale']
+            .concat(answer.moderation_status === '숨김' ? ['hidden-post-row'] : [])
+            .concat(answer.moderation_status === '중복' ? ['duplicate-post-row'] : [])
+            .join(' ') %>">
+
+            <% if (['숨김', '중복', '비활성화', '삭제', '신고누적'].includes(answer.moderation_status)) { %>
+              <%= answer.moderation_status %>
+
+            <% } else if (target) { %>
+              <% if (target.isMine && target.status === '거래중') { %>
+                <form method="POST" action="/post/confirm_answer_purchase" style="display:inline;">
+                  <input type="hidden" name="post_id" value="<%= target.post_id %>">
+                  <input type="hidden" name="answer_id" value="<%= answer.answer_id %>">
+                  <button type="submit">수락</button>
+                </form>
+                <form method="POST" action="/post/reject_answer_purchase" style="display:inline; margin-left: 8px;">
+                  <input type="hidden" name="post_id" value="<%= target.post_id %>">
+                  <input type="hidden" name="answer_id" value="<%= answer.answer_id %>">
+                  <button type="submit">거절</button>
+                </form>
+
+              <% } else if (target.status === '거래완료') { %>
+                거래완료
+
+              <% } else if (!target.isMine && target.status === '거래중') { %>
+                다른 답변과 거래 진행 중
+
               <% } else { %>
-                <% myAnswers.forEach((answer, index) => { 
-                const target = confirmTargetMap[answer.answer_id]; %>
-              <tr onclick="window.location.href='/post/idea_detail?post_id=<%= answer.post_id %>'" style="cursor:pointer;">
-              <td><%= index + 1 %></td>
-              <td><%= answer.title %></td>
-              <td><%= new Date(answer.created_at).toISOString().split('T')[0] %></td>
-
-              <!-- 💰 게시글 가격 -->
-              <td>
-                <% if (target && target.answer_price) { %>
-                  <%= target.answer_price.toLocaleString() %>P
-                <% } else { %>
-                  -
-                <% } %>
-              </td>
-
-              <!-- 🙋 요청 금액 -->
-              <td>
-                <% if (target && target.proposed_price) { %>
-                  <%= target.proposed_price.toLocaleString() %>P
-                <% } else { %>
-                  -
-                <% } %>
-              </td>
-
-
-                <!-- 📦 거래 상태 -->
-              <td class="status-sale">
-              <% if (target) { %>
-                <% if (target.isMine && target.status === '거래중') { %>
-                  <form method="POST" action="/post/confirm_answer_purchase" style="display:inline;">
-                    <input type="hidden" name="post_id" value="<%= target.post_id %>">
-                    <input type="hidden" name="answer_id" value="<%= answer.answer_id %>">
-                    <button type="submit">수락</button>
-                  </form>
-
-                  <form method="POST" action="/post/reject_answer_purchase" style="display:inline; margin-left: 8px;">
-                    <input type="hidden" name="post_id" value="<%= target.post_id %>">
-                    <input type="hidden" name="answer_id" value="<%= answer.answer_id %>">
-                    <button type="submit">거절</button>
-                  </form>
-                <% } else if (target.status === '거래완료') { %>
-                  거래완료
-                <% } else { %>
-                  <% if (!target.isMine && target.status === '거래중') { %>
-                    다른 답변과 거래 진행 중
-                  <% } else if (!target.isMine && target.status === '거래완료') { %>
-                    거래완료
-                  <% } %>
-                <% } %>
-              <% } else { %>
-                대기중
+                <%= answer.status || '대기중' %>
               <% } %>
-            </td>
 
-              </tr>
-            <% }) %>
+            <% } else { %>
+              <%= answer.status || '대기중' %>
+            <% } %>
 
-              <% } %>
-            </tbody>
-          </table>
+          </td>
+        </tr>
+      <% } %>
+    <% } %>
+  </tbody>
+</table>
+
+
+
 
 
           <!-- 댓글 -->
@@ -493,7 +509,7 @@
 
 
 
-      <section id="history" class="mypage-section" style="display:none;">
+  <section id="history" class="mypage-section" style="display:none;">
   <h2>📤 판매 내역</h2>
   <table class="mypage-table">
     <thead>
@@ -553,10 +569,83 @@
   </table>
 </section>
 
+<!-- 건의 내역 -->
+<section id="suggestions" class="mypage-section" style="display: none;">
+  <h2>📩 건의 내역</h2>
+  <table class="mypage-table">
+    <thead>
+      <tr>
+        <th>번호</th>
+        <th>내용</th>
+        <th>게시글 ID</th>
+        <th>답글 ID</th>
+        <th>작성일</th>
+        <th>답변 내용</th>
+        <th>답변 상태</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (!mySuggestions || mySuggestions.length === 0) { %>
+        <tr><td colspan="7" style="text-align:center;">작성한 건의사항이 없습니다.</td></tr>
+      <% } else { %>
+        <% mySuggestions.forEach((sug, idx) => { %>
+          <tr>
+            <td><%= idx + 1 %></td>
+            <td><%= sug.content %></td>
+            <td><%= sug.post_id ?? '-' %></td>
+            <td><%= sug.answer_id ?? '-' %></td>
+            <td><%= new Date(sug.created_at).toLocaleString() %></td>
+            <td><%= sug.reply_content ?? '-' %></td>
+            <td><%= sug.reply_content ? '답변 완료' : '대기중' %></td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</section>
 
 
-          </table>
-        </section>
+
+<!-- 🚨 신고 내역 -->
+<section id="reports" class="mypage-section" style="display:none;">
+  <h2>🚨 신고 내역</h2>
+  <table class="mypage-table">
+    <thead>
+      <tr>
+        <th>번호</th>
+        <th>신고 대상</th>
+        <th>사유</th>
+        <th>상태</th>
+        <th>답변</th>
+        <th>날짜</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (!myReports || myReports.length === 0) { %>
+        <tr><td colspan="6" style="text-align:center;">신고한 내역이 없습니다</td></tr>
+      <% } else { %>
+        <% myReports.forEach((r, i) => { %>
+          <tr>
+            <td><%= i + 1 %></td>
+            <td>
+              <% if (r.post_id) { %>
+                게시글: <%= r.post_title || '제목 없음' %>
+              <% } else if (r.answer_id) { %>
+                답글: <%= r.answer_title || '제목 없음' %>
+              <% } else { %>
+                -
+              <% } %>
+            </td>
+            <td><%= r.reason %></td>
+            <td><%= r.status %></td>
+            <td><%= r.reply || '-' %></td>
+            <td><%= new Date(r.created_at).toISOString().split('T')[0] %></td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</section>
 
         <section id="chat" class="mypage-section" style="display: none;">
           <h2>💬 참여 중인 채팅</h2>
@@ -614,16 +703,28 @@
 
     <div id="reasonModal" class="modal" style="display:none; position:fixed; top:0; left:0;
       width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:9999;">
-      <div style="background:#fff; padding:20px; border-radius:8px; width:360px; max-width:90%;">
-        <h3 style="margin-bottom:10px;">게시글 처리 사유</h3>
-        <p><strong>📌 현재 상태:</strong> <span id="reasonStatus" style="color:#c00;"></span></p>
-        <p style="margin-top:10px;"><strong>📝 사유:</strong></p>
-        <p id="reasonText" style="white-space:pre-wrap; margin-top:5px;"></p>
-        <div style="margin-top:15px; text-align:right;">
-          <button onclick="document.getElementById('reasonModal').style.display='none'">닫기</button>
-        </div>
-      </div>
+  <div style="background:#fff; padding:20px; border-radius:8px; width:360px; max-width:90%;">
+    <h3 style="margin-bottom:10px;">게시글 처리 사유</h3>
+
+    <p><strong>📌 현재 상태:</strong> <span id="reasonStatus" style="color:#c00;"></span></p>
+    <p style="margin-top:10px;"><strong>📝 사유:</strong></p>
+    <p id="reasonText" style="white-space:pre-wrap; margin-top:5px;"></p>
+
+    <!-- ✅ 건의 입력 영역 -->
+    <div style="margin-top:15px;">
+      <p><strong>💬 관리자에게 건의하기:</strong></p>
+      <textarea id="suggestionInput" placeholder="건의 내용을 입력하세요" style="width:100%; height:80px; resize:none;"></textarea>
     </div>
+
+    <!-- ✅ 버튼 영역 -->
+    <div style="margin-top:15px; text-align:right;">
+      <button onclick="submitSuggestion()" style="margin-right:8px;">건의하기</button>
+      <button onclick="document.getElementById('reasonModal').style.display='none'">닫기</button>
+    </div>
+  </div>
+</div>
+
+
   <!-- ✅ 모바일 전용 하단 탭 -->
   <nav class="mobile-bottom-nav">
     <button class="tab-btn active" data-tab="alerts">🔔 / 💬 </button>

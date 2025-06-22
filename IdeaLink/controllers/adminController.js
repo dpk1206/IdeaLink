@@ -10,10 +10,12 @@ exports.renderAdminPage = async (req, res) => {
   try {
     const posts = await adminModel.getAllPostsWithAnswers(); // ⬅️ 모델에서 가져오기
     const reports = await reportModel.getAllReports();
+    const suggestions = await adminModel.getAllSuggestions();
 
     res.render('admin', {
       posts,
-      reports
+      reports,
+      suggestions
     });
   } catch (err) {
     console.error('관리자 페이지 렌더링 오류:', err);
@@ -128,24 +130,47 @@ exports.deleteNotice = async (req, res) => {
   res.json({ success: true });
 };
 
-// 관리자용 게시글,답글 상태변경
+/// 관리자용 게시글,답글 상태변경
 exports.updateContentStatus = async (req, res) => {
-  const { id, status, type } = req.body;
+  const { target_id, status, target_type, reason } = req.body;
+  const admin_id = req.user?.user_id ?? 0;
+
+  console.log('📥 상태 변경 요청 body:', req.body);
 
   try {
-    if (type === 'post') {
-      await postModel.updatePostStatus(id, status);
-    } else if (type === 'answer') {
-      await answerModel.updateAnswerModerationStatus(id, status);
+    if (target_type === 'post') {
+      console.log('➡️ 게시글 상태 변경');
+      await postModel.updatePostStatus(target_id, status);
+    } else if (target_type === 'answer') {
+      console.log('➡️ 답글 상태 변경');
+      await answerModel.updateAnswerModerationStatus(target_id, status);
     } else {
+      console.warn('⚠️ 잘못된 type:', target_type);
       return res.status(400).json({ success: false, message: "잘못된 type" });
+    }
+
+    // ✅ 상태 변경 성공 후 moderation 로그 삽입
+    try {
+      await postModel.insertModerationLog({
+        target_type,
+        target_id,
+        status,
+        reason,
+        admin_id
+      });
+      console.log('📝 로그 삽입 성공');
+    } catch (logErr) {
+      console.error('❌ 로그 삽입 실패:', logErr);
+      // 로그 삽입 실패는 전체 응답에는 영향 주지 않음
     }
 
     res.json({ success: true });
   } catch (e) {
+    console.error('❌ 상태 변경 오류 전체:', e);
     res.status(500).json({ success: false, message: e.message });
   }
 };
+
 
 // 관리자 통계 조회
 exports.getAdminStats = async (req, res) => {
@@ -178,6 +203,23 @@ exports.getCategoryStats = async (req, res) => {
     res.json({ success: true, stats: rows });
   } catch (err) {
     console.error("카테고리 통계 오류:", err);
+    res.status(500).json({ success: false, message: "서버 오류" });
+  }
+};
+//건의사항
+exports.replySuggestion = async (req, res) => {
+  const suggestion_id = req.params.suggestion_id;
+  const { reply } = req.body;
+
+  if (!reply || !suggestion_id) {
+    return res.status(400).json({ success: false, message: "필수 정보 누락" });
+  }
+
+  try {
+    await adminModel.insertSuggestionReply(suggestion_id, reply);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("건의 답변 실패:", err);
     res.status(500).json({ success: false, message: "서버 오류" });
   }
 };

@@ -26,11 +26,14 @@ router.post('/notices', adminController.addNotice);        // 등록
 router.put('/notices/:id', adminController.editNotice);    // 수정
 router.delete('/notices/:id', adminController.deleteNotice); // 삭제
 
-router.post('/update_status', adminMiddleware, postController.changeStatus);
+// 상태
+router.post('/update_status', adminMiddleware, adminController.updateContentStatus);
 
 // 관리자 통계 조회
 router.get('/stats', adminMiddleware, adminController.getAdminStats);
 // 카테고리별 통계 조회
 router.get('/category_stats', adminMiddleware, adminController.getCategoryStats);
+
+router.post('/reply_suggestion/:suggestion_id', adminController.replySuggestion);
 
 module.exports = router;

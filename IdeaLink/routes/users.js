@@ -10,7 +10,8 @@ const notificationModel = require("../models/notificationModel");
 
 // 마이페이지
 router.get('/mypage', requireLogin, mypageController.renderMypage);
-
+// 마이페이지 건의사항 제출
+router.post("/suggestion/submit", requireLogin, mypageController.submitSuggestion);
 
 // ✅ 회원가입 라우터
 router.post("/register", async function (req, res, next) {

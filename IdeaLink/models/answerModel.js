@@ -121,11 +121,22 @@ exports.getAnswersByPostId = async function (post_id) {
 
 // 답글 상태 변경
 exports.updateAnswerModerationStatus = async (answer_id, status) => {
+  console.log("🟡 함수 진입 확인:", answer_id, status); // 반드시 찍혀야 함
+
   const conn = await dbconn.init();
-  await dbconn.connect(conn);
+  await conn.connect();
 
-  const sql = `UPDATE answer SET moderation_status = ? WHERE answer_id = ?`;
-  await conn.promise().query(sql, [status, answer_id]);
-
-  await conn.end();
+  try {
+    const sql = `UPDATE answer SET moderation_status = ? WHERE answer_id = ?`;
+    console.log("🧩 쿼리 실행 직전:", sql, [status, answer_id]);
+    const [result] = await conn.promise().query(sql, [status, answer_id]);
+    console.log("✅ 쿼리 실행 결과:", result);
+    return result;
+  } catch (err) {
+    console.error("❌ 쿼리 실행 중 에러:", err); // ✨ 반드시 출력돼야 함
+    throw err;
+  } finally {
+    await conn.end();
+  }
 };
+

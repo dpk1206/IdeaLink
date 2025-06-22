@@ -574,3 +574,33 @@ document.addEventListener("DOMContentLoaded", () => {
   loadAdminStats();
   loadCategoryStats();
 });
+// 건의사항
+let currentSuggestionId = null;
+
+function openAnswerForm(button, suggestionId) {
+  // 모든 answer-box 닫기
+  document.querySelectorAll('.answer-box').forEach(b => b.style.display = 'none');
+  // 현재 열기
+  const box = button.nextElementSibling;
+  box.style.display = 'block';
+  currentSuggestionId = suggestionId;
+}
+
+async function submitAnswer(button) {
+  const reply = button.previousElementSibling.value.trim();
+  if (!reply) return alert("답변 내용을 입력해주세요.");
+
+  const res = await fetch(`/admin/reply_suggestion/${currentSuggestionId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reply })
+  });
+
+  const data = await res.json();
+  if (data.success) {
+    alert("답변이 저장되었습니다.");
+    location.reload();
+  } else {
+    alert("저장 실패: " + data.message);
+  }
+}
