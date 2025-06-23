@@ -25,41 +25,56 @@ function applySuggestionFilter() {
     row.style.display = (userMatch && dateMatch && categoryMatch) ? "" : "none";
   });
 }
+
+// 신고 답변 모달 관련 전역 변수
 let currentReportId = null;
 
-function openReplyModal(reportId) {
+function openReplyModal(reportId, reasonText) {
   currentReportId = Number(reportId);
   if (isNaN(currentReportId)) {
     alert("유효하지 않은 신고 ID입니다.");
     return;
   }
 
-  document.getElementById('replyModal').style.display = 'block';
+  document.getElementById('reportReasonBox').textContent = reasonText || '';
+  document.getElementById('reportReplyText').value = '';
+  document.getElementById('reportReplyModal').style.display = 'flex';
 }
 
 function closeReplyModal() {
-  document.getElementById('replyModal').style.display = 'none';
+  document.getElementById('reportReplyText').value = '';
+  document.getElementById('reportReplyModal').style.display = 'none';
   currentReportId = null;
 }
 
-document.getElementById('submitReply').addEventListener('click', async () => {
-  const reply = document.getElementById('replyText').value.trim();
+document.getElementById('cancelReportReply').addEventListener('click', closeReplyModal);
+
+document.getElementById('submitReportReply').addEventListener('click', async () => {
+  const reply = document.getElementById('reportReplyText').value.trim();
   if (!reply) return alert("답변을 입력하세요.");
 
-  const res = await fetch(`/report/admin/reply/${currentReportId}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reply })
-  });
+  try {
+    const res = await fetch(`/report/admin/reply/${currentReportId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reply })
+    });
 
-  const data = await res.json();
-  if (data.success) {
-    alert("답변이 등록되었습니다.");
-    location.reload();
-  } else {
-    alert("오류: " + data.message);
+    const data = await res.json();
+    if (data.success) {
+      alert("답변이 등록되었습니다.");
+      closeReplyModal();
+      location.reload();
+    } else {
+      alert("오류: " + (data.message || "알 수 없는 오류"));
+    }
+  } catch (err) {
+    console.error(err);
+    alert("네트워크 오류");
   }
 });
+
+
 
 // 상태 변경 관련 전역 변수
 let currentTargetId = null;
@@ -576,31 +591,48 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 // 건의사항
 let currentSuggestionId = null;
+let currentSuggestionRow = null;
 
 function openAnswerForm(button, suggestionId) {
-  // 모든 answer-box 닫기
-  document.querySelectorAll('.answer-box').forEach(b => b.style.display = 'none');
-  // 현재 열기
-  const box = button.nextElementSibling;
-  box.style.display = 'block';
-  currentSuggestionId = suggestionId;
-}
+  const row = button.closest("tr");
+  const content = row.querySelector("td:nth-child(2)").textContent;
 
-async function submitAnswer(button) {
-  const reply = button.previousElementSibling.value.trim();
+  // 모달 열기
+  document.getElementById("suggestionModal").style.display = "flex";
+
+  // 내용 채우기
+  document.getElementById("suggestionContent").textContent = content;
+  document.getElementById("suggestionReply").value = "";
+
+  currentSuggestionId = suggestionId;
+  currentSuggestionRow = row;
+}
+async function submitAnswer() {
+  const reply = document.getElementById("suggestionReply").value.trim();
   if (!reply) return alert("답변 내용을 입력해주세요.");
 
-  const res = await fetch(`/admin/reply_suggestion/${currentSuggestionId}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reply })
-  });
+  try {
+    const res = await fetch(`/admin/reply_suggestion/${currentSuggestionId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reply })
+    });
 
-  const data = await res.json();
-  if (data.success) {
-    alert("답변이 저장되었습니다.");
-    location.reload();
-  } else {
-    alert("저장 실패: " + data.message);
+    const data = await res.json();
+    if (res.ok && data.success) {
+      alert("답변이 저장되었습니다.");
+      document.getElementById("suggestionModal").style.display = "none";
+      location.reload(); // 필요 시 UI만 갱신하도록 수정 가능
+    } else {
+      alert("저장 실패: " + (data.message || "서버 오류"));
+    }
+  } catch (err) {
+    console.error(err);
+    alert("요청 중 오류 발생");
   }
 }
+document.getElementById("cancelSuggestionReply").addEventListener("click", () => {
+  document.getElementById("suggestionModal").style.display = "none";
+});
+
+

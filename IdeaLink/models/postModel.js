@@ -212,8 +212,8 @@ exports.getFilteredPosts = async ({
   }
 
   if (keyword && search_type === "title") {
-    sql += " AND p.title LIKE ?";
-    values.push(`%${keyword}%`);
+  sql += " AND (p.title LIKE ? OR p.summary LIKE ?)";
+  values.push(`%${keyword}%`, `%${keyword}%`);
   } else if (keyword && search_type === "author") {
     sql += " AND u.nick_name LIKE ?";
     values.push(`%${keyword}%`);
@@ -281,8 +281,8 @@ exports.getFilteredPostCount = async ({
   }
 
   if (keyword && search_type === "title") {
-    sql += " AND p.title LIKE ?";
-    values.push(`%${keyword}%`);
+  sql += " AND (p.title LIKE ? OR p.summary LIKE ?)";
+  values.push(`%${keyword}%`, `%${keyword}%`);
   } else if (keyword && search_type === "author") {
     sql += " AND u.nick_name LIKE ?";
     values.push(`%${keyword}%`);
@@ -910,6 +910,33 @@ exports.getModerationLogsByTarget = async (target_type, target_id) => {
   `;
   const [rows] = await conn.promise().query(sql, [target_type, target_id]);
   await conn.end();
+  return rows;
+};
+
+// 인기 아이디어 상위 4개 가져오기 (조회수 기준)
+exports.getTop4Ideas = async () => {
+  const conn = await dbconn.init();
+  await dbconn.connect(conn);
+
+  const sql = `
+   SELECT 
+  p.post_id,
+  p.title,
+  p.created_at,
+  pf.saved_name,
+  pf.file_path
+FROM post p
+LEFT JOIN (
+  SELECT *
+  FROM post_file
+  WHERE post_type = 'post'
+  GROUP BY post_id
+) pf ON p.post_id = pf.post_id
+WHERE p.status IN ('판매','구매')
+ORDER BY p.view_count DESC
+LIMIT 4;
+  `;
+  const [rows] = await conn.promise().query(sql);
   return rows;
 };
 

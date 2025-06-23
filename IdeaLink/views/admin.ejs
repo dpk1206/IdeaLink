@@ -45,28 +45,28 @@
           </div>
 
           <!-- ✅ 게시글 목록 -->
-    <% posts.forEach(post => { %>
-    <div class="post-box"
-      data-type="<%= post.type %>"
-      data-status="<%= post.status %>"
-      style="border: 1px solid #ccc; padding: 15px; margin: 15px 0;">
+        <% posts.forEach(post => { %>
+        <div class="post-box"
+          data-type="<%= post.type %>"
+          data-status="<%= post.status %>"
+          style="border: 1px solid #ccc; padding: 15px; margin: 15px 0;">
 
 
-        <h3 style="cursor: pointer;" onclick="goToPostDetail('<%= post.post_id %>')">
-          [<%= post.status %>] <%= post.title %>
-        </h3>
+            <h3 style="cursor: pointer;" onclick="goToPostDetail('<%= post.post_id %>')">
+              [<%= post.status %>] <%= post.title %>
+            </h3>
 
-        <p>작성자: <%= post.nick_name %> | 등록일: <%= new Date(post.created_at).toLocaleDateString() %></p>
-        <p><strong>내용:</strong> <%= post.content %></p>
+            <p>작성자: <%= post.nick_name %> | 등록일: <%= new Date(post.created_at).toLocaleDateString() %></p>
+            <p><strong>내용:</strong> <%= post.content %></p>
 
-        <!-- ✅ 게시글 상태 변경 select -->
-        <label>게시글 상태 변경:</label>
-         <select onchange="event.stopPropagation(); handleStatusChange(event, '<%= post.post_id %>', this.value, 'post', this)">
+            <!-- ✅ 게시글 상태 변경 select -->
+            <label>게시글 상태 변경:</label>
+            <select class="status-select" onchange="event.stopPropagation(); handleStatusChange(event, '<%= post.post_id %>', this.value, 'post', this)">
 
-          <% ['판매','구매','거래중','거래완료','숨김','중복','삭제','검토중','신고누적','비활성화'].forEach(st => { %>
-            <option value="<%= st %>" <%= post.status === st ? 'selected' : '' %>><%= st %></option>
-          <% }) %>
-        </select>
+              <% ['판매','구매','거래중','거래완료','숨김','중복','삭제','검토중','신고누적','비활성화'].forEach(st => { %>
+                <option value="<%= st %>" <%= post.status === st ? 'selected' : '' %>><%= st %></option>
+              <% }) %>
+            </select>
 
 
         <!-- ✅ 답글 목록 -->
@@ -92,7 +92,7 @@
 
                 <!-- ✅ 답글 상태 변경 select -->
                 <label>답글 상태 변경:</label>
-               <select onchange="event.stopPropagation(); handleStatusChange(event, '<%= ans.answer_id %>', this.value, 'answer', this)">
+               <select class="status-select" onchange="event.stopPropagation(); handleStatusChange(event, '<%= ans.answer_id %>', this.value, 'answer', this)">
 
                   <% ['정상','숨김','중복','삭제','검토중','신고누적','비활성화'].forEach(st => { %>
                     <option value="<%= st %>" <%= ans.moderation_status === st ? 'selected' : '' %>><%= st %></option>
@@ -108,54 +108,71 @@
     <% }) %>
           </section>
 
-     <!-- 건의사항 -->
-<section id="suggestions" class="admin-section">
-  <h2>💬 건의사항 관리</h2>
+      <!-- 건의사항 -->
+      <section id="suggestions" class="admin-section">
+        <h2>💬 건의사항 관리</h2>
 
-  <div class="filter-area">
-    <input type="text" id="searchUser" placeholder="사용자 ID" />
-    <input type="date" id="searchDate" />
-    <select id="filterCategory">
-      <option value="">전체</option>
-      <option value="오류">오류</option>
-      <option value="제안">제안</option>
-      <option value="기타">기타</option>
-    </select>
-    <button onclick="applySuggestionFilter()">검색</button>
-  </div>
+        <div class="filter-area">
+          <input type="text" id="searchUser" placeholder="사용자 ID" />
+          <input type="date" id="searchDate" />
+          <select id="filterCategory">
+            <option value="">전체</option>
+            <option value="오류">오류</option>
+            <option value="제안">제안</option>
+            <option value="기타">기타</option>
+          </select>
+          <button onclick="applySuggestionFilter()">검색</button>
+        </div>
 
-  <table class="styled-table">
-    <thead>
-      <tr><th>사용자</th><th>내용</th><th>날짜</th><th>상태</th><th>답변</th></tr>
-    </thead>
-    <tbody>
-      <% suggestions.forEach((sug, idx) => { %>
-        <tr class="suggestion-row" 
-            data-userid="<%= sug.nick_name %>" 
-            data-date="<%= sug.created_at.toISOString().split('T')[0] %>" 
-            data-category="<%= sug.category || '기타' %>">
-          <td><%= sug.nick_name %></td>
-          <td><%= sug.content %></td>
-          <td><%= sug.created_at.toISOString().split('T')[0] %></td>
-          <td class="status-cell <%= sug.reply_content ? 'status-complete' : 'status-wait' %>">
-            <%= sug.reply_content ? '답변 완료' : '답변 대기' %>
-          </td>
-          <td>
-            <% if (sug.reply_content) { %>
-              <div class="reply-box"><%= sug.reply_content %></div>
-            <% } else { %>
-              <button onclick="openAnswerForm(this, '<%= sug.suggestion_id %>')">답변</button>
-              <div class="answer-box" style="display:none;">
-                <textarea></textarea>
-                <button onclick="submitAnswer(this)">저장</button>
-              </div>
-            <% } %>
-          </td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
-</section>
+        <table class="styled-table">
+          <thead>
+            <tr><th>사용자</th><th>내용</th><th>날짜</th><th>상태</th><th>답변</th></tr>
+          </thead>
+          <tbody>
+            <% suggestions.forEach((sug, idx) => { %>
+              <tr class="suggestion-row" 
+                  data-userid="<%= sug.nick_name %>" 
+                  data-date="<%= sug.created_at.toISOString().split('T')[0] %>" 
+                  data-category="<%= sug.category || '기타' %>">
+                <td><%= sug.nick_name %></td>
+                <td><%= sug.content %></td>
+                <td><%= sug.created_at.toISOString().split('T')[0] %></td>
+                <td class="status-cell <%= sug.reply_content ? 'status-complete' : 'status-wait' %>">
+                  <%= sug.reply_content ? '답변 완료' : '답변 대기' %>
+                </td>
+                <td>
+                  <% if (sug.reply_content) { %>
+                    <div class="reply-box"><%= sug.reply_content %></div>
+                  <% } else { %>
+                    <button class="suggestion-reply-btn" onclick="openAnswerForm(this, '<%= sug.suggestion_id %>')">답변</button>
+                    <div class="answer-box" style="display:none;">
+                      <textarea></textarea>
+                      <button onclick="submitAnswer(this)">저장</button>
+                    </div>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ✅ 건의사항 답변 모달 -->
+      <div id="suggestionModal" class="suggestion-modal">
+        <div class="modal-content">
+          <h3>✉️ 건의사항 답변</h3>
+          <p><strong>내용:</strong></p>
+          <div id="suggestionContent" style="background:#f9f9f9; padding:10px; margin-bottom:10px; border-radius:6px; border:1px solid #ddd;"></div>
+          
+          <textarea id="suggestionReply" placeholder="답변 내용을 입력하세요" style="width:100%; height:100px; resize:none;"></textarea>
+
+          <div class="modal-actions" style="text-align:right; margin-top:10px;">
+            <button id="cancelSuggestionReply">취소</button>
+            <button id="saveSuggestionReply" onclick="submitAnswer()">저장</button>
+          </div>
+        </div>
+      </div>
+
 
 
 <!-- 신고글 -->
@@ -204,30 +221,34 @@
           <td><%= new Date(r.created_at).toLocaleString() %></td>
        <td>
   <% if (r.status === '대기') { %>
-    <button onclick="openReplyModal('<%= r.report_id %>')">답변</button>
+  <button class="report-reply-btn" onclick="openReplyModal('<%= r.report_id %>', '<%= r.reason %>')">답변</button>
   <% } else { %>
-    <span>✅ 완료</span>
+<span class="reply-complete-badge">완료</span>
+
   <% } %>
 </td>
-
         </tr>
       <% }) %>
     </tbody>
   </table>
 </section>
 
-<!-- 답변 모달 -->
-<div id="replyModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3>신고 답변</h3>
-    <textarea id="replyText" rows="4" style="width:100%;"></textarea>
-    <button id="submitReply">답변 등록</button>
-    <button onclick="closeReplyModal()">취소</button>
+<!-- 신고 답변 모달 -->
+<div id="reportReplyModal" class="report-modal">
+  <div class="report-modal-content">
+    <h3>🚨 신고 답변 작성</h3>
+
+    <p><strong>신고 사유:</strong></p>
+    <div id="reportReasonBox" class="report-reason-box"></div>
+
+    <textarea id="reportReplyText" placeholder="답변 내용을 입력하세요"></textarea>
+
+    <div class="report-modal-actions">
+      <button id="cancelReportReply">취소</button>
+      <button id="submitReportReply">등록</button>
+    </div>
   </div>
 </div>
-
-
-
 
       <!-- 공지사항 -->
       <section id="notices" class="admin-section" style="display:none;">
@@ -240,7 +261,14 @@
         <table class="styled-table">
           <thead><tr><th>제목</th><th>날짜</th><th>관리</th></tr></thead>
           <tbody id="noticeList">
-            <tr><td>점검 안내</td><td>2025-04-01</td><td><button onclick="editNotice(this)">수정</button> <button onclick="deleteNotice(this)">삭제</button></td></tr>
+          <tr>
+            <td>점검 안내</td>
+            <td>2025-04-01</td>
+            <td>
+            <button class="notice-btn edit" onclick="editNotice(this)">수정</button>
+            <button class="notice-btn delete" onclick="deleteNotice(this)">삭제</button>
+            </td>
+          </tr>
           </tbody>
         </table>
       </section>

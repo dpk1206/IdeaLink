@@ -71,7 +71,7 @@
         <!-- 검색 -->
       <div class="search-box">
       <select id="searchType">
-        <option value="title" <%= searchType === 'title' ? 'selected' : '' %>>제목 검색</option>
+        <option value="title" <%= searchType === 'title' ? 'selected' : '' %>>제목 + 요약 검색</option>
         <option value="author" <%= searchType === 'author' ? 'selected' : '' %>>작성자 검색</option>
       </select>
       <input type="text" id="searchInput" value="<%= keyword %>" placeholder="검색어 입력">
