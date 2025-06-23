@@ -243,7 +243,7 @@
 
           
         <div class="actions">
-          <button id="like_btn">👍 좋아요 (<span id="like_count">0</span>)</button>
+          <button id="like_btn">👍 추천 (<span id="like_count">0</span>)</button>
           <button class="answer_btn">🗣️ 답글 작성</button>
           <button class="report-btn" data-type="post" data-id="<%= postInfo.post_id %>">🚩 신고</button>
         </div>
@@ -409,20 +409,32 @@
       <% } %>
       <!-- 답글 있으면 형성 end -->
     
-      <!-- 🚩 신고 모달 -->
-      <div id="reportModal" class="modal" style="display:none;">
-        <div class="modal-content">
-          <h3>🚩 신고하기</h3>
-          <p style="margin-top:10px;">신고 사유를 입력하세요:</p>
-          <textarea id="reportReason" rows="4" style="width:100%;"></textarea>
-          <input type="hidden" id="reportPostId" />
-          <input type="hidden" id="reportAnswerId" />
-          <div style="margin-top: 15px; text-align: right;">
-            <button id="cancelReportBtn">취소</button>
-            <button id="submitReportBtn">신고 제출</button>
-          </div>
+      <!-- 신고 모달 -->
+      <div id="reportModal" class="modal">
+      <div class="modal-content">
+        <h3>🚩 신고하기</h3>
+        <p>신고 사유를 입력하세요:</p>
+        <textarea id="reportReason" rows="4"></textarea>
+        <input type="hidden" id="reportPostId" />
+        <input type="hidden" id="reportAnswerId" />
+        <div class="modal-actions">
+          <button id="cancelReportBtn">취소</button>
+          <button id="submitReportBtn">신고 제출</button>
         </div>
       </div>
+    </div>
+
+    <!-- 추천 확인 모달 -->
+    <div id="likeConfirmModal" class="modal">
+      <div class="modal-content">
+        <h3>👍 추천 확인</h3>
+        <p style="margin-top:10px;">추천은 한 번만 누를 수 있습니다.<br>진행하시겠습니까?</p>
+        <div class="modal-actions">
+          <button id="cancelLikeBtn">취소</button>
+          <button id="confirmLikeBtn">확인</button>
+        </div>
+      </div>
+    </div>
 
 
     </main>

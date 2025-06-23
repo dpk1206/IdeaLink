@@ -130,6 +130,8 @@ exports.deleteNotice = async (req, res) => {
   res.json({ success: true });
 };
 
+
+
 /// 관리자용 게시글,답글 상태변경
 exports.updateContentStatus = async (req, res) => {
   const { target_id, status, target_type, reason } = req.body;
@@ -221,5 +223,29 @@ exports.replySuggestion = async (req, res) => {
   } catch (err) {
     console.error("건의 답변 실패:", err);
     res.status(500).json({ success: false, message: "서버 오류" });
+  }
+};
+
+//조회수,등록된아이디어,받은 피드백 수 가져오기
+exports.getTodayStats = async (req, res) => {
+  try {
+    const stats = await adminModel.getTodayStats();
+    res.json({ success: true, stats });
+  } catch (err) {
+    res.status(500).json({ success: false, message: '통계 불러오기 실패', error: err.message });
+  }
+};
+//인기아이디어 4개 가져오기
+exports.renderMainPage = async (req, res) => {
+  try {
+    const popularIdeas = await postModel.getTop4Ideas(); // 인기 아이디어 4개 가져오기
+    const recentNotices = await adminModel.getRecentNotices(); // 최근 공지사항 가져오기
+    res.render('main', { 
+      popularIdeas,
+      recentNotices
+    }); // 👈 EJS로 전달
+  } catch (err) {
+    console.error('메인 페이지 렌더링 오류:', err);
+    res.status(500).send('메인 페이지 로드 실패');
   }
 };

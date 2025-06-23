@@ -99,3 +99,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   */
 });
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const res = await fetch('/api/main-stats');
+    const data = await res.json();
+
+    if (data.success) {
+      document.querySelector('.stat-number.idea').textContent = `${data.stats.idea_count}건`;
+      document.querySelector('.stat-number.view').textContent = `${data.stats.total_views}회`;
+      document.querySelector('.stat-number.feedback').textContent = `${data.stats.feedback_count}건`;
+    }
+  } catch (err) {
+    console.error('메인 통계 불러오기 실패:', err);
+  }
+});

@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 좋아요 상태 확인
+  // 추천 상태 확인
   (async () => {
     try {
       const res = await fetch(`/post/like_status?post_id=${post_id}`);
@@ -120,76 +120,117 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.liked) {
           likeBtn.classList.add("liked");
           likeBtn.disabled = true;
-          likeBtn.textContent = `👍 좋아요 (${data.like_count})`;
+          likeBtn.textContent = `👍 추천 (${data.like_count})`;
         }
       }
     } catch (err) {
-      console.error("좋아요 상태 확인 실패:", err);
+      console.error("추천 상태 확인 실패:", err);
     }
   })();
 
-  // 좋아요 클릭 이벤트
-  likeBtn.addEventListener("click", async () => {
-    if (!currentUserId) {
-      alert("로그인 후 추천할 수 있습니다.");
-      return;
+  // 추천 클릭 이벤트
+  let likeConfirmed = false; // 중복 클릭 방지용
+
+likeBtn.addEventListener("click", () => {
+  if (!currentUserId) {
+    alert("로그인 후 추천할 수 있습니다.");
+    return;
+  }
+
+  document.getElementById("likeConfirmModal").style.display = "flex";
+});
+
+// 모달 취소 버튼
+document.getElementById("cancelLikeBtn").addEventListener("click", () => {
+  document.getElementById("likeConfirmModal").style.display = "none";
+});
+
+// 모달 확인 버튼
+document.getElementById("confirmLikeBtn").addEventListener("click", async () => {
+  if (likeConfirmed) return; // 중복 방지
+  likeConfirmed = true;
+
+  try {
+    const res = await fetch("/post/like", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ post_id })
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      likeCount.textContent = result.like_count;
+      likeBtn.classList.add("liked");
+      likeBtn.disabled = true;
+      likeBtn.textContent = `👍 추천 (${result.like_count})`;
+      alert("추천이 완료되었습니다.");
+    } else {
+      alert(result.error || "이미 추천하셨습니다.");
     }
+  } catch (err) {
+    console.error("추천 오류:", err);
+    alert("추천 처리 중 오류가 발생했습니다.");
+  } finally {
+    document.getElementById("likeConfirmModal").style.display = "none";
+    likeConfirmed = false;
+  }
+});
 
-    const confirmed = confirm("좋아요는 한 번만 누를 수 있습니다.\n진행하시겠습니까?");
-    if (!confirmed) return;
 
-    try {
-      const res = await fetch("/post/like", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ post_id })
-      });
-
-      const result = await res.json();
-
-      if (res.ok) {
-        likeCount.textContent = result.like_count;
-        likeBtn.classList.add("liked");
-        likeBtn.disabled = true;
-        likeBtn.textContent = `👍 좋아요 (${result.like_count})`;
-        alert("추천이 완료되었습니다.");
-      } else {
-        alert(result.error || "이미 추천하셨습니다.");
-      }
-    } catch (err) {
-      console.error("추천 오류:", err);
-      alert("추천 처리 중 오류가 발생했습니다.");
-    }
-  });
-// 신고 버튼 클릭
 document.querySelectorAll(".report-btn").forEach((btn) => {
-  btn.addEventListener("click", async () => {
-    const type = btn.dataset.type;  // 'post' 또는 'answer'
+  btn.addEventListener("click", () => {
+    const type = btn.dataset.type;
     const id = btn.dataset.id;
-    const reason = prompt("신고 사유를 입력하세요:");
 
-    if (!reason) return;
+    // 모달창 띄우기
+    const modal = document.getElementById("reportModal");
+    modal.style.display = "flex";
 
-    const body = {
-      reason,
-      post_id: type === "post" ? id : null,
-      answer_id: type === "answer" ? id : null,
-    };
+    // 숨겨진 input에 id 저장
+    document.getElementById("reportPostId").value = type === "post" ? id : "";
+    document.getElementById("reportAnswerId").value = type === "answer" ? id : "";
 
-    try {
-      const res = await fetch("/report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-      alert(data.message || "신고가 접수되었습니다.");
-    } catch (err) {
-      alert("신고 처리 중 오류가 발생했습니다.");
-    }
+    // 이전 입력 초기화
+    document.getElementById("reportReason").value = "";
   });
 });
+
+// 신고 취소 버튼
+document.getElementById("cancelReportBtn").addEventListener("click", () => {
+  document.getElementById("reportModal").style.display = "none";
+});
+
+// 신고 제출 버튼
+document.getElementById("submitReportBtn").addEventListener("click", async () => {
+  const reason = document.getElementById("reportReason").value.trim();
+  const post_id = document.getElementById("reportPostId").value;
+  const answer_id = document.getElementById("reportAnswerId").value;
+
+  if (!reason) {
+    alert("신고 사유를 입력해주세요.");
+    return;
+  }
+
+  try {
+    const res = await fetch("/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reason,
+        post_id: post_id || null,
+        answer_id: answer_id || null
+      }),
+    });
+
+    const data = await res.json();
+    alert(data.message || "신고가 접수되었습니다.");
+    document.getElementById("reportModal").style.display = "none";
+  } catch (err) {
+    alert("신고 처리 중 오류가 발생했습니다.");
+  }
+});
+
 
 
   // 답변 작성 토글

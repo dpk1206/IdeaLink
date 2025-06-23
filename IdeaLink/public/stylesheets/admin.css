@@ -99,6 +99,33 @@ body {
   font-size: 14px;
   cursor: pointer;
 }
+.notice-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background-color 0.2s ease;
+}
+
+/* 수정 버튼 - 파란색 */
+.notice-btn.edit {
+  background-color: #1976d2;
+  color: white;
+}
+.notice-btn.edit:hover {
+  background-color: #125ea9;
+}
+
+/* 삭제 버튼 - 빨간색 */
+.notice-btn.delete {
+  background-color: #d32f2f;
+  color: white;
+}
+.notice-btn.delete:hover {
+  background-color: #b71c1c;
+}
 
 .styled-table {
   width: 100%;
@@ -315,6 +342,116 @@ canvas {
 }
 
 
+/* 상태변경 드롭다운 스타일 */
+
+.status-select {
+  padding: 6px 10px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.status-select:hover {
+  border-color: #888;
+  background-color: #f0f0f0;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+/* 답변 버튼 스타일 */
+.suggestion-reply-btn {
+  padding: 5px 10px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.suggestion-reply-btn:hover {
+  background: #125ea9;
+}
+
+/* 답변 모달 */
+
+.suggestion-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.suggestion-modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 420px;
+  max-width: 90%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  animation: fadeIn 0.3s ease;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.suggestion-content-box {
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #333;
+}
+
+#suggestionReply {
+  width: 100%;
+  height: 100px;
+  resize: none;
+  font-size: 14px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.suggestion-modal-actions {
+  margin-top: 12px;
+  text-align: right;
+}
+
+.suggestion-modal-actions button {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#cancelSuggestionReply {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+#saveSuggestionReply {
+  background-color: #1976d2;
+  color: #fff;
+  margin-left: 8px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 @media (max-width: 768px) {
   .admin-container {
@@ -331,3 +468,99 @@ canvas {
     font-size: 13px;
   }
 }
+
+/* 신고 모달 */
+
+.report-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.report-modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 420px;
+  max-width: 90%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  animation: fadeIn 0.3s ease;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.report-reason-box {
+  background-color: #f9f9f9;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  color: #333;
+}
+
+#reportReplyText {
+  width: 100%;
+  height: 100px;
+  resize: none;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.report-modal-actions {
+  text-align: right;
+  margin-top: 10px;
+}
+
+.report-modal-actions button {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+#cancelReportReply {
+  background-color: #eee;
+  color: #333;
+}
+
+#submitReportReply {
+  background-color: #d32f2f;
+  color: white;
+  margin-left: 8px;
+}
+.report-reply-btn {
+  padding: 6px 12px;
+  background: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.report-reply-btn:hover {
+  background: #b71c1c;
+}
+
+.reply-complete-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 5px;
+  background-color: #e0f2f1;
+  color: #00796b;
+  font-weight: bold;
+  border: 1px solid #b2dfdb;
+  user-select: none;
+  cursor: default;
+}
+

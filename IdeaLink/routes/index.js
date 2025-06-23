@@ -7,9 +7,8 @@ const adminController = require('../controllers/adminController'); // 컨트롤�
 router.get('/api/notice', adminController.getNotices);  // ✅ 이 줄 추가
 
 // 메인페이지
-router.get('/', function(req, res, next) {
-  res.render('main', { name: '홍길동' });
-});
+router.get('/', adminController.renderMainPage);
+
 
 // 로그인 회원가입 페이지 이동
 router.get('/login_signup', function(req, res, next) {
@@ -40,5 +39,8 @@ router.get('/api/notice', adminController.getNotices);
 router.get('/admin', function(req, res, next) {
   res.render('admin');
 });
-
+//메인화면 인기/최신 게시글
+router.get('/api/main-stats', adminController.getTodayStats);
+//인기 아이디어 상위 4개 가져오기
+router.get('/api/popular-ideas', adminController.renderMainPage);
 module.exports = router;
