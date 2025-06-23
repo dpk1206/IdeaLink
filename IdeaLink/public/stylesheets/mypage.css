@@ -426,9 +426,6 @@ form button {
 
 /* === 카드형 리스트 스타일 (모바일용) === */
 @media (max-width: 768px) {
-  .mypage-table {
-    display: none;
-  }
 
 .table-card {
   background: white;
@@ -453,5 +450,12 @@ form button {
   .table-card .status-sale {
     color: #2980b9;
     font-weight: bold;
+  }
+}
+
+@media (max-width: 1440px) {
+  .alert-item {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
