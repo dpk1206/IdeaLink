@@ -13,7 +13,7 @@ body {
   width: 90%;
   max-width: 780px;
   padding: 48px 40px;
-  margin: 100px auto 80px; /* nav와 footer 고려 */
+  margin: 100px 0 80px 0; /* nav와 footer 고려 */
   background: white;
   border-radius: 24px;
   backdrop-filter: blur(16px);
@@ -168,12 +168,18 @@ button[type='submit']:hover {
   flex-wrap: wrap;
 }
 
+/* 사이드바 설정 */
 .left_sidebar,
 .right_sidebar {
   width: 220px;
+  position: sticky;
+  top: 140px;
+  align-self: flex-start;
+  height: fit-content;
+  z-index: 1;
   flex-shrink: 0;
-  margin-top: 100px;
-  margin: 100px;
+  max-height: calc(100vh - 120px); /* 폼 위로 안 올라가도록 제한 */
+  overflow-y: auto;
 }
 
 .guide_box,

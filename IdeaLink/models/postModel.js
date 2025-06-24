@@ -397,7 +397,7 @@ exports.getPostPrice = async (post_id) => {
 
   try {
     const [rows] = await conn.promise().query(
-      "SELECT price, user_id, status , buyer_id FROM post WHERE post_id = ?",
+      "SELECT title, price, user_id, status , buyer_id FROM post WHERE post_id = ?",
       [post_id]
     );
     return rows[0]; // { price, user_id, buyer_id }
@@ -920,9 +920,7 @@ exports.getTop4Ideas = async () => {
 
   const sql = `
    SELECT 
-  p.post_id,
-  p.title,
-  p.created_at,
+  p.*,
   pf.saved_name,
   pf.file_path
 FROM post p
@@ -937,6 +935,18 @@ ORDER BY p.view_count DESC
 LIMIT 4;
   `;
   const [rows] = await conn.promise().query(sql);
-  return rows;
+  // 각 row의 user_id를 기반으로 nickname 조회 및 병합
+  const userModel = require("../models/userModel");
+  const rowsWithNicknames = await Promise.all(
+    rows.map(async (row) => {
+      const user = await userModel.getUserById(row.user_id);
+      return {
+        ...row,
+        nick_name: user?.nick_name || null,
+      };
+    })
+  );
+
+  return rowsWithNicknames;
 };
 

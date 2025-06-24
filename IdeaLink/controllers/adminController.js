@@ -229,7 +229,7 @@ exports.replySuggestion = async (req, res) => {
 //조회수,등록된아이디어,받은 피드백 수 가져오기
 exports.getTodayStats = async (req, res) => {
   try {
-    const stats = await adminModel.getTodayStats();
+    const stats = await adminModel.getStats();
     res.json({ success: true, stats });
   } catch (err) {
     res.status(500).json({ success: false, message: '통계 불러오기 실패', error: err.message });

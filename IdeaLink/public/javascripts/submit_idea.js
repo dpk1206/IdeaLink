@@ -185,13 +185,4 @@ document.addEventListener("DOMContentLoaded", () => {
     idea_form.submit();
   });
 
-  // 태그 리스트 표시
-  const tags = ["AI", "헬스케어", "친환경", "자동화", "모빌리티", "스마트팜", "IoT", "UX", "딥러닝"];
-  const tag_list = document.getElementById("tag_list");
-  tags.forEach(tag => {
-    const span = document.createElement("span");
-    span.className = "tag";
-    span.textContent = tag;
-    tag_list.appendChild(span);
-  });
 });

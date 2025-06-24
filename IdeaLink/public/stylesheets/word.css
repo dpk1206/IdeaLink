@@ -43,3 +43,7 @@
 .wordcloud canvas:hover {
   transform: scale(1.02);
 }
+
+.wordcloud span{
+  cursor: pointer;
+}

@@ -5,7 +5,7 @@ const notificationModel = require("../models/notificationModel");
 module.exports = async function (req, res, next) {
   const token = req.cookies?.token;
 
-  const skipPaths = ["/login_signup", "/users/login", "/users/logout", "/users/register", "/stylesheets", "/javascripts", "/images"];
+  const skipPaths = ["/login_signup", "/users/login", "/users/logout", "/users/register", "/stylesheets", "/javascripts", "/images", "/wm_uploads"];
   if (skipPaths.some(path => req.path.startsWith(path))) return next();
 
   console.log("JWT 검증 실행:");

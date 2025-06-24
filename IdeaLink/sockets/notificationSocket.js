@@ -14,6 +14,12 @@ async function sendNotification(receiver_id, sender_id, type, target_id, content
         notificationContent = `새 답글이 달렸습니다 : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
     } else if (type === 'chat') {
         notificationContent = `새 메시지가 도착했습니다 : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
+    } else if (type === 'purchase_request') {
+        notificationContent = `거래 제안이 왔습니다 : 제안금액 ${content}P`;
+    } else if (type === 'purchase_request_reject') {
+        notificationContent = `거래 제안이 거절되었습니다 : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
+    } else if (type === 'purchase_request_accept') {
+        notificationContent = `거래 제안이 수락되었습니다 : ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}`;
     }
 
     await notificationModel.createNotification(

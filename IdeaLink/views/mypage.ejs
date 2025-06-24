@@ -37,7 +37,7 @@
               <% notifications.forEach(noti=> { %>
                 <li class="alert-item <%= noti.is_read ? 'read' : '' %>">
                   <div class="alert-text"><%= noti.content %>
-                    <% if (noti.type==='chat' ) { %>
+                    <% if (noti.type==='chat') { %>
                       <span class="chat-unread"><%= noti.unreadCount ? ' • ' + noti.unreadCount : '' %></span>
                       <% } else{ %>
                         <span class="chat-unread"></span>
@@ -47,10 +47,12 @@
                           🕒 <%= noti.created_at.toLocaleString() %>
                         </div>
                       <div class="alert-buttons">
-                        <% if (noti.type==='chat' ) { %>
+                        <% if (noti.type==='chat') { %>
                         <button class="move-btn" onclick="chatWindow('<%= user.user_id %>', '<%= noti.sender_id %>', '<%= noti.post_id %>', '<%= noti.post_type %>')">이동</button>
-                          <% } else{ %>
-                            <button class="move-btn" onclick="location.href='/post/idea_detail?post_id=<%= noti.target_id %>'">이동</button>
+                          <% } else if(noti.type==='purchase_request'){ %>
+                            <button class="move-btn" onclick="location.href='#ideas'">이동</button>
+                              <% } else { %>
+                                <button class="move-btn" onclick="location.href='/post/idea_detail?post_id=<%= noti.target_id %>'">이동</button>
                               <% } %>
                         <button class="read-btn" onclick="markAsRead(this, '<%= noti.notification_id %>', '<%= noti.type %>')"
                           <%=noti.is_read ? 'disabled' : '' %>>읽음</button>
@@ -699,9 +701,11 @@
         </section>
       </main>
     </div>
-    <%- include ('footer.html') %>'
-    '
-    <!-- 사유보기 -->
+
+    <!-- 푸터-->
+    <%- include ('footer.html') %>
+
+    <!-- 사유보기 모달 -->
     <div id="reasonModal" class="modal">
     <div class="modal-content">
       <h3>게시글 처리 사유</h3>

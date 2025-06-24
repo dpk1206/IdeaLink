@@ -2,9 +2,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const tabButtons = document.querySelectorAll(".tab-btn");
   const sections = document.querySelectorAll(".mypage-section");
 
+  // 1. 탭 클릭 시 해시 변경
   tabButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
       const targetId = btn.getAttribute("data-tab");
+      // URL 해시 변경
+      window.location.hash = targetId;
+      // 기존 탭 활성화 코드
       tabButtons.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       sections.forEach((sec) => {
@@ -12,6 +16,23 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   });
+
+  // 2. 페이지 로드 시 해시에 맞는 탭 활성화
+  function activateTabFromHash() {
+    const hash = window.location.hash.substring(1); // #을 제거
+    if (!hash) return; // 해시 없으면 무시
+    // 해시에 해당하는 탭 버튼 찾기
+    const targetBtn = document.querySelector(`.tab-btn[data-tab="${hash}"]`);
+    if (targetBtn) {
+      targetBtn.click(); // 해당 탭 클릭(강제 실행)
+    }
+  }
+
+  // 3. 해시 변경 감지 (뒤로가기/앞으로가기 등)
+  window.addEventListener("hashchange", activateTabFromHash);
+
+  // 4. 페이지 로드 시 한 번 실행
+  activateTabFromHash();
 
   // TODO 회원정보 수정 유효성검사 가져오기 + 닉네임 중복체크?
   // 닉네임, 비밀번호 수정 폼 분리해야 될듯?

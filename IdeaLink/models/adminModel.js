@@ -232,16 +232,19 @@ exports.insertSuggestionReply = async (suggestion_id, reply) => {
   await conn.promise().query(sql, [reply, suggestion_id]);
 };
 
-exports.getTodayStats = async function () {
+exports.getStats = async function () {
   const conn = await dbconn.init();
   await dbconn.connect(conn);
 
 const sql = `
   SELECT 
-    (SELECT COUNT(*) FROM post WHERE DATE(created_at) = CURDATE()) AS idea_count,
-    (SELECT COUNT(*) FROM post_log WHERE post_log_event = 'VIEW_POST' AND DATE(post_log_time) = CURDATE()) AS total_views,
-    (SELECT COUNT(*) FROM comment WHERE DATE(created_at) = CURDATE()) AS feedback_count
-  FROM DUAL
+    (SELECT COUNT(*) FROM post) AS idea_count,
+    (SELECT SUM(view_count) FROM post) AS total_views,
+    (
+        (SELECT COUNT(*) FROM comment) +
+        (SELECT COUNT(*) FROM answer)
+    ) AS feedback_count
+  FROM DUAL;
 `;
 
   const [rows] = await conn.promise().query(sql);

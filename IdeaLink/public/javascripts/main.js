@@ -67,6 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     window.addEventListener("wheel", (e) => {
+      e.preventDefault();
       if (isScrolling) return;
       isScrolling = true;
 
@@ -80,8 +81,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
       setTimeout(() => {
         isScrolling = false;
-      }, 1000); // 1초간 스크롤 잠금
-    });
+      }, 1000);
+      }, { passive: false});
   }
 
   // 5. (사용하지 않는 경우 제거 가능) 헤더/푸터 fetch

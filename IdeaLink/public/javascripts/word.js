@@ -41,7 +41,6 @@ async function loadWordCloud() {
             shape: 'circle',
             clearCanvas: true,
             click: function (item) {
-                alert(`클릭한 키워드: ${item[0]}`);
                 location.href = `http://localhost:3000/post/ideas?keyword=${encodeURIComponent(item[0])}&search_type=title&page=1`;
             }
         });

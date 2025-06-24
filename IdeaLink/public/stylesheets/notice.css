@@ -40,12 +40,12 @@ body {
   .notice-list li:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   }
-  
   .notice-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
-    margin-bottom: 8px;
+    margin-top: 0;
     color: #222;
+    text-align: center;
   }
   
   .notice-date {

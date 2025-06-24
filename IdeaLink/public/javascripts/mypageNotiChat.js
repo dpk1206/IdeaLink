@@ -1,5 +1,9 @@
 // 채팅 창
 function chatWindow(user_id, writer_id, post_id, type) {
+
+    if (!confirm("본 채팅방에서 이루어지는 모든 대화는 비밀 보장이 원칙이며, 제3자에게 공개하거나 유출해서는 안 됩니다.")) {
+        return;
+    }
     // 1. 폼 요소 생성
     const form = document.createElement('form');
     form.method = 'POST';

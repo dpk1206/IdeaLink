@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>아이디어 거래 플랫폼</title>
+  <title>IdeaLink</title>
   <!-- css link -->
   <link rel="stylesheet" href="/stylesheets/main.css">
   <link rel="stylesheet" href="/stylesheets/word.css">
@@ -30,14 +30,14 @@
 
       <!-- SECTION 2: 오늘의 인기 아이디어 -->
       <section class="section popular-section">
+        <h2 class="section-title">🌟 인기 아이디어</h2>
         <div class="container grid-2col">
           <div class="text-block">
-            <h2 class="section-title">🌟 오늘의 인기 아이디어</h2>
-            <p>지금 가장 주목받는 아이디어를 확인하세요.<br>전문가 피드백과 함께 빠르게 성장 중입니다.</p>
+            <h2 id="stat-title" class="section-title">📊아이디어 통계</h2>
             <div class="stats-grid">
             <div class="stat-card">
-              <div class="stat-icon">🧠</div>
-              <div class="stat-text">등록된 아이디어</div>
+              <div class="stat-icon">💡</div>
+              <div class="stat-text">등록 아이디어</div>
               <div class="stat-number idea">-</div>
             </div>
             <div class="stat-card">
@@ -52,9 +52,10 @@
             </div>
           </div>
 
-          <a href="/post/idea_list" class="btn">전체 아이디어 보기 →</a>
+          <a href="/post/ideas" class="btn">전체 아이디어 보기 →</a>
           </div>
          <div class="card-grid">
+
   <% if (popularIdeas && popularIdeas.length > 0) { %>
     <% popularIdeas.forEach(idea => { %>
       <div class="idea-card" onclick="location.href='/post/idea_detail?post_id=<%= idea.post_id %>'" style="cursor:pointer;">
@@ -64,7 +65,7 @@
           <img src="https://placehold.co/600x400?text=No+Image" alt="기본 이미지">
         <% } %>
         <h3><%= idea.title %></h3>
-        <p><%= idea.summary || '요약 정보 없음' %></p>
+        <p>👤 <%= idea.nick_name || '닉네임 없음' %> <span style="font-weight: 900;">|</span> 👁️ <%= idea.view_count || '조회수 없음' %></p>
       </div>
     <% }) %>
   <% } else { %>
@@ -77,17 +78,16 @@
     <!-- SECTION 3: 공지사항 / FAQ -->
 <section class="section notice-faq-section">
   <div class="container">
-    <h2 class="section-title">🗂️ 공지사항 / FAQ</h2>
+    <h2 class="section-title">📢 공지사항 / FAQ</h2>
     <div class="grid-2col">
 
       <!-- ✅ 공지사항 -->
       <div class="notice-column">
         <% if (recentNotices && recentNotices.length > 0) { %>
           <% recentNotices.forEach(notice => { %>
-            <div class="notice-card">
-              <h3><%= notice.title %></h3>
-              <p><%= notice.content.length > 40 ? notice.content.substring(0, 40) + '...' : notice.content %></p>
-              <span class="date"><%= notice.formatted_date %></span>
+            <div onclick="location.href='/notice'" class="notice-card">
+              <h3><%= notice.title %> <span class="date"><%= "(" + notice.formatted_date + ")" %></span></h3>
+              <p><%- notice.content.length > 60 ? notice.content.substring(0, 60).replace(/\r\n|\n|\r/g, '<br>') + '...' : notice.content.replace(/\r\n|\n|\r/g, '<br>') %></p>
             </div>
           <% }) %>
         <% } else { %>
@@ -97,6 +97,10 @@
 
       <!-- ✅ FAQ (고정 아코디언) -->
       <div class="faq-column">
+        <div class="accordion-item active">
+          <button class="accordion-title">어떤 아이디어를 마켓에 판매할 수 있나요?</button>
+          <div class="accordion-content">간단한 아이디어부터 실현 가능한 구체적인 아이디어까지 자유롭게 판매 가능합니다.</div>
+        </div>
         <div class="accordion-item">
           <button class="accordion-title">전문가는 어떤 기준으로 평가하나요?</button>
           <div class="accordion-content">전문가는 명확성, 참신성, 실현 가능성 등을 기준으로 평가합니다.</div>
@@ -104,10 +108,6 @@
         <div class="accordion-item">
           <button class="accordion-title">내 포인트는 어디서 확인하나요?</button>
           <div class="accordion-content">마이페이지 > 포인트 내역 메뉴에서 확인할 수 있습니다.</div>
-        </div>
-        <div class="accordion-item">
-          <button class="accordion-title">어떤 아이디어를 마켓에 판매할 수 있나요?</button>
-          <div class="accordion-content">간단한 아이디어부터 실현 가능한 구체적인 아이디어까지 자유롭게 판매 가능합니다.</div>
         </div>
         <div class="accordion-item">
           <button class="accordion-title">내 아이디어가 도용되면 어떡하죠?</button>
@@ -125,10 +125,11 @@
 
     </div>
   </div>
+      <!-- 푸터 -->
+    <%- include ('footer.html') %>
 </section>
 
-      <!-- 헤더 ejs -->
-      <%- include ('footer.html') %>
+
     </div> <!-- wrapper 끝 -->
 
     <!-- js link -->

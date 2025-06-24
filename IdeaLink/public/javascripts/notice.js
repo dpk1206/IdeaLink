@@ -13,9 +13,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     data.notices.forEach(n => {
       const li = document.createElement("li");
       li.innerHTML = `
-        <strong style="font-size: 18px;">${n.title}</strong>
-        <p style="font-size: 14px; color: gray;">${new Date(n.created_at).toISOString().split('T')[0]}</p>
-        <div style="margin-top: 10px;">${n.content}</div>
+        <h3 class="notice-title">${n.title}<span style="font-size: 14px; color: gray;">(${new Date(n.created_at).toISOString().split('T')[0]})</span></h3>
+        <div style="margin-top: 10px;">${n.content.replace(/\r\n|\n|\r/g, '<br>')}</div>
         <hr />
       `;
       list.appendChild(li);

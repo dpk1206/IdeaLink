@@ -412,6 +412,8 @@ exports.reservePost = async (req, res) => {
       return res.status(400).json({ success: false, message: "이미 거래중이거나 완료된 게시물입니다." });
     }
 
+    const sendNotification = req.app.get('sendNotification'); // 알림 전송 함수 가져옴
+      
     if (type === '구매') {
       // 답글 거래 요청
       const answer = await answerModel.getAnswerById(answer_id);
@@ -428,6 +430,10 @@ exports.reservePost = async (req, res) => {
       });
 
       await escrowService.holdEscrowForAnswer(user_id, price, answer_id);
+      // 구매글 거래 요청 알림
+      // 거래 제안 받는 사람 = 답글 작성자(seller_id) = 알림 받을 사람
+      // 거래 제안 보내는 사람 = 현재 로그인 유저(user_id) = 알림 보내는 사람
+      await sendNotification(seller_id, user_id, "purchase_request", post_id, price);
     } else if (type === '판매') {
       // 일반 게시글 거래 요청
       await postModel.updatePostStatus(post_id, '거래중');
@@ -441,8 +447,12 @@ exports.reservePost = async (req, res) => {
         seller_id,
         proposed_price: price
       });
-
+      
       await escrowService.holdEscrowForPost(user_id, price, post_id);
+      // 판매글 거래 요청 알림
+      // 거래 제안 받는 사람 = 판매글 작성자(seller_id) = 알림 받을 사람
+      // 거래 제안 보내는 사람 = 현재 로그인 유저(user_id) = 알림 보내는 사람
+      await sendNotification(seller_id, user_id, "purchase_request", post_id, price);
     }
 
     return res.json({ success: true, message: "거래 요청 완료" });
@@ -534,6 +544,11 @@ exports.confirmPurchaseBySeller = async (req, res) => {
     await escrowService.releaseEscrowForPost(seller_id, buyer_id, proposed_price, post_id);
     await postModel.updatePostStatus(post_id, "거래완료");
     await postModel.markRequestAccepted(post_id);
+
+    // TODO
+    // 판매글 거래 요청 수락 됨 알림
+    const sendNotification = req.app.get('sendNotification'); // 알림 전송 함수 가져옴
+    await sendNotification(buyer_id, seller_id, "purchase_request_accept", post_id, post.title);
 
     return res.redirect(`/users/mypage?user_id=${seller_id}`);
   } catch (err) {
@@ -684,12 +699,13 @@ exports.rejectPurchaseBySeller = async (req, res) => {
 
     // ✅ 구매 요청 정보에서 정확한 금액 가져오기
     const purchase = await postModel.getActivePurchaseRequest(post_id); // 구매자가 요청한 금액
-    if (!purchase || !purchase.buyer_id || !purchase.price) {
+    console.log("구매 요청 정보:", purchase);
+    if (!purchase || !purchase.buyer_id || !purchase.proposed_price) {
       return res.status(400).json({ success: false, message: "환불할 구매 요청 정보가 없습니다." });
     }
 
     const buyer_id = purchase.buyer_id;
-    const amount = purchase.price;
+    const amount = purchase.proposed_price;
 
     // ✅ 에스크로 환불 처리
     await escrowService.refundEscrowForPost(buyer_id, amount, post_id);
@@ -699,7 +715,12 @@ exports.rejectPurchaseBySeller = async (req, res) => {
     await postModel.updatePostStatus(post_id, "판매");
     await postModel.setBuyer(post_id, null);
 
-    return res.redirect(`/users/mypage?user_id=${seller_id}`);
+    // 거래 요청 거절 알림
+    const sendNotification = req.app.get('sendNotification'); // 알림 전송 함수 가져옴
+    await sendNotification(buyer_id, seller_id, "purchase_request_reject", post_id, post.title);
+
+    // ✅ 리다이렉트
+    return res.redirect(`/users/mypage?user_id=${seller_id}#requested`);
   } catch (err) {
     console.error("거래 거절 오류:", err);
     return res.status(500).json({ success: false, message: "서버 오류" });
