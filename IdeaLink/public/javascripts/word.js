@@ -15,10 +15,10 @@ async function loadWordCloud() {
         wordcloudElement.innerHTML = "";
 
         const width = window.innerWidth;
-        const fontSize = width > 768 ? 22 : 14;
+        const fontSize = width > 768 ? 20 : 14;
 
         const palette = [
-            '#f8f1ff', '#d0e6ff', '#ffddee', '#e0f7e9',
+            '#f8f1ff', '#B3E1B9', '#ffddee', '#e0f7e9',
             '#fff9d6', '#f6dcff', '#fce4ec', '#e3f2fd'
         ];
 

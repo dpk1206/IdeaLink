@@ -928,6 +928,7 @@ LEFT JOIN (
   SELECT *
   FROM post_file
   WHERE post_type = 'post'
+  AND file_type IN ('.jpg', '.png', '.jpeg')
   GROUP BY post_id
 ) pf ON p.post_id = pf.post_id
 WHERE p.status IN ('판매','구매')

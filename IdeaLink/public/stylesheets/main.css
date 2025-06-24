@@ -77,12 +77,6 @@ body {
   position: relative;
 }
 
-#wordcloud {
-  width: 80vw;
-  max-width: 900px;
-  height: 60vh;
-}
-
 /* 4-B. SECTION 2 · 오늘의 인기 아이디어 ------------------------------- */
 .popular-section {
   min-height: 100vh;

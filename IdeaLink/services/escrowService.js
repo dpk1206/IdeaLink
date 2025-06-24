@@ -13,15 +13,15 @@ exports.holdEscrowForPost = async (buyer_id, amount, post_id) => {
 
 // 일반 게시글 - 거래 수락 (관리자 → 판매자)
 exports.releaseEscrowForPost = async (seller_id, buyer_id, amount, post_id) => {
-  const fee = Math.floor(amount * 0.05); // 5% 수수료
+  const fee = Math.floor(amount * 0.1); // 10% 수수료
   const netAmount = amount - fee;
 
   await userModel.deductPointFromUser(ADMIN_ID, amount);
   await userModel.addPointToUser(seller_id, netAmount);
 
   await userModel.insertPointLog(ADMIN_ID, 'hold_release', amount, `에스크로 출금 - post_id: ${post_id}`);
-  await userModel.insertPointLog(seller_id, 'charge', netAmount, `판매 수익 - post_id: ${post_id} (수수료 5%)`);
-  await userModel.insertPointLog(ADMIN_ID, 'platform_fee', fee, `판매 수수료 5% - post_id: ${post_id}`);
+  await userModel.insertPointLog(seller_id, 'charge', netAmount, `판매 수익 - post_id: ${post_id} (수수료 10%)`);
+  await userModel.insertPointLog(ADMIN_ID, 'platform_fee', fee, `판매 수수료 10% - post_id: ${post_id}`);
 };
 
 
@@ -44,15 +44,15 @@ exports.holdEscrowForAnswer = async (buyer_id, amount, answer_id) => {
 
 // 답글 거래 - 거래 수락 (관리자 → 판매자)
 exports.releaseEscrowForAnswer = async (seller_id, buyer_id, amount, answer_id) => {
-  const fee = Math.floor(amount * 0.05);
+  const fee = Math.floor(amount * 0.1);
   const sellerAmount = amount - fee;
 
   await userModel.deductPointFromUser(ADMIN_ID, amount);
   await userModel.addPointToUser(seller_id, sellerAmount);
 
   await userModel.insertPointLog(ADMIN_ID, 'hold_release', amount, `에스크로 출금 - answer_id: ${answer_id}`);
-  await userModel.insertPointLog(seller_id, 'answer_charge', sellerAmount, `답글 판매 수익 (수수료 5%) - answer_id: ${answer_id}`);
-  await userModel.insertPointLog(ADMIN_ID, 'platform_fee', fee, `답글 판매 수수료 5% - answer_id: ${answer_id}`);
+  await userModel.insertPointLog(seller_id, 'answer_charge', sellerAmount, `답글 판매 수익 (수수료 10%) - answer_id: ${answer_id}`);
+  await userModel.insertPointLog(ADMIN_ID, 'platform_fee', fee, `답글 판매 수수료 10% - answer_id: ${answer_id}`);
 };
 
 

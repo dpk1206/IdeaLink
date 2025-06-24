@@ -536,7 +536,7 @@ button[type='submit']:hover {
   text-align: center;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .ad_banner {
     display: none;
   }
@@ -678,4 +678,25 @@ button[type='submit']:hover {
 #cancelLikeBtn {
   background-color: #f2f2f2;
   color: #333;
+}
+
+ /* 채팅버튼 */
+.chatBtn {
+  background-color: #64b5f6;       
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chatBtn:hover {
+  background-color: #42a5f5;
+  transform: scale(1.03);
 }

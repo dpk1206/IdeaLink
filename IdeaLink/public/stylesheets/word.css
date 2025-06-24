@@ -13,8 +13,8 @@
 
 /* ===== 워드클라우드 컨테이너 ===== */
 .wordcloud {
-  width: 100%;
-  height: 100%;
+  width: 80vw;
+  height: 60vh;
   max-width: 1200px;
   max-height: 80vh;
   display: flex;

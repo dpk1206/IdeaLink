@@ -42,7 +42,7 @@
             </div>
             <div class="stat-card">
               <div class="stat-icon">👁️</div>
-              <div class="stat-text">오늘 조회수</div>
+              <div class="stat-text">전체 조회수</div>
               <div class="stat-number view">-</div>
             </div>
             <div class="stat-card">
@@ -64,7 +64,7 @@
         <% } else { %>
           <img src="https://placehold.co/600x400?text=No+Image" alt="기본 이미지">
         <% } %>
-        <h3><%= idea.title %></h3>
+        <h3><%= idea.title.length > 15 ? idea.title.substring(0, 15) + '...' : idea.title %></h3>
         <p>👤 <%= idea.nick_name || '닉네임 없음' %> <span style="font-weight: 900;">|</span> 👁️ <%= idea.view_count || '조회수 없음' %></p>
       </div>
     <% }) %>
