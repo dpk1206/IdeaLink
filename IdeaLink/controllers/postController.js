@@ -82,7 +82,7 @@ exports.createPost = async (req, res, next) => {
     res.redirect(`/post/idea_detail?post_id=${post_id}`);
   } catch (err) {
     console.error("게시글 등록 오류:", err);
-    res.status(500).send("게시글 등록 실패");
+    next(err);
   }
 };
 

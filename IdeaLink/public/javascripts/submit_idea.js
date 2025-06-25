@@ -168,7 +168,6 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
 
     const form_data = new FormData(idea_form);
-    const file_types = form_data.getAll("file_type");
     const price_value = price_input.value.trim();
     const selected_main = document.getElementById("selected_main");
     const selected_sub = document.getElementById("selected_sub");
@@ -176,10 +175,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!selected_main?.value) return alert("대분류를 선택해주세요.");
     if (!selected_sub?.value) return alert("중분류를 선택해주세요.");
     if (!price_value || isNaN(price_value) || Number(price_value) <= 0) return alert("가격을 올바르게 입력해주세요.");
-    if (file_types.length === 0) return alert("파일 유형을 하나 이상 선택해주세요.");
 
     console.log("제출된 데이터:", Object.fromEntries(form_data.entries()));
-    console.log("파일 유형(중복):", file_types);
 
     alert("아이디어가 제출되었습니다!");
     idea_form.submit();

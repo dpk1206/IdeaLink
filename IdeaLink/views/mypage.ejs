@@ -278,14 +278,16 @@
                   <% const seller_id = seller_id_map[post.post_id]; %>
                   <% if (post.status === '거래중' && seller_id == user.user_id) { %>
                     <!-- 수락/거절 버튼 -->
-                    <form method="POST" action="/post/confirm/<%= post.post_id %>" onsubmit="return confirm('정말 거래를 수락하시겠습니까?');" style="display:inline;">
-                      <input type="hidden" name="post_id" value="<%= post.post_id %>">
-                      <button type="submit" onclick="event.stopPropagation()">수락</button>
-                    </form>
-                    <form method="POST" action="/post/reject/<%= post.post_id %>" onsubmit="return confirm('정말 거래를 거절하시겠습니까?');" style="display:inline; margin-left: 8px;">
-                      <input type="hidden" name="post_id" value="<%= post.post_id %>">
-                      <button type="submit" onclick="event.stopPropagation()">거절</button>
-                    </form>
+                     <div class="button-group">
+                      <form method="POST" action="/post/confirm/<%= post.post_id %>" onsubmit="return confirm('정말 거래를 수락하시겠습니까?');">
+                        <input type="hidden" name="post_id" value="<%= post.post_id %>">
+                        <button style="background-color: #2ecc71;" type="submit" onclick="event.stopPropagation()">수락</button>
+                      </form>
+                      <form method="POST" action="/post/reject/<%= post.post_id %>" onsubmit="return confirm('정말 거래를 거절하시겠습니까?');">
+                        <input type="hidden" name="post_id" value="<%= post.post_id %>">
+                        <button style="background-color: #e74c3c;" type="submit" onclick="event.stopPropagation()">거절</button>
+                      </form>
+                    </div>
                   <% } else { %>
                     <%= post.status %>
                   <% } %>
