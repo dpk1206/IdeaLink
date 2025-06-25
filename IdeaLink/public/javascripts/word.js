@@ -44,6 +44,11 @@ async function loadWordCloud() {
                 location.href = `http://localhost:3000/post/ideas?keyword=${encodeURIComponent(item[0])}&search_type=title&page=1`;
             }
         });
+        
+        // 워드클라우드가 그려진 후 show 클래스 추가
+        setTimeout(() => {
+            wordcloudElement.classList.add('show');
+        }, 100); // 약간의 딜레이(필요시 조정)
 
         console.log("✅ 워드클라우드 생성 성공");
     } catch (error) {

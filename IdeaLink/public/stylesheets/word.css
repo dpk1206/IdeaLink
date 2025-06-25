@@ -1,7 +1,7 @@
 /* ===== 워드클라우드 섹션 전체 레이아웃 ===== */
 .keywords-section {
   position: relative;
-  background: linear-gradient(135deg, #a4b0ff, #8ec5fc); /* 밝고 시원한 그라데이션 */
+  background: linear-gradient(135deg, #a4b0ff, #8ec5fc);
   padding: 60px 20px;
   min-height: 90vh;
   display: flex;
@@ -16,7 +16,7 @@
   width: 80vw;
   height: 60vh;
   max-width: 1200px;
-  max-height: 80vh;
+  max-height: 70vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -24,11 +24,13 @@
   z-index: 1;
   padding: 20px;
   box-sizing: border-box;
-
-  /* ✅ 배경 제거 */
   background-color: transparent;
-  border-radius: 0;
-  box-shadow: none;
+  opacity: 0;
+  transition: opacity 0.7s ease-in-out;
+}
+
+.wordcloud.show {
+  opacity: 1;
 }
 
 /* ===== 캔버스 스타일 ===== */
@@ -43,6 +45,7 @@
 .wordcloud canvas:hover {
   transform: scale(1.02);
 }
+
 
 .wordcloud span{
   cursor: pointer;
