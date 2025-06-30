@@ -12,6 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 200);
 });
 
+function formatFileSize(bytes) {
+    if (bytes >= 1024 * 1024) {
+        return (bytes / (1024 * 1024)).toFixed(1) + "MB";
+    } else if (bytes >= 1024) {
+        return (bytes / 1024).toFixed(1) + "KB";
+    } else {
+        return bytes + "B";
+    }
+}
+
 // 채팅용 소켓 연결
 const chatSocket = io('/chat', {
     auth: { user_id: user_id }
@@ -76,7 +86,7 @@ chatSocket.on('message', function (msg) {
             if (ext === 'pdf') {
                 fileHtml += `
                 <div class="file-box">
-                    <div class="file-name">▶ ${file.originalname}</div>
+                    <div class="file-name">▶ ${file.encodingName}</div>
                     <div class="file-size">용량: ${formatFileSize(file.size)}</div>
                     <div class="file-actions">
                         <a href="/post/download/${file.watermark_id || file.filename}" download>다운로드⬇️</a>

@@ -352,7 +352,7 @@ function addAdminLog(action) {
   const adminId = "admin001";
   const row = document.createElement("tr");
   row.innerHTML = `<td>${now}</td><td>${adminId}</td><td>${action}</td>`;
-  logList.prepend(row);
+  // logList.prepend(row);
 }
 
 window.onload = () => {
