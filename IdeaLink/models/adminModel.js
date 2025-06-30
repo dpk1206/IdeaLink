@@ -36,7 +36,6 @@ exports.getAllPostsWithAnswers = async () => {
   }
 };
 
-
 // 공지사항 목록 조회
 exports.getNotices = async () => {
   const conn = await dbconn.init(); await dbconn.connect(conn);
@@ -77,6 +76,7 @@ exports.getRecentNotices = async () => {
     LIMIT 3
   `;
   const [rows] = await conn.promise().query(sql);
+  await conn.end();
   return rows;
 };
 
@@ -205,6 +205,7 @@ exports.getCategoryTradeStats = async () => {
   await conn.end();
   return rows;
 };
+
 //건의 사항
 exports.getAllSuggestions = async () => {
   const conn = await dbconn.init();
@@ -217,8 +218,10 @@ exports.getAllSuggestions = async () => {
     ORDER BY s.created_at DESC
   `;
   const [rows] = await conn.promise().query(sql);
+  await conn.end();
   return rows;
 };
+
 // 건의 사항 답변
 exports.insertSuggestionReply = async (suggestion_id, reply) => {
   const conn = await dbconn.init();
@@ -230,6 +233,7 @@ exports.insertSuggestionReply = async (suggestion_id, reply) => {
   WHERE suggestion_id = ?
 `;
   await conn.promise().query(sql, [reply, suggestion_id]);
+  await conn.end();
 };
 
 exports.getStats = async function () {
@@ -248,5 +252,6 @@ const sql = `
 `;
 
   const [rows] = await conn.promise().query(sql);
+  await conn.end();
   return rows[0];
 };

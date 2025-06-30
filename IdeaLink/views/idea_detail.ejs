@@ -117,7 +117,9 @@
                 var ext = file.saved_name.split('.').pop().toLowerCase();
               %>
               <% if (ext === 'jpg' || ext === 'png' || ext === 'gif') { %>
+                <div style="display: flex; justify-content: center;">
                   <img src="/wm_uploads/wm_<%= file.saved_name %>" alt="Image" style="max-width: 100%; height: auto;">
+                  </div>
               <% } %>
             <% }); %>
           <% } %>
@@ -249,7 +251,7 @@
           
         <div class="actions">
           <button id="like_btn">👍 추천 (<span id="like_count">0</span>)</button>
-          <button class="answer_btn">🗣️ 답글 작성</button>
+          <button class="answer_btn">🗣️ <%= postInfo.status === '구매' ? '판매글 작성' : '검증글 작성' %></button>
           <button class="report-btn" data-type="post" data-id="<%= postInfo.post_id %>">🚩 신고</button>
         </div>
         <div class="comment_section">
@@ -262,7 +264,11 @@
 
       <!-- 답글 작성 폼(버튼 추가후 클릭해야 보이게 바꾸기) -->
       <div class="submit_container" style="display: none;">
-      <h1>답글 작성</h1>
+        <% if (postInfo.status === '구매') { %>
+      <h1>판매글 작성</h1>
+      <% } else if (postInfo.status === '판매') {%>
+        <h1>검증글 작성</h1>
+      <% } %>
       <form id="idea_form" action="/post/submit_answer" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="post_id" value="<%= postInfo.post_id %>">
         <input type="hidden" id="answer_user_id" name="answer_user_id" value="<%= user.user_id %>"> <!-- js에서 설정 -->
@@ -282,14 +288,6 @@
             <input type="number" id="price" name="price" placeholder="판매 제안 금액을 입력하세요" required>
           </div>
         <% } %>
-
-        <div class="form_card">
-          <label>파일 유형 (중복 선택 가능)</label>
-          <div class="checkbox_group">
-            <label><input type="checkbox" name="file_type" value="image"> 이미지</label>
-            <label><input type="checkbox" name="file_type" value="document"> 문서</label>
-          </div>
-        </div>
 
         <div class="form_card">
           <label for="files">파일 첨부 (이미지/문서)</label>

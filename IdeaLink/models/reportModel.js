@@ -108,6 +108,7 @@ exports.getMyReports = async function (user_id) {
   `;
 
   const [rows] = await conn.promise().query(sql, [user_id]);
+  await conn.end();
   return rows;
 };
 

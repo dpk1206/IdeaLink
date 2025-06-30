@@ -23,6 +23,8 @@ async function insertBookmark(user_id, post_id) {
       return { success: false, message: "이미 북마크에 등록됨" };
     }
     throw err;
+  } finally {
+    await conn.end();
   }
 }
 
@@ -40,6 +42,7 @@ async function deleteBookmark(user_id, post_id) {
   await dbconn.connect(conn);
   const sql = "DELETE FROM bookmark WHERE user_id = ? AND post_id = ?";
   const [result] = await conn.promise().query(sql, [user_id, post_id]);
+  await conn.end();
   return { success: result.affectedRows > 0 };
 }
 
@@ -55,6 +58,7 @@ async function isBookmarked(user_id, post_id) {
   const sql =
     "SELECT 1 FROM bookmark WHERE user_id = ? AND post_id = ? LIMIT 1";
   const [rows] = await conn.promise().query(sql, [user_id, post_id]);
+  await conn.end();
   return rows.length > 0;
 }
 
@@ -91,6 +95,8 @@ async function getUserBookmarks(user_id) {
     return rows;
   } catch (err) {
     throw err;
+  } finally {
+    await conn.end();
   }
 }
 

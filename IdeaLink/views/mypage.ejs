@@ -94,7 +94,7 @@
             <input type="hidden" id="title" value="포인트 충전">
             <input type="number" id="amount" placeholder="충전 금액 (원)" min="1000" step="500" required
               style="padding: 5px;">
-            <button type="submit" style="padding: 5px 10px;">충전하기</button>
+            <button type="submit" style="padding: 5px 10px; background-color: #0984e3;">충전하기</button>
           </form>
 
         <!-- 포인트 사용 내역 -->
@@ -177,7 +177,6 @@
                 <th>작성자</th>
                 <th>아이디어 등록일</th>
                 <th>조회수</th>
-                <th>추천수</th>
                 <th>상태</th>
                 <th>북마크 등록일</th>
               </tr>
@@ -195,7 +194,6 @@
                   <td><%= bookmark.nick_name %></td>
                   <td><%= new Date(bookmark.created_at).toISOString().split('T')[0] %></td>
                   <td><%= bookmark.view_count %></td>
-                  <td><%= bookmark.like %></td>
                   <td class="status-sale"><%= bookmark.status %></td>
                   <td>
                     <% if (bookmark.bookmark_created_at) { %>

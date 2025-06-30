@@ -54,10 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ===== 💬 채팅 기능 =====
-
-
-  // ===== 등록아이디어 탭 =====
+  // ===== 등록아이디어 내부 탭메뉴 =====
   document.querySelectorAll(".mypost-tab-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
       document.querySelectorAll(".mypost-tab-btn").forEach((b) => b.classList.remove("active"));
@@ -75,7 +72,6 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById(target).style.display = "table";
     });
   });
-
 
   // ===== 💳 포인트 충전 기능 =====
   const tossPayments = TossPayments("test_ck_Z1aOwX7K8mOBXbPzKEKqVyQxzvNP");
@@ -101,15 +97,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // ===== 북마크 삭제 비동기 처리 =====
 async function toggleDeleteBookmark(event, userId, postId) {
-  event.stopPropagation();
+  const tr = event.currentTarget.closest("tr"); // 미리 할당
+  event.stopPropagation(); // 멈추고 나면 event 객체 소멸
   try {
     const response = await fetch('/users/bookmark', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId, post_id: postId })
     });
-    const tr = event.currentTarget.closest("tr");
-    tr.remove();
+    if (tr) {
+      tr.remove();
+    } else {
+      console.error('tr 요소를 찾을 수 없습니다.');
+    }
   } catch (error) {
     alert('에러 발생: ' + error);
   }

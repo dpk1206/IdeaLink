@@ -203,6 +203,7 @@ exports.getUserPoint = async function (user_id) {
     await conn.end();
   }
 };
+
 // 사용자 구매 여부 확인 함수
 exports.hasUserPurchased = async (user_id, post_id) => {
   const conn = await dbconn.init();
@@ -221,7 +222,6 @@ exports.hasUserPurchased = async (user_id, post_id) => {
     await conn.end();
   }
 };
-
 
 // 사용자 ID로 사용자 정보 조회 함수
 exports.getUserById = async function (user_id) {

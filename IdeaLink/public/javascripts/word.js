@@ -16,12 +16,24 @@ async function loadWordCloud() {
 
         const width = window.innerWidth;
         const fontSize = width > 768 ? 20 : 14;
-
+        
         const palette = [
-            '#f8f1ff', '#B3E1B9', '#ffddee', '#e0f7e9',
-            '#fff9d6', '#f6dcff', '#fce4ec', '#e3f2fd'
+            '#f8f1ff', // 연보라
+            '#B3E1B9', // 연녹색
+            '#e0f7e9', // 연민트
+            '#fff9d6', // 연노랑
+            '#f6dcff', // 연라벤더
+            '#fce4ec', // 연핑크
+            '#bd89fdde', // 연보라
+            '#ffe0b2', // 연오렌지
+            '#ffccbc', // 연살구
+            '#0984e3', // 진한파랑
+            '#48ffef', // 진한민트
+            '#ffb7b2', // 살짝 진한 연핑크
+            '#fbab9ae8', // 살짝 진한 주황
+            '#ffcc80', // 살짝 진한 연노랑
+            '#ffb7ffdb', // 살짝 연한 핫핑크
         ];
-
         WordCloud(wordcloudElement, {
             list: wordList,
             gridSize: Math.max(12, Math.floor(width / 50)),
@@ -44,7 +56,7 @@ async function loadWordCloud() {
                 location.href = `http://localhost:3000/post/ideas?keyword=${encodeURIComponent(item[0])}&search_type=title&page=1`;
             }
         });
-        
+
         // 워드클라우드가 그려진 후 show 클래스 추가
         setTimeout(() => {
             wordcloudElement.classList.add('show');

@@ -11,6 +11,7 @@ exports.insertSuggestion = async (user_id, content, post_id = null, answer_id = 
   await conn.promise().query(sql, [user_id, content, post_id, answer_id]);
   await conn.end();
 };
+
 exports.getSuggestionsByUserId = async (user_id) => {
   const conn = await dbconn.init();
   await dbconn.connect(conn);

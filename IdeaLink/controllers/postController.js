@@ -545,7 +545,6 @@ exports.confirmPurchaseBySeller = async (req, res) => {
     await postModel.updatePostStatus(post_id, "거래완료");
     await postModel.markRequestAccepted(post_id);
 
-    // TODO
     // 판매글 거래 요청 수락 됨 알림
     const sendNotification = req.app.get('sendNotification'); // 알림 전송 함수 가져옴
     await sendNotification(buyer_id, seller_id, "purchase_request_accept", post_id, post.title);

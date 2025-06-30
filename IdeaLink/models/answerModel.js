@@ -79,7 +79,6 @@ exports.getMyAnswers = async (user_id) => {
     ORDER BY created_at DESC;
   `;
 
-
   const [rows] = await conn.promise().query(sql, [user_id]);
   await conn.end();
   return rows;
